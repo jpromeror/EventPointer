@@ -1,0 +1,428 @@
+---
+title: "EventPointer: An effective identification of alternative splicing events using junction arrays and RNA-Seq data"
+author: "Juan P. Romero"
+date: "`r BiocStyle::doc_date()`"
+abstract: >
+  *EventPointer* is a software to identify alternative splicing events in complex experimental designs such as time course and paired samples studies. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
+  
+  The software retrieves a data.frame with the detected alternative splicing events: gene name, type of event (cassette, alternative 3',...,etc), genomic position, statistical significance and percent spliced in ($\Delta \Psi$) for all the events.
+  
+  The algorithm can generate a series of files to visualize the detected alternative splicing events in IGV. This eases the interpretation of results and the design of primers for standard PCR validation.
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{EventPointer}
+  %\VignettePackage{EventPointer}
+output:
+  BiocStyle::html_document:
+    toc: true
+    fig_caption: true
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(knitr)
+opts_chunk$set(error = FALSE)
+library(EventPointer)
+```
+
+```{r style, echo = FALSE, results = 'asis'}
+##BiocStyle::markdown()
+```
+
+# Introduction
+
+*EventPointer* R package provides users a simplified way to identify, classify and visualize alternative splicing events. The steps required by the algorithm are almost identical for both technologies. The algorithm only differs in its inital step. 
+
+* *Splicing Graph Creation* The Splicing Graph (SG) is a directed graph used to represent the structure of a gene. EventPointer relies on SGSeq package to obtain the corresponding SGs  for every gene present in the experiment. For arrays, the SG is built according to the reference transcriptome selected by the user and for RNA-Seq, it is created by predicting the features in the .bam files provided by the user.
+
+* *Event Identification* Once the graphs are created, EventPointer analyzes each SG in order to find the alternative splicing events. The definition of splicing events by EventPointer consists in a triplet of subgraphs (P1,P2 and PR) i.e. for a cassette exon, PR correspond to the flanking exons, P1 the junctions and exon, and P2 the junction that skips the exon. This is depicted in Figure 1.
+
+![**Figure 1.** Definition of alternative splicing events for EventPointer ](Figure2.png)
+
+* *Statistical Analysis*  With all the detected events, EventPointer performs a statistical analysis to obtain the statistical significance of every splicing event. Briefly, EventPointer considers there is a differential splicing event if the isoforms in the associated paths change their expression in opposite directions. Different statistical tests can be applied (see Advanced Use).
+
+* *Visualization* To ease the interpretation of the splicing events, EventPointer generates .gtf files that can be loaded into Integrative Genomcis Viewer (IGV). The visualization allows researchers to design primers to validated the detected events using standard PCR.
+
+Figure 2 shows each of the main steps in a graphical layout.
+
+This vignette is divided in two sections. In the first one, the complete analysis for junction arrays is described and the second one describes the analysis for RNA-Seq data.
+
+To cite *EventPointer*:
+
+* Romero, Juan P., et al. "EventPointer: an effective identification of alternative splicing events using junction arrays." BMC genomics 17.1 (2016): 467. [doi:10.1186/s12864-016-2816-x](http://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2816-x)
+
+* Romero, Juan P., et al Comparison on the ability to detect splicing events between RNAseq and HTAv2 **(In preparation)**
+
+![**Figure 2.** Overview of *EventPointer*](Figure1.png)
+
+# Analysis of junction arrays
+## Overview of junction arrays
+*EventPointer* is prepared to work with the Affymetrix Human Transcriptome Array 2.0 (HTA 2.0). As newer arrays are developed, EP will be able to work with them, as long the required files are availble for download. 
+
+To build the CDF file (to work under the aroma.affymetrix framework), EP requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the requried information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded.
+
+The default required files can be downloaded from the [EventPointer Github repository](https://github.com/jpromeror/EventPointer) :
+
+1. Exon probes genomic position
+2. Junction probes genomic position
+3. HTA 2.0 reference transcriptome (GTF)
+
+<span style="color:red">**Note:**</span> It is advisable to work with the HTA 2.0 reference GTF file, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
+
+## CDF file creation
+
+The function **CDFfromGTF** generates the CDF file used afterwards in the aroma.affymetrix pre-processing pipeline.
+
+The required input for the function is described below:
+
+- **input** : Reference transcriprome. Available options are : "Ensembl","UCSC" and "GTF".
+- **inputFile**: If input is "GTF", inputFile should point to the GTF file to be used.
+- **PSR**: Path to the Exon probes txt file
+- **Junc**: Path to the Junction probes txt file
+- **PathCDF**: Directory where the output will be saved
+- **microarray**: Microarray being used 
+
+This function takes a couple of hours to complete (depending on the computer), and creates the following files:
+
+1. EventsFound.txt : Tab separated file with all the information of all the alternative splcing events found.
+2. .flat file : Used to build the corresponding CDF file.
+3. .CDF file: Output required for the aroma.affymetrix preprocessing pipeline.
+
+The following code chunks show examples on how to run the function using both Ensembl and Affymetrix GTF using
+example data included in the package.
+
+  Using Affymetrix GTF as reference transcriptome
+```{r, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+# Set input variables
+   PathFiles<-system.file("extdata",package="EventPointer")
+   DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
+   PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
+   JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
+   Directory<-system.file("extdata",package="EventPointer")
+
+# Run the function
+
+   CDFfromGTF(input="GTF",inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
+
+```
+
+<span style="color:red">**Note:**</span> Both the .flat and .CDF file take large accounts of space in the hard drive, it is recommended that the directory
+has at least 1.5 GB of free space.
+
+
+Figure 3 shows a screen shot with the output of the CDFfromGTF function
+
+![**Figure 3.** Output of CDFfromGTF](Figure3.png)
+
+Once the file is created, the name of the cdf file can be changed. Internally, the algorithm gives the name as HTA-2_0, but the actual name of the file can be different. In the rest of the vignette, we have renamed our CDF file as EP_HTA-2_0.
+
+Once the CDF file has been created, it can be used for the analysis of different experiments.
+
+## Statistical Analysis
+
+### aroma.affymetrix pre-processing pipeline
+
+As EventPointer relies on aroma.affymetrix. A pre-processing pipeline must be applied to the .cel files of the experiment. This procedure normalizes and summarizes the expression of the different probesets into single values.
+
+The following code chunk displays the pipeline used. It may be modified to use different methods, but the output must remain the same.
+
+```{r, eval=FALSE}
+
+# Aroma.Affymetrix Preprocessing Pipeline
+
+verbose <- Arguments$getVerbose(-8);
+timestampOn(verbose);
+projectName <- "Prosplice"
+chipType <- "EP_HTA-2_0"
+cdfGFile <- "EP_HTA-2_0,r"
+cdfG <- AffymetrixCdfFile$byChipType(cdfGFile)
+cs <- AffymetrixCelSet$byName(projectName, cdf=cdfG)
+bc <- NormExpBackgroundCorrection(cs, method="mle", tag=c("*","r11"));
+csBC <- process(bc,verbose=verbose,ram=20);
+qn <- QuantileNormalization(csBC, typesToUpdate="pm");
+csN <- process(qn,verbose=verbose,ram=20);
+plmEx <- ExonRmaPlm(csN, mergeGroups=FALSE)
+fit(plmEx, verbose=verbose)
+cesEx <- getChipEffectSet(plmEx)
+ExFit <- extractDataFrame(cesEx, addNames = TRUE)
+```
+
+### EventPointer function
+EventPointer is the main function of the algorithm
+
+The function requires the following parameters:
+
+- **Design** : The design matrix for the experiment.
+- **Contrast**: The contrast matrix for the experiment.
+- **ExFit**: [aroma.affymetrix] pre-processed variable after using extractDataFrame(affy, addNames=TRUE)
+- **Eventstxt**: Path to the EventsFound.txt file generated by CDFfromGTF function.
+- **Filter**: Boolean variable to indicate if an expression filter is applied.
+- **Qn**: Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).
+- **Statistic**: Statistical test to identify differential splicing events, must be one of : "LogFC","Dif_LogFC" and "DRS".
+- **PSI**: Boolean variable to indicate if $\Delta \Psi$ should be calculated for every splicing event.
+
+If the `Filter` variable is `TRUE`, the following is performed:
+
+The summarized expression value of all the reference paths is obtained and the
+threshold is set depending on the `Qn` value used.
+
+An event is considered if at least one sample in all paths is expressed
+above the threshold.
+
+The rest of the events are not shown unless the `Filter` variable is set to `FALSE`
+
+```{r, eval=TRUE}
+
+   data(ArraysData)
+
+   Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
+   Cmatrix<-t(t(c(0,1)))
+   EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+   
+   Events<-EventPointer(Design=Dmatrix,
+                      Contrast=Cmatrix,
+                      ExFit=ArraysData,
+                      Eventstxt=EventsFound,
+                      Filter=TRUE,
+                      Qn=0.25,
+                      Statistic="LogFC",
+                      PSI=TRUE)
+```
+
+Table 1 displays the output of EventPointer function 
+
+![**Table 1.** Output for EventPointer ](Figure4.png)
+
+The columns of the `data.frame` are:
+
+- **Gene name **: Gene identifier
+- **Event Type**: Type of alternative splicing event (Cassette, Alternative 3',Alternative 5', Alternative Last Exon, Alternative First Exon,
+              Mutually Exclusive Exons or Complex Event)
+- **Genomic Position**: Genomic Coordinates for the event
+- **Splicing Z Value**: Corresponding Z value for the statistical test performed
+- **Splicing P Value**: Corresponding P-value for the statistical test performed
+- **Delta PSI**: $\Delta \Psi$ parameter for each event
+
+
+## IGV visualization
+
+EventPointer creates two different GTF files to visualize the alternative splicing events. Figure 5 displays the cassette exon for the COPS7A gene (4th ranked event in Table 1). In the IGV visualization, the reference path is shown in gray color, the path 1 in red and path 2 in green. Below the transcripts, the different probes that are measuring each of the paths are represented in the same colors.
+
+![**Figure 5.** EventPointer visualization using IGV ](Figure5.png)
+
+To create the GTF files, the algorithm uses the EventPointer_IGV functions with the following parameters:
+
+- **Events** : Data.frame generated by EventPointer with the events to be included in the GTF file.
+- **input**: Reference transcriprome. Available options are : "Ensembl","UCSC" and "GTF".
+- **inputFile**: If input is "GTF", inputFile should point to the GTF file to be used.
+- **PSR**: Path to the Exon probes txt file.
+- **Junc**: Path to the Junction probes txt file.
+- **PathGTF**: Directory where to write the GTF files.
+- **EventsFile**: Path to EventsFound.txt file generated with CDFfromGTF function.
+
+The inital process of the function is slow, as the splicing graphs must be created every time the function is executed. A progress bar is displayed to the user to inform about the status of the function.
+
+Once the process is completed two GTF files are generated in the specified directory:
+
+1. paths.gtf : GTF file representing the alternative splicing events.
+2. probes.gtf : GTF file representing the probes that measure each event and each path.
+
+![**Figure 6.** GTF files generated with EventPointer_IGV](Figure6.png)
+
+
+```{r, eval=TRUE,collapse=TRUE}
+
+# Set Input Variables
+  
+   DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
+   PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
+   JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
+   Directory<-system.file("extdata",package="EventPointer")
+   EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+
+                      
+# Generate Visualization files  
+
+ EventPointer_IGV(Events[1,,drop=FALSE],"GTF",DONSON_GTF,PSRProbes,JunctionProbes,Directory,EventsFound)
+
+
+```
+## Domain Enrichment
+The [EventPointer paper](http://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2816-x) states that the algorithm provides a function to identify the protein domains that are affected by alternative splicing using an enrichment analysis.
+
+As we have updated the algorithm, we are currently working on the implementation of this feature in the newer version. As soon as it is implemented, it will be uploaded along with the vignette to show its use.
+
+# RNA-Seq analysis
+## Overview of RNA-Seq
+*EventPointer* also is able to identify alternative splicing events from RNA-Seq data. The only required files are the corresponding .BAM files from the experiment. 
+
+In comparison with arrays, when dealing with sequencing data, the splicing graphs must contain all the elements that appear in each of the samples. For example, if we were analyzing an experiment that contains normal and tumoral samples, the isoforms in the normal samples might differ from the ones in the tumoral ones. To be able to identify if there is differential alternative splicing, the splicing graph must have the features that belong to the isoforms present in both conditions.
+
+Each time an experiment is analyzed with EventPointer, the complete process needs to be executed which may cause long waiting times to get the results. To avoid this issue, we have divided every step of the algorithm in different functions so as the user can reuse previous result and thus reduce computational time.
+
+For the examples in this part of the vignette, we will use .bam files depicted in the [SGSeq vignette ](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html) that correspond to paired-end RNA-seq data from four tumor and four normal colorectal samples, which are part of a data set published in [Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As stated in [SGSeq vignette ](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html) the bam files only include reads mapping to a single gene of interest (FBXO31).
+
+## BAM Preparation
+
+The first step to analyze alternative splicing events in RNA-Seq data, is the creation of the splicing graphs. This step relies entirely on SGSeq R package.
+
+The function PrepareBam_EP transforms all the information found in the bam files into splicing graph features and counts
+
+- **Samples** : Name of the .bam files to be analyzed (Sample1.bam,Sample2.bam,...,etc)
+- **SamplePath**: Path where the bam files are stored
+- **Ref_Transc**: Reference transcriptome used to name the genes found. Options are: "ensembl","UCSC" or "GTF".
+- **fileTransc**: Path to the GTF reference transcriptome ff Ref_Transc is "GTF".
+- **cores**: Number of cores used for parallel processing
+- **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
+
+
+```{r, eval=TRUE,collapse=TRUE}
+# Obtain the samples and directory for .bam files
+
+   BamInfo<-si
+   Samples<-BamInfo[,2]
+   PathToSamples <- system.file("extdata/bams", package = "SGSeq")
+   PathToGTF<-paste(system.file("extdata",package="EventPointer"),"/FBXO31.gtf",sep="")
+
+  # Run PrepareBam function
+   SG_RNASeq<-PrepareBam_EP(Samples=Samples,
+                            SamplePath=PathToSamples,
+                            Ref_Transc="GTF",
+                            fileTransc=PathToGTF,
+                            cores=1)
+```
+
+The output of PrepareBam_EP function is a SGFeaturesCounts object, for more information check [SGSeq Vignette](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html). Briefly the SGFeaturesCounts contains a GRanges object with all the required elements to create the different splicing graphs found in the given samples. It also contains the number of counts associated with each event.
+
+## Event Detection
+
+After running PrepareBam_EP, we have all the elements to analyze each of the splicing graphs. The next step is to identify and classify all the events, that are present in the BAM files. 
+
+For this purpose, the function EventDetection is used.
+
+- **Input** : Output of the PrepareBam_EP function
+- **cores**: Number of cores used for parallel processing
+- **Path**: Directory where to write the EventsFound.txt file
+
+```{r, eval=TRUE}
+  # Run EventDetection function
+   
+   TxtPath<-system.file("extdata",package="EventPointer")
+   AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
+```
+
+This function retireves a list with all the events found for all the genes present in the experiment. It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
+
+The list is organized in the following way:
+
+```{r, eval=FALSE}
+Events[[i]][[j]]
+```
+
+The list will have as many $i$ values as genes and $j$ values as many events detected for the $i_{th}$ gene. In other words, the command above will display the $j_{th}$ event detected for the $i_{th}$ gene.
+
+## Statistical Analysis
+
+The statistical analysis of the alternative splicing events is done in exactly the same way as for junction arrays. With the Design and Contrast matrices,
+the algorithm gives the statistical significance and $\Delta \Psi$.
+
+The function for the statistical analysis using EventPointer method.
+
+- **Events** : Output from EventDetection function
+- **Design**: The design matrix for the experiment.
+- **Contrast**: The contrast matrix for the experiment.
+- **Statistic**: Statistical test to identify differential splicing events, must be one of : "LogFC","Dif_LogFC" and "DRS".
+- **PSI**: Boolean variable to indicate if $\Delta \Psi$ should be calculated for every splicing event.
+
+The algorithm displays the different parameters that are selected to perform the analysis.
+
+Following our example, the code chunk to obtain the results:
+
+
+```{r, eval=TRUE}
+   Dmatrix<-matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1),ncol=2,byrow=FALSE)
+   Cmatrix<-t(t(c(0,1)))
+   Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
+```
+
+Table 2 displays the output of EventPointer function 
+
+![**Table 2.** Output for EventPointer ](Figure7.png)
+
+
+## IGV visualization
+EventPointer creates one GTF file that can be loaded into IGV to visualize the alternative splicing events. Figure 8 displays an example result showed in IGV (5th ranked event in Table 2). Also, in the figure a reference transcriptome is displayed (blue track), and it can be seen that the displayed event corresponds to a novel event discovered with sequencing data and that it will not be detected using junction arrays.
+
+![**Figure 8.** EventPointer visualization using IGV ](Figure8.png)
+
+To create the GTF files, the algorithm uses the following code.
+
+- **Events** : Data.frame generated by EventPointer_RNASeq with the events to be included in the GTF file.
+- **SG_RNASeq**: Output from PrepareBam_EP function. Contains splicing graphs components.
+- **EventsTxt**: Path to EventsFound.txt file generated with EventDetection function
+- **PathGTF**: Directory where to write the GTF files.
+
+
+ A progress bar is displayed to the user to inform about the status of the function.
+
+Once the process is completed the GTF file is generated in the specified directory:
+
+- **paths_RNASeq.gtf** : GTF file representing the alternative splicing events.
+
+
+```{r, eval=TRUE,collapse=TRUE}
+
+   # IGV Visualization
+   EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")
+   PathGTF<-system.file("extdata",package="EventPointer")
+   EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
+```
+
+# Advanced Use
+
+## Statistical Tests
+
+EventPointer provides three different statistical tests that can be used to determine the statistical significance to the alternative splicing events.
+
+In Table 3, the most relevatn coefficients from the statistical and events information point of view are shown
+
+![**Table 3.** Coefficients of the linear model used to detect alternative splicing ](Figure9.png)
+
+There are a number of alternatives to detect AS using these coefficients. Either of $\beta_4$ , $\beta_5$ , $\beta_4$ + $\beta_5$ is theoretically able to detect AS events. Some of them are more sensitive than others depending on the relative concentrations of the isoforms. For example, if isoform 2 is much more highly expressed than isoform 1 in both conditions, $\beta_4$ will be more sensitive than $\beta_4$ + $\beta_5$ since in the latter case, the numerator and denominator of the logarithms of both terms are similar, and hence their logs are close to zero. 
+
+A contrast on $\beta_5$ would seem to be more sensitive than a contrast on $\beta_4$ or $\beta_4$ + $\beta_5$ ; however, in practice, this contrast proved to be "too sensitive" and led to many false positives especially in weakly expressed isoforms. If one of the paths is not expressed in any condition, its signal will be similar in either condition (the background level) and a change in the expression of the other isoform will drive to a false positive detection. This contrast can be used only if the signals are filtered to guarantee that they are above the background.
+
+In the PCR validation, the contrast that provided the best performance was the combination of the fold changes of both isoforms (i.e. $\beta_3$ + $\beta_4$ and $\beta_3$+$\beta_4$ + $\beta_5$ in Table 4) plus the requirement that the fold-changes have opposite directions, i.e. if isoform 1 significantly increases its expression, isoform 2 must significantly decrease its expression and visa versa. Therefore, if this test requires that the detected AS events show a significant change of the expression both paths and this change must be in opposite direction.
+
+In order to compute this contrast, we summed up the p-values (one-tailed) for both contrasts. If the null hypothesis holds, the expected null distribution is triangular from 0 to 2 with the peak at 1, and the summation of the p-values must be close to 0 or close to 2 for genes with differential AS. Using this triangular distribution, it is possible to assign an overall p-value to their sum. We preferred this combination rather than the classical Fisher method since in the latter a single good p-value yields a good summary p-value for the event. Using this approach, both p-values must be close to zero or one in order to generate a significant overall p-value.
+
+The different options availabe in EventPointer are:
+
+**1. LogFC** : Compute the contrast using $\beta_3$ + $\beta_4$ and $\beta_3$+$\beta_4$ + $\beta_5$
+
+
+**2. Dif_LogFC** : Compute the contrast using $\beta_4$ and $\beta_4$ + $\beta_5$
+
+
+**3. DRS**: Compute the constast using $\beta_5$
+
+## Alpha parameter for PrepareBam_EP function
+
+Alpha is a parameter used by SGSeq R package to predict the features that are along the different bam files that are being analyzed. As stated in the help menu for the predictTxtFeatures function: 
+
+**Alpha** Minimum FPKM required for a splice junction to be included.
+
+The user can change the value to be more or less restrictive when deciding if a feature is included or not. As the alpha value increases, the algorithm will slow down as the splicing graphs would became more complex.
+
+# References
+
+* Romero, Juan P., et al. "EventPointer: an effective identification of alternative splicing events using junction arrays." BMC genomics 17.1 (2016): 467. 
+* Romero, Juan P., et al Comparison on the ability to detect splicing events between RNAseq and HTAv2 **(In preparation)**
+* Goldstein, Leonard D., et al. "Prediction and Quantification of Splice Events from RNA-Seq Data." PloS one 11.5 (2016): e0156132.
+* Seshagiri, Somasekar, Eric W Stawiski, Steffen Durinck, Zora Modrusan, Elaine E Storm, Caitlin B Conboy, Subhra Chaudhuri, et al. 2012. “Recurrent R-spondin fusions in colon cancer.” Nature 488 (7413): 660–64.
+
+# Session Information
+```{r}
+sessionInfo()
+```
