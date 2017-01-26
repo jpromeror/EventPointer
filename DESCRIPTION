@@ -28,6 +28,8 @@ Imports: GenomicFeatures,
           doParallel,
           foreach,
           affxparser
+Suggests: knitr,
+          rmarkdown
 License: Artistic-2.0
 LazyData: true
 RoxygenNote: 5.0.1
