@@ -69,7 +69,7 @@ PrepareBam_EP<-function(Samples,SamplePath,Ref_Transc="Ensembl",fileTransc=NULL,
   }else if(Ref_Transc=="GTF")
   {
     
-    stopifnot(!is.null(inputFile))
+    stopifnot(!is.null(fileTransc))
     
     TxDb <- makeTxDbFromGFF(file = fileTransc, format = "gtf", dataSource = "External Transcriptome")
 
