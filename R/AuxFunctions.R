@@ -1010,3 +1010,408 @@ PrepareProbes<-function(Probes,Class)
   return(Probes)
   
 }
+
+#' @rdname InternalFunctions
+PrepareOutput<-function(Result,Final)
+{
+  
+  iix<-matrix(as.numeric(unlist(strsplit(Final[,1],"_"))),ncol=2,byrow=TRUE)
+  
+  Types<-vector("list",length=nrow(Final))
+  Positions<-vector("list",length=nrow(Final))
+  GeneList<-vector("list",length=nrow(Final))
+  GeneID<-vector("list",length=nrow(Final))
+  
+  GeneN<-c()
+  Index<-c()
+  GeneI<-c()
+  for(jj in 1:length(Result))
+  {
+    
+    GeneN<-c(GeneN,Result[[jj]][[1]]$GeneName)
+    GeneI<-c(GeneI,Result[[jj]][[1]]$Gene)
+    Index<-c(Index,jj)
+    
+    
+  }
+  
+  InfoX<-data.frame(GeneName=GeneN,GeneID=as.numeric(GeneI),Index=as.numeric(Index),stringsAsFactors = FALSE)
+  
+  # browser()
+  
+  for(jj in 1:nrow(Final))
+  {
+    # print(jj)
+    
+    A<-InfoX[match(iix[jj,1],InfoX[,2]),3]
+    B<-iix[jj,2]
+    
+    EventType<-Result[[A]][[B]]$Type
+    
+    Mat<-rbind(Result[[A]][[B]]$P1,Result[[A]][[B]]$P2)
+    Mat<-Mat[Mat[,4]!=0,]
+    Mat<-Mat[Mat[,5]!=0,]
+    Chr<-Result[[A]][[B]]$P1[1,3]
+    
+    St<-min(Mat[,4])
+    Sp<-max(Mat[,5])
+    
+    Position<-paste(Chr,":",St,"-",Sp,sep="")
+    
+    
+    Types[[jj]]<-EventType
+    Positions[[jj]]<-Position
+    
+    GeneList[[jj]]<-Final[jj,1]
+    GeneID[[jj]]<-InfoX[A,1]
+  }
+  
+  Res<-data.frame(Gene=unlist(GeneID),Event_Type=unlist(Types),Position=unlist(Positions),Pvalue=Final[,2],Zvalue=Final[,3],stringsAsFactors = FALSE)
+  rownames(Res)<-unlist(GeneList)
+  Pval_Order<-order(Res[,"Pvalue"])
+  
+  Res<-Res[Pval_Order,]
+  
+  return(Res)
+  
+}
+
+#' @rdname InternalFunctions
+SG_Info<-function(SG_Gene)
+  
+{
+  
+  SE_Cond<-FALSE
+  TTS_Cond<-FALSE
+  TSS_Cond<-FALSE
+  
+  # Obtain information of all the elements of the Graph
+  
+  Graph<-SGSeq:::exonGraph(SG_Gene,tx_view=FALSE)
+  Graph_Nodes <- SGSeq:::nodes(Graph)
+  Graph_Edges<- SGSeq:::edges(Graph)
+  #
+  #     Graph<-exonGraph(SG_Gene,tx_view=F)
+  #     Graph_Nodes <- nodes(Graph)
+  #     Graph_Edges<- edges(Graph)
+  
+  Nodes_Pos<-matrix(unlist(strsplit(Graph_Nodes[,2],"[:-]")),ncol=4,byrow=TRUE)
+  Edges_Pos<-matrix(unlist(strsplit(Graph_Edges[,3],"[:-]")),ncol=4,byrow=TRUE)
+  
+  Graph_Nodes<-cbind(Graph_Nodes[,1],Nodes_Pos,Graph_Nodes[,3:4])
+  Graph_Nodes<-as.data.frame(Graph_Nodes,stringsAsFactors=FALSE)
+  colnames(Graph_Nodes)<-c("Name","Chr","Start","End","Strand","Type","featureID")
+  Nodes<-as.numeric(as.vector(Graph_Nodes[,1]))
+  
+  Graph_Edges<-cbind(Graph_Edges[,1:2],Edges_Pos,Graph_Edges[,4:5])
+  Graph_Edges<-as.data.frame(Graph_Edges,stringsAsFactors=FALSE)
+  colnames(Graph_Edges)<-c("From","To","Chr","Start","End","Strand","Type","featureID")
+  
+  if(as.vector(strand(SG_Gene)@values)=="-")
+  {
+    Graph_Edges<-Graph_Edges[,c(2,1,3:8)]
+    colnames(Graph_Edges)<-c("From","To","Chr","Start","End","Strand","Type","featureID")
+    
+  }
+  
+  # Determine Subexons
+  
+  SE.II<-as.numeric(as.vector(Graph_Nodes[2:nrow(Graph_Nodes),3]))-as.numeric(as.vector(Graph_Nodes[1:(nrow(Graph_Nodes)-1),4]))
+  SE.II<-which(SE.II==1)
+  L_SE.II<-length(SE.II)
+  SE_chr<-rep(as.vector(Graph_Nodes[1,2]),L_SE.II)
+  SE_St<-Graph_Nodes[SE.II,4]
+  SE_Ed<-Graph_Nodes[SE.II+1,3]
+  SE_std<-rep(as.vector(Graph_Nodes[1,5]),L_SE.II)
+  SE_type<-rep("J",L_SE.II)
+  SE_FID<-rep(0,L_SE.II)
+  
+  SubExons<-data.frame(SE.II,SE.II+1,SE_chr,SE_St,SE_Ed,SE_std,SE_type,SE_FID,stringsAsFactors = FALSE)
+  colnames(SubExons)<-colnames(Graph_Edges)
+  
+  if(nrow(SubExons)!=0)
+  {
+    Graph_Edges<-rbind(Graph_Edges,SubExons)
+    SE_Cond<-TRUE
+    
+  }
+  
+  # Determine Alternative Last
+  
+  TTS<-setdiff(Nodes,as.numeric(as.vector(Graph_Edges[,1])))
+  
+  if(length(TTS)>0)
+  {
+    TTS<-paste(TTS,".b",sep="")
+    Ln_TTS<-length(TTS)
+    
+    EE<-rep("E",length(TTS))
+    TTS<-data.frame(TTS,EE,rep(Graph_Edges[1,3],Ln_TTS),rep(0,Ln_TTS),rep(0,Ln_TTS),rep(as.vector(Graph_Edges[1,6]),Ln_TTS),rep("J",Ln_TTS),rep(0,Ln_TTS),stringsAsFactors = FALSE)
+    colnames(TTS)<-colnames(Graph_Edges)
+    
+    TTS_Cond<-TRUE
+    
+  }
+  
+  
+  # Determine Alternative First
+  
+  
+  TSS<-setdiff(Nodes,as.numeric(as.vector(Graph_Edges[,2])))
+  
+  if(length(TSS)>0)
+  {
+    TSS<-paste(TSS,".a",sep="")
+    Ln_TSS<-length(TSS)
+    
+    SS<-rep("S",Ln_TSS)
+    TSS<-data.frame(SS,TSS,rep(Graph_Edges[1,3],Ln_TSS),rep(0,Ln_TSS),rep(0,Ln_TSS),rep(as.vector(Graph_Edges[1,6]),Ln_TSS),rep("J",Ln_TSS),rep(0,Ln_TSS),stringsAsFactors = FALSE)
+    colnames(TSS)<-colnames(Graph_Edges)
+    
+    TSS_Cond<-TRUE
+    
+  }
+  
+  # Extend SG
+  
+  Graph_Edges[,1]<-paste(as.vector(Graph_Edges[,1]),".b",sep="")
+  Graph_Edges[,2]<-paste(as.vector(Graph_Edges[,2]),".a",sep="")
+  From<-paste(as.vector(Graph_Nodes[,1]),".a",sep="")
+  To<-paste(as.vector(Graph_Nodes[,1]),".b",sep="")
+  Extended<-cbind(From,To,Graph_Nodes[,2:7])
+  
+  Graph_Edges<-rbind(Graph_Edges,Extended)
+  
+  if(TSS_Cond)
+  {
+    Graph_Edges<-rbind(TSS,Graph_Edges)
+  }
+  
+  if(TTS_Cond)
+  {
+    Graph_Edges<-rbind(Graph_Edges,TTS)
+  }
+  
+  
+  rownames(Graph_Edges)<-1:nrow(Graph_Edges)
+  
+  # Get Adjacency and Incidence Matrix
+  
+  GGraph<-graph_from_data_frame(Graph_Edges,directed=TRUE)
+  Adjacency<-as_adj(GGraph)
+  
+  
+  Incidence<-matrix(0,nrow=((length(Nodes)*2)+2),ncol=nrow(Graph_Edges))
+  colnames(Incidence)<-rownames(Graph_Edges)
+  rownames(Incidence)<-c("S",paste(rep(Nodes,each=2),c(".a",".b"),sep=""),"E")
+  
+  Incidence[cbind(as.vector(Graph_Edges[,"From"]),colnames(Incidence))]<--1
+  Incidence[cbind(as.vector(Graph_Edges[,"To"]),colnames(Incidence))]<-1
+  
+  iijj<-match(rownames(Incidence),rownames(Adjacency))
+  Adjacency<-Adjacency[iijj,iijj]
+  Adjacency<-as(Adjacency,"dgTMatrix")
+  
+  # Return All Information
+  
+  Result<-list(Edges=Graph_Edges,Adjacency=Adjacency,Incidence=Incidence)
+  # Result<-list(Edges=Graph_Edges,Incidence=Incidence)
+  return(Result)
+  
+  
+  
+}
+
+#' @rdname InternalFunctions
+##############################################################################
+# function to create Event plots in IGV
+##############################################################################
+WriteGTF <- function(PATH,Data,Probes,Paths){
+  
+  
+  
+  STRAND <- unique(Paths[,5])
+  FILE.probes <- paste(PATH,"/probes.gtf",sep="")
+  ### Error en los grep.. si no encuentra regresa 0 y no NA
+  PATHS <- as.vector(unique(Probes[,6]))
+  
+  
+  for(i in 1:nrow(Probes))
+  {
+    
+    if (STRAND=="+"){
+      START<-Probes[i,3]
+      END <- Probes[i,3]+Probes[i,4]
+    }else if (STRAND=="-"){
+      START<-Probes[i,3]-Probes[i,4]
+      END <- Probes[i,3]
+    }
+    
+    # browser()
+    if(Probes[i,6]=="Ref")
+    {
+      COL <- "#B0B0B0"
+    }else if(Probes[i,6]=="Path1")
+    {
+      COL <- "#D00000"
+    }else if(Probes[i,6]=="Path2")
+    {
+      COL <- "#00CC33"
+    }
+    PROBES <- paste(Probes[i,2],"\t","microarray","\t","probe","\t",Probes[i,3],
+                    "\t",END,"\t","0","\t","*","\t","0","\t",
+                    "event=",Data[1,4],"; path=",Probes[i,6],"; color=",COL,";","probeID=",Probes[i,1],";",sep="")
+    cat(file=FILE.probes,PROBES,sep="\n",append=TRUE)
+    
+  }
+  
+  
+  
+  # Paths GTF
+  
+  II <- order(Paths[,7])
+  Paths <- Paths[II,]
+  PATHS <- unique(Paths[,7])
+  FILE.paths <- paste(PATH,"/paths.gtf",sep="")
+  
+  
+  GENESSSSS <- paste(Paths[,1],"\t","EventPointer","\t","gene","\t",min(Paths[,2]),
+                     "\t",max(Paths[,3]),"\t","0","\t",Paths[,5],"\t","0","\t",
+                     paste("gene_id ",Data[1,2],"_",Data[1,3],"; ",
+                           "type ",shQuote(as.vector(Data[1,4]),type="cmd"),
+                           "; color=","#000000",";",sep=""),sep="")
+  GENESSSSS <- unique(GENESSSSS)
+  
+  cat(file=FILE.paths,GENESSSSS,sep="\n",append=TRUE)
+  
+  
+  # browser()
+  for (i in 1:length(PATHS)){
+    ii <- which(Paths[,7]==PATHS[i])
+    # if (all(!is.na(grep("Ref",PATHS[i])))){
+    if (length(!is.na(grep("Ref",PATHS[i])))!=0){
+      COL <- "#B0B0B0"
+      aaaaaa <- 3
+    }
+    # if (all(!is.na(match("A",PATHS[i])))){
+    if (length(!is.na(grep("A",PATHS[i])))!=0){
+      COL <- "#D00000"
+      aaaaaa <- 2
+    }
+    # if (all(!is.na(match("B",PATHS[i])))){
+    if (length(!is.na(grep("B",PATHS[i])))!=0){
+      COL <- "#00CC33"
+      aaaaaa <- 1
+    }
+    # if (all(!is.na(match("Empty",PATHS[i])))){
+    if (length(!is.na(grep("Empty",PATHS[i])))!=0){
+      COL <- "#FFFFFF"
+    }
+    
+    
+    # browser()
+    #TRANS <- paste(Paths[ii,1],"\t","EventPointer","\t","transcript","\t",min(Paths[,2])-10*as.numeric(as.matrix(Data[2]))-aaaaaa
+    TRANS <- paste(Paths[ii,1],"\t","EventPointer","\t","transcript","\t",min(Paths[ii,2]),#MINGENE-as.numeric(as.matrix(Data[2])),
+                   "\t",max(Paths[ii,3]),"\t","0","\t",Paths[ii,5],"\t","0","\t",
+                   paste("gene_id ",Data[1,2],"_",Data[1,3],"; ",
+                         "transcript_id ",shQuote(Paths[ii,7],type="cmd"),"_",gsub(" ","_",Data[1,4]),"_",unique(Paths[ii,6]),"_",Data[1,3],"; ",
+                         "type ",shQuote(Data[1,4],type="cmd"),
+                         "; color=",COL,";",sep=""),sep="")
+    TRANS <- unique(TRANS)
+    
+    GTF <- paste(Paths[ii,1],"\t","EventPointer","\t","exon","\t",Paths[ii,2],
+                 "\t",Paths[ii,3],"\t","0","\t",Paths[ii,5],"\t","0","\t",
+                 paste("gene_id ",Data[1,2],"_",Data[1,3],"; ",
+                       "transcript_id ",shQuote(Paths[ii,7],type="cmd"),"_",gsub(" ","_",Data[1,4]),"_",unique(Paths[ii,6]),"_",Data[1,3],"; ",
+                       "type ",shQuote(Data[1,4],type="cmd"),
+                       "; exon_number ",1:length(ii),"; color=",COL,";",sep=""),sep="")
+    #if (i == 1){
+    #  cat(file=FILE.paths,TRANS,sep="\n")
+    #}else{
+    cat(file=FILE.paths,TRANS,sep="\n",append=TRUE)
+    #}
+    cat(file=FILE.paths,GTF,sep="\n",append=TRUE)
+  }
+  
+  
+}
+
+#' @rdname InternalFunctions
+##############################################################################
+# function to create Event plots in IGV
+##############################################################################
+WriteGTF_RNASeq <- function(PATH,Data,Paths){
+  
+  # browser()
+  # Paths GTF
+  STRAND <- unique(Paths[,5])
+  II <- order(Paths[,7])
+  Paths <- Paths[II,]
+  PATHS <- unique(Paths[,7])
+  FILE.paths <- paste(PATH,"/paths_RNASeq.gtf",sep="")
+  
+  
+  GENESSSSS <- paste(Paths[,1],"\t","EventPointer","\t","gene","\t",min(Paths[,2]),
+                     "\t",max(Paths[,3]),"\t","0","\t",Paths[,5],"\t","0","\t",
+                     paste("gene_id ",Data[1,1],"; ",
+                           "type ",shQuote(as.vector(Data[1,4]),type="cmd"),
+                           "; color=","#000000",";",sep=""),sep="")
+  GENESSSSS <- unique(GENESSSSS)
+  
+  # browser()
+  cat(file=FILE.paths,GENESSSSS,sep="\n",append=TRUE)
+  
+  
+  # browser()
+  for (i in 1:length(PATHS)){
+    ii <- which(Paths[,7]==PATHS[i])
+    # if (all(!is.na(grep("Ref",PATHS[i])))){
+    if (length(!is.na(grep("Ref",PATHS[i])))!=0){
+      COL <- "#B0B0B0"
+      aaaaaa <- 3
+    }
+    # if (all(!is.na(match("A",PATHS[i])))){
+    if (length(!is.na(grep("A",PATHS[i])))!=0){
+      COL <- "#D00000"
+      aaaaaa <- 2
+    }
+    # if (all(!is.na(match("B",PATHS[i])))){
+    if (length(!is.na(grep("B",PATHS[i])))!=0){
+      COL <- "#00CC33"
+      aaaaaa <- 1
+    }
+    # if (all(!is.na(match("Empty",PATHS[i])))){
+    if (length(!is.na(grep("Empty",PATHS[i])))!=0){
+      COL <- "#FFFFFF"
+    }
+    
+    
+    # browser()
+    #TRANS <- paste(Paths[ii,1],"\t","EventPointer","\t","transcript","\t",min(Paths[,2])-10*as.numeric(as.matrix(Data[2]))-aaaaaa
+    TRANS <- paste(Paths[ii,1],"\t","EventPointer","\t","transcript","\t",min(Paths[ii,2]),#MINGENE-as.numeric(as.matrix(Data[2])),
+                   "\t",max(Paths[ii,3]),"\t","0","\t",Paths[ii,5],"\t","0","\t",
+                   paste("gene_id ",Data[1,1],"; ",
+                         "transcript_id ",shQuote(Paths[ii,7],type="cmd"),"_",gsub(" ","_",Data[1,4]),"_",Data[1,1],"; ",
+                         "type ",shQuote(Data[1,4],type="cmd"),
+                         "; color=",COL,";",sep=""),sep="")
+    TRANS <- unique(TRANS)
+    
+    GTF <- paste(Paths[ii,1],"\t","EventPointer","\t","exon","\t",Paths[ii,2],
+                 "\t",Paths[ii,3],"\t","0","\t",Paths[ii,5],"\t","0","\t",
+                 paste("gene_id ",Data[1,1],"; ",
+                       "transcript_id ",shQuote(Paths[ii,7],type="cmd"),"_",gsub(" ","_",Data[1,4]),"_",Data[1,1],"; ",
+                       "type ",shQuote(Data[1,4],type="cmd"),
+                       "; exon_number ",1:length(ii),"; color=",COL,";",sep=""),sep="")
+    
+    
+    # browser()
+    #if (i == 1){
+    #  cat(file=FILE.paths,TRANS,sep="\n")
+    #}else{
+    cat(file=FILE.paths,TRANS,sep="\n",append=TRUE)
+    #}
+    cat(file=FILE.paths,GTF,sep="\n",append=TRUE)
+  }
+  
+  
+}

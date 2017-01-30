@@ -8,7 +8,11 @@
 \alias{IHsummarization}
 \alias{InternalFunctions}
 \alias{PrepareCountData}
+\alias{PrepareOutput}
 \alias{PrepareProbes}
+\alias{SG_Info}
+\alias{WriteGTF}
+\alias{WriteGTF_RNASeq}
 \alias{annotateEvents}
 \alias{estimateAbsoluteConc}
 \alias{findTriplets}
@@ -48,6 +52,14 @@ pdist2(X, Y)
 PrepareCountData(Result)
 
 PrepareProbes(Probes, Class)
+
+PrepareOutput(Result, Final)
+
+SG_Info(SG_Gene)
+
+WriteGTF(PATH, Data, Probes, Paths)
+
+WriteGTF_RNASeq(PATH, Data, Paths)
 }
 \description{
 Internal functions used by EventPointer in the different steps of the algorithm
