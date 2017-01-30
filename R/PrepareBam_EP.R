@@ -56,7 +56,7 @@ PrepareBam_EP<-function(Samples,SamplePath,Ref_Transc="Ensembl",fileTransc=NULL,
 
   cat("\n Obtaining Reference Transcriptome...")
   
-  stopifnot(input=="Ensembl" | input=="UCSC" | input=="GTF")
+  stopifnot(Ref_Transc=="Ensembl" | Ref_Transc=="UCSC" | Ref_Transc=="GTF")
 
   if(Ref_Transc =="Ensembl")
   {
