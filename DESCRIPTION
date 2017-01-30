@@ -1,6 +1,6 @@
 Package: EventPointer
 Type: Package
-Title: Identification and statistical analysis of alternative splicing events using junction arrays or RNASeq data
+Title: Identification and statistical analysis of alternative splicing events using junction arrays or RNASeq data 
 Version: 0.99.11
 Author: Juan Pablo Romero
 Maintainer: Juan Pablo Romero <jpromero@ceit.es>
