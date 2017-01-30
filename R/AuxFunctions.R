@@ -4,6 +4,7 @@
 #'
 #' @keywords internal
 #' @name InternalFunctions
+#' @return Internal outputs 
 #' 
 #'
 NULL

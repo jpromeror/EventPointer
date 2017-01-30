@@ -61,6 +61,9 @@ WriteGTF(PATH, Data, Probes, Paths)
 
 WriteGTF_RNASeq(PATH, Data, Paths)
 }
+\value{
+Internal outputs
+}
 \description{
 Internal functions used by EventPointer in the different steps of the algorithm
 }
