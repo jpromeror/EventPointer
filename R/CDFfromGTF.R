@@ -106,7 +106,7 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
 
   cat("\nReading Information On Probes...")
 
-  stopifnot(!is.null(PSR) & !is.null(Junctions) )
+  stopifnot(!is.null(PSR) & !is.null(Junc) )
   # Read ProbeSets TXT
   ProbeSets<-read.delim(file=PSR,sep="\t",header=TRUE,stringsAsFactors = FALSE)
 
