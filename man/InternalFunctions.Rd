@@ -8,6 +8,7 @@
 \alias{IHsummarization}
 \alias{InternalFunctions}
 \alias{PrepareCountData}
+\alias{PrepareProbes}
 \alias{annotateEvents}
 \alias{estimateAbsoluteConc}
 \alias{findTriplets}
@@ -45,6 +46,8 @@ IHsummarization(Pv1, t1, Pv2, t2, coherence = "Opposite")
 pdist2(X, Y)
 
 PrepareCountData(Result)
+
+PrepareProbes(Probes, Class)
 }
 \description{
 Internal functions used by EventPointer in the different steps of the algorithm

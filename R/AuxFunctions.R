@@ -976,3 +976,37 @@ PrepareCountData<-function(Result)
   
   
 }
+
+#' @rdname InternalFunctions
+PrepareProbes<-function(Probes,Class)
+{
+  
+  if(Class =="PSR")
+  {
+    
+    Probes<-Probes[,c(1:4,8:11,7)]
+    colnames(Probes)<-c("Probe ID","X Coord","Y Coord","Gene","Chr","Start","Stop","Strand","Probe Sequence")
+    
+    
+  }else if(Class=="Junction")
+  {
+    
+    # There are some probes that have more than 2 alignments (3,4,5),
+    # for now we will discard those probes. We should ask Affy.
+    
+    Probes<-Probes[,c(1:4,9:11,8)]
+    Probes[,5]<-paste("chr",Probes[,5],sep="")
+    ix<-str_count(Probes[,6],",")
+    ix<-which(ix==1)
+    Probes<-Probes[ix,]
+    ProbSS<-matrix(as.numeric(unlist(strsplit(Probes[,6],"[,-]"))),ncol=4,byrow=2)[,2:3]
+    Probes<-cbind(Probes[,1:5],ProbSS,Probes[,7:8])
+    colnames(Probes)<-c("Probe ID","X Coord","Y Coord","Gene","Chr","Start","Stop","Strand","Probe Sequence")
+    # Probes<-Probes[ix,]
+    
+  }
+  
+  
+  return(Probes)
+  
+}
