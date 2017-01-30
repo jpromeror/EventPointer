@@ -96,7 +96,7 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
 
   cat("\nReading Information On Probes...")
 
-  stopifnot(!is.null(PSR) & !is.null(Junctions) )
+  stopifnot(!is.null(PSR) & !is.null(Junc) )
   
   # Read ProbeSets TXT
   ProbeSets<-read.delim(file=PSR,sep="\t",header=TRUE,stringsAsFactors = FALSE)
