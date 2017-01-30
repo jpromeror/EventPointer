@@ -55,6 +55,8 @@ PrepareBam_EP<-function(Samples,SamplePath,Ref_Transc="Ensembl",fileTransc=NULL,
   cat("Done")
 
   cat("\n Obtaining Reference Transcriptome...")
+  
+  stopifnot(input=="Ensembl" | input=="UCSC" | input=="GTF")
 
   if(Ref_Transc =="Ensembl")
   {
@@ -66,6 +68,9 @@ PrepareBam_EP<-function(Samples,SamplePath,Ref_Transc="Ensembl",fileTransc=NULL,
 
   }else if(Ref_Transc=="GTF")
   {
+    
+    stopifnot(!is.null(inputFile))
+    
     TxDb <- makeTxDbFromGFF(file = fileTransc, format = "gtf", dataSource = "External Transcriptome")
 
   }else{

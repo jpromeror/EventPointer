@@ -27,9 +27,12 @@ Imports: GenomicFeatures,
           stats,
           doParallel,
           foreach,
-          affxparser
+          affxparser,
+          GenomicRanges,
+          S4Vectors
 Suggests: knitr,
-          rmarkdown
+          rmarkdown,
+          BiocStyle
 License: Artistic-2.0
 LazyData: true
 RoxygenNote: 5.0.1

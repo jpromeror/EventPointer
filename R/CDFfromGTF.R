@@ -48,6 +48,8 @@
 #' @importFrom graph ftM2graphNEL
 #' @importFrom prodlim row.match
 #' @importFrom "methods" is
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @importFrom S4Vectors queryHits subjectHits
 
 
 CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray="HTA-2_0")
@@ -69,6 +71,8 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
   # to the GenomicFeatures R package
 
   cat("Creating SG Information...")
+  
+  stopifnot(input=="Ensembl" | input=="UCSC" | input=="GTF")
 
   if(input=="Ensembl")
   {
@@ -89,6 +93,8 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
 
   }else if(input=="GTF")
   {
+    stopifnot(!is.null(inputFile))
+    
     TxDb <- makeTxDbFromGFF(file = inputFile,format = "gtf",dataSource = "Custom GTF")
 
     TranscriptFeatures <- convertToTxFeatures(TxDb)
@@ -100,6 +106,7 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
 
   cat("\nReading Information On Probes...")
 
+  stopifnot(!is.null(PSR) & !is.null(Junctions) )
   # Read ProbeSets TXT
   ProbeSets<-read.delim(file=PSR,sep="\t",header=TRUE,stringsAsFactors = FALSE)
 
@@ -227,7 +234,7 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
 
   pb <- txtProgressBar(min = 0, max = nrow(GeneIndex), style = 3)
 
-  for(jj in 1:nrow(GeneIndex))
+  for(jj in seq_len(nrow(GeneIndex)))
   {
 
     # cat(jj," of 30476 \n")

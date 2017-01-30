@@ -46,7 +46,7 @@ EventDetection<-function(Input,cores,Path)
   # registerDoMC(cores=cores)
   registerDoParallel(cores=cores)
 
-  Result<-foreach(jj=1:length(genes))%dopar%
+  Result<-foreach(jj=seq_along(genes))%dopar%
     # for(jj in 1:length(genes))
   {
     setTxtProgressBar(pb, jj)

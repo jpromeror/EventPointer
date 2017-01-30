@@ -29,6 +29,14 @@ library(EventPointer)
 ##BiocStyle::markdown()
 ```
 
+# Installation
+EventPointer can be installed from Bioconductor using the folloiwng lines:
+
+```{r,eval=FALSE}
+source("http://www.bioconductor.org/biocLite.R")
+biocLite("EventPointer")
+```
+
 # Introduction
 
 *EventPointer* R package provides users a simplified way to identify, classify and visualize alternative splicing events. The steps required by the algorithm are almost identical for both technologies. The algorithm only differs in its inital step. 
@@ -57,15 +65,27 @@ To cite *EventPointer*:
 
 # Analysis of junction arrays
 ## Overview of junction arrays
-*EventPointer* is prepared to work with the Affymetrix Human Transcriptome Array 2.0 (HTA 2.0). As newer arrays are developed, EP will be able to work with them, as long the required files are availble for download. 
+*EventPointer* is prepared to work with the Affymetrix Human Transcriptome Array 2.0 (HTA 2.0). As newer arrays are developed, such as the Affymetrix Clariom array, EventPointer will be able to work with them as long as the required files are availble for download. 
 
-To build the CDF file (to work under the aroma.affymetrix framework), EP requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the requried information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded.
+To build the CDF file (to work under the aroma.affymetrix framework), EventPointer requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the requried information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded.
 
-The default required files can be downloaded from the [EventPointer Github repository](https://github.com/jpromeror/EventPointer) :
+The required files are: 
 
-1. Exon probes genomic position
-2. Junction probes genomic position
-3. HTA 2.0 reference transcriptome (GTF)
+1. Exon probes genomic position (Tab separated .txt file)
+2. Junction probes genomic position (Tab separated .txt file)
+3. HTA 2.0 reference transcriptome (GTF file)
+
+Files 1 and 2 contain probe information that can be obtained in the technical documentation tab from the  [affymetrix microarray webpage](http://www.affymetrix.com/estore/catalog/prod760002/AFFY/Human+Transcriptome+Array+2.0#1_3). 
+
+The format of these files is briefly explained in the following paragraphs:
+
+For the Exon Probes, the file corresponds to a tab separated .txt file composed of 11 columns that include: Probe Id, X coordinate in the array, Y coordinate in the array, Transcript Cluster Id, Probeset Id, Probeset name, Probe sequence, chromosome, start, end and strand.
+
+The Junction probes file is also a tab separated .txt composed of 10 columns: Probe Id, X coordinate in the array, Y coordinate in the array, Transcript Cluster Id, Probeset Id, Probeset name, Probe sequence, chromosome and probe alignments.
+
+For the GTF the standard format is used. (For more information see [GTF](http://mblab.wustl.edu/GTF22.html))
+
+For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. This files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/d25twtw08trch6b/AACNSpSykrLxtLF2ME83Pg0ha?dl=0)
 
 <span style="color:red">**Note:**</span> It is advisable to work with the HTA 2.0 reference GTF file, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
 
@@ -88,8 +108,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 2. .flat file : Used to build the corresponding CDF file.
 3. .CDF file: Output required for the aroma.affymetrix preprocessing pipeline.
 
-The following code chunks show examples on how to run the function using both Ensembl and Affymetrix GTF using
-example data included in the package.
+The following code chunks show examples on how to run the function using both Ensembl and Affymetrix GTF using example data included in the package. This data corresponds to the Affymetrix HTA 2.0 GTF represnting only the DONSON gene and the probes that are mapped to it.
 
   Using Affymetrix GTF as reference transcriptome
 ```{r, eval=TRUE, warning=FALSE, collapse=TRUE}
@@ -280,6 +299,9 @@ The function PrepareBam_EP transforms all the information found in the bam files
 ```{r, eval=TRUE,collapse=TRUE}
 # Obtain the samples and directory for .bam files
 
+# the object si contains example sample information from the SGSeq R package 
+# use ?si to see the corresponding documentation 
+   
    BamInfo<-si
    Samples<-BamInfo[,2]
    PathToSamples <- system.file("extdata/bams", package = "SGSeq")

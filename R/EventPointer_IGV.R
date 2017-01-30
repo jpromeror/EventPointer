@@ -62,6 +62,8 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
   # file that was given in the input, the function makeTxDbFromGFF corresponds
   # to the SGSeq R package
   cat("Creating SG Information...")
+  
+  stopifnot(input=="Ensembl" | input=="UCSC" | input=="GTF")
 
   if(input=="Ensembl")
   {
@@ -82,6 +84,7 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
 
   }else if(input=="GTF")
   {
+    stopifnot(!is.null(inputFile))
     TxDb <- makeTxDbFromGFF(file = inputFile,format = "gtf",dataSource = "Custom GTF")
 
     TranscriptFeatures <- convertToTxFeatures(TxDb)
@@ -93,6 +96,8 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
 
   cat("\nReading Information On Probes...")
 
+  stopifnot(!is.null(PSR) & !is.null(Junctions) )
+  
   # Read ProbeSets TXT
   ProbeSets<-read.delim(file=PSR,sep="\t",header=TRUE,stringsAsFactors = FALSE)
 
@@ -213,7 +218,7 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
 
   pb <- txtProgressBar(min = 0, max = nrow(Events), style = 3)
 
-  for(jj in 1:nrow(GeneIndex))
+  for(jj in seq_len(nrow(GeneIndex)))
   {
     setTxtProgressBar(pb, jj)
 
