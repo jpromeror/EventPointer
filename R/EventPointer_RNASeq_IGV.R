@@ -86,4 +86,6 @@ EventPointer_RNASeq_IGV<-function(Events,SG_RNASeq,EventsTxt,PathGTF)
   }
 
 
+  close(pb)
+  cat("\n")
 }

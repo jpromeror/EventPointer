@@ -20,7 +20,7 @@
 #'    DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
 #'    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
 #'    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
-#'    Directory<-system.file("extdata",package="EventPointer")
+#'    Directory<-tempdir()
 #'
 #'    data(ArraysData)
 #'
@@ -259,6 +259,6 @@ EventPointer_IGV<-function(Events,input,inputFile=NULL,PSR,Junc,PathGTF,EventsFi
   }
 
   close(pb)
-
+  cat("\n")
 
 }

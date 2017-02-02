@@ -16,6 +16,7 @@
 \alias{annotateEvents}
 \alias{estimateAbsoluteConc}
 \alias{findTriplets}
+\alias{flat2Cdf}
 \alias{getEventPaths}
 \alias{getPSI}
 \alias{getPSI_RNASeq}
@@ -60,6 +61,10 @@ SG_Info(SG_Gene)
 WriteGTF(PATH, Data, Probes, Paths)
 
 WriteGTF_RNASeq(PATH, Data, Paths)
+
+flat2Cdf(file, chipType, tags = NULL, rows = 2560, cols = 2560,
+  verbose = 10, xynames = c("X", "Y"), gcol = 5, ucol = 6, splitn = 4,
+  col.class = c("integer", "character")[c(1, 1, 1, 2, 2, 2)], ...)
 }
 \value{
 Internal outputs

@@ -35,7 +35,7 @@ Generates the CDF file to be used under the aroma.affymetrix framework
    DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
-   Directory<-system.file("extdata",package="EventPointer")
+   Directory<-tempdir()
 
   # Run the function
 

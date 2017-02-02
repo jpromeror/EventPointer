@@ -85,13 +85,13 @@ The Junction probes file is also a tab separated .txt composed of 10 columns: Pr
 
 For the GTF the standard format is used. (For more information see [GTF](http://mblab.wustl.edu/GTF22.html))
 
-For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. This files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/d25twtw08trch6b/AACNSpSykrLxtLF2ME83Pg0ha?dl=0)
+For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/d25twtw08trch6b/AACNSpSykrLxtLF2ME83Pg0ha?dl=0)
 
 <span style="color:red">**Note:**</span> It is advisable to work with the HTA 2.0 reference GTF file, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
 
 ## CDF file creation
 
-The function **CDFfromGTF** generates the CDF file used afterwards in the aroma.affymetrix pre-processing pipeline.
+The function **CDFfromGTF** generates the CDF file used afterwards in the aroma.affymetrix pre-processing pipeline. Internally, it calls flat2cdf function written by Elizabeth Purdom. More information about it can be seen in the following webpage: [Create CDF from scratch](http://www.aroma-project.org/howtos/create_CDF_from_scratch/) 
 
 The required input for the function is described below:
 
@@ -118,7 +118,7 @@ The following code chunks show examples on how to run the function using both En
    DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
-   Directory<-system.file("extdata",package="EventPointer")
+   Directory<-tempdir()
 
 # Run the function
 
@@ -144,15 +144,17 @@ Once the CDF file has been created, it can be used for the analysis of different
 
 As EventPointer relies on aroma.affymetrix. A pre-processing pipeline must be applied to the .cel files of the experiment. This procedure normalizes and summarizes the expression of the different probesets into single values.
 
-The following code chunk displays the pipeline used. It may be modified to use different methods, but the output must remain the same.
+The aroma.affymetrx R package provides usersr different functions to work with affymetric arrays. The functions are used to extract all the information contained in the .cel files and to do all the required pre-processing steps such as background correction, normalization and summarization. The pacakge requires a certain folder structure in order to work correctly. For more information about aroma.affymetrixvisit the webpage:[aroma project](http://www.aroma-project.org/) 
+
+The following code chunk displays the pipeline used to get the results required by EventPointer after the pre-processing using aroma.affymetrix. The code is not intended to be a runable example, but just to show users the settings a functions that can be used. In order for users to have a runable example, the corrrespoding folder structure and files are required.
 
 ```{r, eval=FALSE}
 
-# Aroma.Affymetrix Preprocessing Pipeline
+# Simple example of Aroma.Affymetrix Preprocessing Pipeline
 
 verbose <- Arguments$getVerbose(-8);
 timestampOn(verbose);
-projectName <- "Prosplice"
+projectName <- "Experiment"
 chipType <- "EP_HTA-2_0"
 cdfGFile <- "EP_HTA-2_0,r"
 cdfG <- AffymetrixCdfFile$byChipType(cdfGFile)
@@ -257,7 +259,7 @@ Once the process is completed two GTF files are generated in the specified direc
    DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
-   Directory<-system.file("extdata",package="EventPointer")
+   Directory<-tempdir()
    EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
 
                       
@@ -330,7 +332,7 @@ For this purpose, the function EventDetection is used.
 ```{r, eval=TRUE}
   # Run EventDetection function
    
-   TxtPath<-system.file("extdata",package="EventPointer")
+   TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 ```
 
@@ -397,7 +399,7 @@ Once the process is completed the GTF file is generated in the specified directo
 
    # IGV Visualization
    EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")
-   PathGTF<-system.file("extdata",package="EventPointer")
+   PathGTF<-tempdir()
    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 ```
 

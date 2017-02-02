@@ -20,7 +20,7 @@
 #'    DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
 #'    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
 #'    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
-#'    Directory<-system.file("extdata",package="EventPointer")
+#'    Directory<-tempdir()
 #'
 #'   # Run the function
 #'
@@ -358,7 +358,7 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
   colnames(Flat)<-c("Probe_ID","X","Y","Probe_Sequence","Group_ID","Unit_ID")
 
 
-  tag<-"r"
+  # tag<-"r"
 
   # This is fixed for the array, as we use HTA 2.0 the values will remain the same.
   # Important to change depending on the array that will be used!!!
@@ -369,10 +369,10 @@ CDFfromGTF<-function(input="Ensembl",inputFile=NULL,PSR,Junc,PathCDF,microarray=
 
   write.table(Result,file=paste(PathCDF,"/EventsFound.txt",sep=""),sep = "\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
 
-  write.table(Flat,file=paste(PathCDF,"/",microarray,",",tag,".flat",sep=""),sep = "\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
+  write.table(Flat,file=paste(PathCDF,"/",microarray,".flat",sep=""),sep = "\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
 
   setwd(PathCDF)
 
-  flat2Cdf(file=paste(PathCDF,"/",microarray,",",tag,".flat",sep=""), chipType=microarray, tags=tag,rows = ROWS,cols = COLS)
+  flat2Cdf(file=paste(PathCDF,"/",microarray,".flat",sep=""), chipType=microarray,rows = ROWS,cols = COLS)
 
 }

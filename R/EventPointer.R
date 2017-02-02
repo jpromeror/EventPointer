@@ -42,6 +42,9 @@ EventPointer<-function(Design,Contrast,ExFit,Eventstxt,Filter=TRUE,Qn=0.25,Stati
 
   # Perform statistical test depending on the selection of the
   # user
+  
+  stopifnot(Statistic=="LogFC" | Statistic=="Dif_LogFC" |Statistic=="DRS")
+  
   if(Statistic=="LogFC")
   {
     stt<-"Logarithm of the fold change of both isoforms"
@@ -399,7 +402,7 @@ EventPointer<-function(Design,Contrast,ExFit,Eventstxt,Filter=TRUE,Qn=0.25,Stati
     cat(paste("Done \n",sep=""))
 
     # Return the Result to the user
-    cat("\n",format(Sys.time(), "%X")," Analysis Completed")
+    cat("\n",format(Sys.time(), "%X")," Analysis Completed","\n")
     return(FinalResult)
 
   }else{

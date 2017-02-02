@@ -23,7 +23,7 @@ Identification of all the alternative splicing events in the splicing graphs
 \examples{
   # Run EventDetection function
    data(SG_RNASeq)
-   TxtPath<-system.file("extdata",package="EventPointer")
+   TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 
 }

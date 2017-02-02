@@ -13,7 +13,7 @@
 #' @examples
 #'   # Run EventDetection function
 #'    data(SG_RNASeq)
-#'    TxtPath<-system.file("extdata",package="EventPointer")
+#'    TxtPath<-tempdir()
 #'    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 #'
 #' @export
@@ -143,6 +143,7 @@ EventDetection<-function(Input,cores,Path)
   }
 
   close(pb)
+  cat("\n")
 
   Result<-Filter(Negate(is.null),Result)
 
