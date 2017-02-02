@@ -20,7 +20,7 @@
 #'
 #'    Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
 #'    Cmatrix<-t(t(c(0,1)))
-#'    EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+#'    EventsFound<-paste(system.file('extdata',package='EventPointer'),'/EventsFound.txt',sep='')
 #'
 #'  Events<-EventPointer(Design=Dmatrix,
 #'                       Contrast=Cmatrix,
@@ -28,386 +28,355 @@
 #'                       Eventstxt=EventsFound,
 #'                       Filter=TRUE,
 #'                       Qn=0.25,
-#'                       Statistic="LogFC",
+#'                       Statistic='LogFC',
 #'                       PSI=TRUE)
 #'
 #' @export
 
 
-EventPointer<-function(Design,Contrast,ExFit,Eventstxt,Filter=TRUE,Qn=0.25,Statistic="LogFC",PSI=FALSE)
-{
-  # Statistical analysis for detecting alternative splicing using affymetrix microarrays
-  # and limma framework
-  options(warn=-1)
-
-  # Perform statistical test depending on the selection of the
-  # user
-  
-  stopifnot(Statistic=="LogFC" | Statistic=="Dif_LogFC" |Statistic=="DRS")
-  
-  if(Statistic=="LogFC")
-  {
-    stt<-"Logarithm of the fold change of both isoforms"
-
-  }else if(Statistic=="Dif_LogFC")
-  {
-    stt<-"Relative concentrations of both isoforms"
-
-  }else if(Statistic=="DRS")
-  {
-    stt<-"Difference of the logarithm of the fold change of both isoforms"
-
-  }
-
-  # Display if PSI will be calculated
-  if(PSI)
-  {
-    psi_m<-" Delta PSI will be calculated"
-
-  }
-
-  # Print Information about the algorithm selected options
-  # to the user
-  TimeS<-paste(format(Sys.time(), "%X"),sep="")
-  cat(paste(TimeS," Running EventPointer: ",sep=""),"\n")
-  cat(paste("\t** Statistical Analysis: ",stt,sep=""),"\n")
-
-  if(PSI)
-  {
-
-    MPSI<-paste("\t**",psi_m,sep="")
-    cat(paste(MPSI,sep=""),"\n")
-  }
-
-  if(Filter)
-  {
-    Flt<-paste("\t** Expression filter using ",Qn*100," quantile",sep="")
-    cat(paste(Flt,sep=""),"\n")
-
-  }else{
-
-    Flt<-paste("\t** No expression filter")
-    cat(paste(Flt,sep=""),"\n")
-
-  }
-
-  cat(paste(paste(rep(" ",length(unlist(strsplit(TimeS,"")))),sep="",collapse="")," ----------------------------------------------------------------",sep=""),"\n")
-
-  # Using the file EventsFound.txt we get all the information for each of the events
-  # such as type of event, genomic position, gene, etc..
-
-  EventsFound<-read.delim(file=paste(Eventstxt,sep=""),sep="\t",header=TRUE)
-
-  # Extract the summarized intensities for each of the probesets in the cdf.
-  # The probesets of the cdf correspond to each of the paths (Path 1, Path 2 and Reference)
-  # for each of the events detectable by the array.
-
-  # ExFit <- extractDataFrame(affy, addNames=TRUE)
-
-  ### Lines to obtain both PSI for each event in each sample
-  ### and limma is used to obtain the Delta PSI using the
-  ### equations set in both the design and contrast matrices
-
-  if(PSI)
-  {
-    # Print information to the user
-    Msg<-paste("\t** Calculating PSI",sep="")
-    cat(paste(Msg,"...",sep=""))
-
-    # getPSI is the main function to caclulate PSI values the required input
-    # is the  dataframe with array summarized intensities (ExFit)
-
-    PSIs<-getPSI(ExFit)
-
-    # The value that is returned to the user is Delta PSI = (Mean PSI Condition 1) - (Mean PSI Condition 2)
-    # to calculate it, we use limma
-    DPSIs<-vector("list",length=ncol(Contrast))
-
-    fit <- lmFit(PSIs,design=Design)
-    fit2 <- contrasts.fit(fit, Contrast)
-    fit2 <- eBayes(fit2)
-
-    # repeated if there is more than one contrast
-    for(jj in 1:ncol(Contrast))
-    {
-      TopPSI <-topTable(fit2,coef=jj,number=Inf)[,1,drop=FALSE]
-      DPSIs[[jj]]<-TopPSI
+EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn = 0.25, 
+    Statistic = "LogFC", PSI = FALSE) {
+    # Statistical analysis for detecting alternative splicing using affymetrix
+    # microarrays and limma framework
+    options(warn = -1)
+    
+    # Perform statistical test depending on the selection of the user
+    
+    stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
+    
+    if (Statistic == "LogFC") {
+        stt <- "Logarithm of the fold change of both isoforms"
+        
+    } else if (Statistic == "Dif_LogFC") {
+        stt <- "Relative concentrations of both isoforms"
+        
+    } else if (Statistic == "DRS") {
+        stt <- "Difference of the logarithm of the fold change of both isoforms"
+        
     }
-
-    cat(paste("Done \n",sep=""))
-  }
-
-  # Obtain the number of columns of the ExFit variable
-  ncc<-ncol(ExFit)
-
-  # Sanity check
-  # All the events and probesets must be ordered in the following way:
-  # Event_1_Ref
-  # Event_1_P1
-  # Event_1_P2
-  # Event_2_Ref...
-
-  # Giving each Paths an number indicator then we can order them by using it
-  ExFit[ExFit[,2]=="_Ref",4] <- 1
-  ExFit[ExFit[,2]=="_P1",4] <- 2
-  ExFit[ExFit[,2]=="_P2",4] <- 3
-
-  # The Probesets are ordered first by unit and then by group, with units being
-  # the events and groups the paths
-  NuevoOrden <- order(ExFit[,3],ExFit[,4])
-  ExFit <- ExFit[NuevoOrden,]
-
-  ## Detect which events are expressed above the
-  ## desired threshold
-
-  if(Filter==TRUE)
-  {
-
-    Msg<-paste("\t** Running Expression Filter",sep="")
-    cat(paste(Msg,"...",sep=""))
-
-    # Y<-extractDataFrame(affy,addNames=TRUE)
-    Y<-ExFit
-    Y<-Y[,c(1,2,6:ncol(Y))]
-
-    Maxs<-rowMaxs(as.matrix(Y[,3:ncol(Y)]))
-    Maxs_P1<-Maxs[seq(1,length(Maxs),3)]
-    Maxs_P2<-Maxs[seq(2,length(Maxs),3)]
-    Maxs_Ref<-Maxs[seq(3,length(Maxs),3)]
-
-    Th<-quantile(Maxs_Ref,Qn)
-    Filt<-which(Maxs_P1>Th & Maxs_P2>Th  & Maxs_Ref>Th)
-
-    EE<-unique(Y[,1])
-
-    FilterMatrix<-matrix(0,nrow=length(EE),ncol=2)
-    FilterMatrix[,1]<-EE
-    FilterMatrix[Filt,2]<-1
-
-    cat(paste("Done \n",sep=""))
-
-  }
-
-  ######################################
-  # Statistical Analysis
-  ######################################
-
-  # The analysis will vary depending on the parameters set by the user.
-
-  # 1) Analysis based on B3+B4 and B3+B4+B5
-
-  if(Statistic=="LogFC" | Statistic=="Dif_LogFC" | Statistic=="DRS")
-  {
-
-    Msg<-paste("\t** Running Statistical Analysis",sep="")
-    cat(paste(Msg,"...",sep=""))
-
-    # AuxM is the Auxiliary Matrix used in the statistical analysis,
-    # the rows of this matrix are used to indicate to which path each
-    # of the probesets belong to.
-
-    #     R   P1  P2
-    #     1   0   0
-    #     1   1   0
-    #     1   1   1
-
-    AuxM<-matrix(c(1,0,0,1,1,0,1,1,1),nrow=3,byrow=TRUE)
-
-    # With a Kronecker product, each of the elements of the Design Matrix
-    # are replaced by AuxM.
-
-    D <- kronecker(Design, AuxM)
-
-    # We just keep the intensity values for the probesets in each sample
-    A<-ExFit[,6:ncol(ExFit)]
-
-    # The expression matrix (Ymat) must be in a different arrangement than ExFit.
-    # ExFit has for rows the different paths for each event and for columns the samples
-    # of the experiment. However, Ymat must have for rows each of the samples and the paths
-    # it belongs to and for columns each of the events.
-
-    #                       Original Matrix                                               Required Ordered Matrix
-    #
-    #                 Sample 1    Sample 2    Sample 3                                  Event 1     Event 2     Event 3
-    #   Event 1_Ref                                                    Sample 1 _ Ref
-    #   Event 1_P1                                                     Sampel 1 _ P1
-    #   Event 1_P2                                                     Sample 1 _ P2
-    #   Event 2_Ref                                            .       Sample 2 _ Ref
-    #   Event 2_P1                                    ............     Sample 2 _ P1
-    #   Event 2_P2                                    .............    Sample 2 _ P2
-    #   Event 3_Ref                                   ............     Sample 3 _ Ref
-    #   Event 3_P1                                             .       Sample 3 _ P1
-    #   Event 3_P2                                                     Sample 3 _ P2
-
-
-    II <- lapply(seq(1,nrow(A),3),function(x) rep(x+0:2,ncol(A)))
-    JJ <- rep(rep(1:ncol(A),each=3),length(unique(ExFit[,1])))
-    B <- A[cbind(unlist(II),JJ)]
-    Ymat <- t(matrix(B,nrow=length(unique(ExFit[,1])),byrow=TRUE))
-    colnames(Ymat)<-unique(ExFit[,1])
-    rownames(Ymat)<-paste(rep(colnames(ExFit)[6:ncol(ExFit)],each=3),"_",c("Ref","P1","P2"),sep="")
-
-    # Transform the matrix values to log2
-    Ymat<-log2(Ymat)
-
-    ### Start Statistical Analysis
-    # cat(" \nPerforming Statistical Analysis with Limma...")
-
-    # Linear model using Ymat and Design matrices
-    fit <- lmFit(object=t(Ymat),design=D)
-
-
-    FinalResult<-vector("list",length=ncol(Contrast))
-
-    for(mm in 1:ncol(Contrast))
-    {
-      Cused<-Contrast[,mm,drop=FALSE]
-
-      # The contrasts we are interested in are the ones
-      # related with each Path, and we apply a kronecker
-      # product of the contrast matrix with the corresponding
-      # vector for each Path (P1 =  1 1 0 ; P2 = 1 1 1)
-
-      if(Statistic=="LogFC" | Statistic =="Dif_LogFC")
-      {
-
-        if(Statistic=="LogFC")
-        {
-          P1<-kronecker(Cused,matrix(c(1,1,0),nrow=3))
-          P2<-kronecker(Cused,matrix(c(1,1,1),nrow=3))
-
-        }else if(Statistic=="Dif_LogFC")
-        {
-          P1<-kronecker(Cused,matrix(c(0,1,0),nrow=3))
-          P2<-kronecker(Cused,matrix(c(0,1,1),nrow=3))
-
+    
+    # Display if PSI will be calculated
+    if (PSI) {
+        psi_m <- " Delta PSI will be calculated"
+        
+    }
+    
+    # Print Information about the algorithm selected options to the user
+    TimeS <- paste(format(Sys.time(), "%X"), sep = "")
+    cat(paste(TimeS, " Running EventPointer: ", sep = ""), "\n")
+    cat(paste("\t** Statistical Analysis: ", stt, sep = ""), "\n")
+    
+    if (PSI) {
+        
+        MPSI <- paste("\t**", psi_m, sep = "")
+        cat(paste(MPSI, sep = ""), "\n")
+    }
+    
+    if (Filter) {
+        Flt <- paste("\t** Expression filter using ", Qn * 100, " quantile", sep = "")
+        cat(paste(Flt, sep = ""), "\n")
+        
+    } else {
+        
+        Flt <- paste("\t** No expression filter")
+        cat(paste(Flt, sep = ""), "\n")
+        
+    }
+    
+    cat(paste(paste(rep(" ", length(unlist(strsplit(TimeS, "")))), sep = "", collapse = ""), 
+        " ----------------------------------------------------------------", sep = ""), 
+        "\n")
+    
+    # Using the file EventsFound.txt we get all the information for each of the
+    # events such as type of event, genomic position, gene, etc..
+    
+    EventsFound <- read.delim(file = paste(Eventstxt, sep = ""), sep = "\t", header = TRUE)
+    
+    # Extract the summarized intensities for each of the probesets in the cdf.  The
+    # probesets of the cdf correspond to each of the paths (Path 1, Path 2 and
+    # Reference) for each of the events detectable by the array.
+    
+    # ExFit <- extractDataFrame(affy, addNames=TRUE)
+    
+    ### Lines to obtain both PSI for each event in each sample and limma is used to
+    ### obtain the Delta PSI using the equations set in both the design and contrast
+    ### matrices
+    
+    if (PSI) {
+        # Print information to the user
+        Msg <- paste("\t** Calculating PSI", sep = "")
+        cat(paste(Msg, "...", sep = ""))
+        
+        # getPSI is the main function to caclulate PSI values the required input is the
+        # dataframe with array summarized intensities (ExFit)
+        
+        PSIs <- getPSI(ExFit)
+        
+        # The value that is returned to the user is Delta PSI = (Mean PSI Condition 1) -
+        # (Mean PSI Condition 2) to calculate it, we use limma
+        DPSIs <- vector("list", length = ncol(Contrast))
+        
+        fit <- lmFit(PSIs, design = Design)
+        fit2 <- contrasts.fit(fit, Contrast)
+        fit2 <- eBayes(fit2)
+        
+        # repeated if there is more than one contrast
+        for (jj in 1:ncol(Contrast)) {
+            TopPSI <- topTable(fit2, coef = jj, number = Inf)[, 1, drop = FALSE]
+            DPSIs[[jj]] <- TopPSI
         }
-
-        # C contains the vectors of the contrasts
-        C<-cbind(P1,P2)
-
-        # Compute estimated coefficients and standard errors for the given contrasts
-        fit2 <- contrasts.fit(fit, C)
-
-        # Empirical Bayesian Statistics
-        fit2 <- eBayes(fit2)
-
-        # Obtain the ranking of events for each of the contrasts
-        T2<-topTable(fit2,coef=1,number=Inf)
-        T3<-topTable(fit2,coef=2,number=Inf)
-
-        # Both tables (T2 and T3) must be in the same order
-        EvsIds<-rownames(T2)
-        ii3<-match(EvsIds,rownames(T3))
-        T3<-T3[ii3,]
-
-        # One table is created by merging both, as both have the same column names, we rename the columns
-        # from one of the tables with letters to avoid problems.
-        colnames(T3)<-letters[1:ncol(T3)]
-        T34_345 <- cbind(T2,T3)
-
-        # By taking both pvalues, one from each contrast, we perform an Irwin Hall Sumarizaion
-        # to obtain 1 pvalue for each of the events
-        Values1<-IHsummarization(T34_345[,4],T34_345[,3],T34_345[,10],T34_345[,9])
-
-        # Order the events from the txt in the same way as the tables from each contrast
-        Ids<-paste(as.vector(EventsFound[,1]),"_",as.vector(EventsFound[,3]),sep="")
-
-        index<-match(EvsIds,Ids)
-        EventsFound<-EventsFound[index,]
-
-        # Put all the information in one data frame
-        Result<-data.frame(EventsFound[,1],EventsFound[,2],EventsFound[,3],EventsFound[,4],EventsFound[,5],Values1$Tstats,Values1$Pvalues,stringsAsFactors=FALSE)
-
-        colnames(Result)<-c("Affy Gene ID","Gene name","Event Number","Event Type","Genomic Position",
-                            "Splicing Z Value","Splicing Pvalue")
-
-        rownames(Result)<-paste(Result[,1],"_",Result[,3],sep="")
-
-        # Order the final dataframe according to the pvalue
-        Result<-Result[order(Result[,7]),]
-        Result<-Result[,-c(1,3)]
-
-
-      }else if(Statistic=="DRS")
-      {
-        DRS<-kronecker(Cused,matrix(c(0,0,1),nrow=3))
-
-        # Compute estimated coefficients and standard errors for the given contrasts
-        fit2 <- contrasts.fit(fit, DRS)
-
-        # Empirical Bayesian Statistics
-        fit2 <- eBayes(fit2)
-
-        # Obtain the ranking of events for each of the contrasts
-        T2<-topTable(fit2,number=Inf)
-
-        # Order the events from the txt in the same way as the tables from each contrast
-        Ids<-paste(as.vector(EventsFound[,1]),"_",as.vector(EventsFound[,3]),sep="")
-
-        EvsIds<-rownames(T2)
-
-        index<-match(EvsIds,Ids)
-        EventsFound<-EventsFound[index,]
-
-        # Put all the information in one data frame
-        Result<-data.frame(EventsFound[,1],EventsFound[,2],EventsFound[,3],EventsFound[,4],EventsFound[,5],T2[,3],T2[,5],stringsAsFactors=FALSE)
-
-        colnames(Result)<-c("Affy Gene ID","Gene name","Event Number","Event Type","Genomic Position",
-                            "Splicing T Value","Splicing Adjusted Pvalue")
-
-        rownames(Result)<-paste(Result[,1],"_",Result[,3],sep="")
-
-        # Order the final dataframe according to the pvalue
-        Result<-Result[order(Result[,7]),]
-        Result<-Result[,-c(1,3)]
-
-      }
-      # Filter Events
-
-      if(Filter==TRUE)
-      {
-        Ixx<-match(rownames(Result),FilterMatrix[,1])
-        FilterMatrix<-FilterMatrix[Ixx,]
-        Jxx<-which(FilterMatrix[,2]==1)
-        Result<-Result[Jxx,]
-
-      }
-
-      # AA<-matrix(unlist(strsplit(rownames(Result),"[.]")),ncol=2,byrow=T)
-      # X<-nchar(AA[,1])
-      # indxrm<-which(X>10)
-      # Result<-Result[-indxrm,]
-
-      if(PSI)
-      {
-
-        indx<-match(rownames(Result),rownames(DPSIs[[mm]]))
-        indx<-indx[!is.na(indx)]
-        DPSIs[[mm]]<-DPSIs[[mm]][indx,,drop=FALSE]
-        Result<-cbind(Result,DPSIs[[mm]])
-        colnames(Result)[6]<-c("Delta PSI")
-
-      }
-
-      FinalResult[[mm]]<-Result
-
+        
+        cat(paste("Done \n", sep = ""))
     }
-
-    if(ncol(Contrast)==1)
-    {
-      FinalResult<-FinalResult[[1]]
+    
+    # Obtain the number of columns of the ExFit variable
+    Y<-ExFit
+    ncc <- ncol(ExFit)
+    
+    # Sanity check All the events and probesets must be ordered in the following way:
+    # Event_1_Ref Event_1_P1 Event_1_P2 Event_2_Ref...
+    
+    # Giving each Paths an number indicator then we can order them by using it
+    ExFit[ExFit[, 2] == "_Ref", 4] <- 1
+    ExFit[ExFit[, 2] == "_P1", 4] <- 2
+    ExFit[ExFit[, 2] == "_P2", 4] <- 3
+    
+    # The Probesets are ordered first by unit and then by group, with units being the
+    # events and groups the paths
+    NuevoOrden <- order(ExFit[, 3], ExFit[, 4])
+    ExFit <- ExFit[NuevoOrden, ]
+    
+    ## Detect which events are expressed above the desired threshold
+    
+    if (Filter == TRUE) {
+        
+        Msg <- paste("\t** Running Expression Filter", sep = "")
+        cat(paste(Msg, "...", sep = ""))
+        
+        # Y<-extractDataFrame(affy,addNames=TRUE)
+        #Y <- ExFit
+        Y <- Y[, c(1, 2, 6:ncol(Y))]
+        
+        Maxs <- rowMaxs(as.matrix(Y[, 3:ncol(Y)]))
+        Maxs_P1 <- Maxs[seq(1, length(Maxs), 3)]
+        Maxs_P2 <- Maxs[seq(2, length(Maxs), 3)]
+        Maxs_Ref <- Maxs[seq(3, length(Maxs), 3)]
+        
+        Th <- quantile(Maxs_Ref, Qn)
+        Filt <- which(Maxs_P1 > Th & Maxs_P2 > Th & Maxs_Ref > Th)
+        
+        EE <- unique(Y[, 1])
+        
+        FilterMatrix <- matrix(0, nrow = length(EE), ncol = 2)
+        FilterMatrix[, 1] <- EE
+        FilterMatrix[Filt, 2] <- 1
+        
+        cat(paste("Done \n", sep = ""))
+        
     }
-
-    cat(paste("Done \n",sep=""))
-
-    # Return the Result to the user
-    cat("\n",format(Sys.time(), "%X")," Analysis Completed","\n")
-    return(FinalResult)
-
-  }else{
-    stop("Wrong Statistical Analysis Given")
-  }
-
+    
+    ###################################### Statistical Analysis
+    
+    # The analysis will vary depending on the parameters set by the user.
+    
+    # 1) Analysis based on B3+B4 and B3+B4+B5
+    
+    if (Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS") {
+        
+        Msg <- paste("\t** Running Statistical Analysis", sep = "")
+        cat(paste(Msg, "...", sep = ""))
+        
+        # AuxM is the Auxiliary Matrix used in the statistical analysis, the rows of this
+        # matrix are used to indicate to which path each of the probesets belong to.
+        
+        # R P1 P2 1 0 0 1 1 0 1 1 1
+        
+        AuxM <- matrix(c(1, 0, 0, 1, 1, 0, 1, 1, 1), nrow = 3, byrow = TRUE)
+        
+        # With a Kronecker product, each of the elements of the Design Matrix are
+        # replaced by AuxM.
+        
+        D <- kronecker(Design, AuxM)
+        
+        # We just keep the intensity values for the probesets in each sample
+        A <- ExFit[, 6:ncol(ExFit)]
+        
+        # The expression matrix (Ymat) must be in a different arrangement than ExFit.
+        # ExFit has for rows the different paths for each event and for columns the
+        # samples of the experiment. However, Ymat must have for rows each of the samples
+        # and the paths it belongs to and for columns each of the events.
+        
+        # Original Matrix Required Ordered Matrix Sample 1 Sample 2 Sample 3 Event 1
+        # Event 2 Event 3 Event 1_Ref Sample 1 _ Ref Event 1_P1 Sampel 1 _ P1 Event 1_P2
+        # Sample 1 _ P2 Event 2_Ref .  Sample 2 _ Ref Event 2_P1 ............  Sample 2 _
+        # P1 Event 2_P2 .............  Sample 2 _ P2 Event 3_Ref ............  Sample 3 _
+        # Ref Event 3_P1 .  Sample 3 _ P1 Event 3_P2 Sample 3 _ P2
+        
+        
+        II <- lapply(seq(1, nrow(A), 3), function(x) rep(x + 0:2, ncol(A)))
+        JJ <- rep(rep(1:ncol(A), each = 3), length(unique(ExFit[, 1])))
+        B <- A[cbind(unlist(II), JJ)]
+        Ymat <- t(matrix(B, nrow = length(unique(ExFit[, 1])), byrow = TRUE))
+        colnames(Ymat) <- unique(ExFit[, 1])
+        rownames(Ymat) <- paste(rep(colnames(ExFit)[6:ncol(ExFit)], each = 3), "_", 
+            c("Ref", "P1", "P2"), sep = "")
+        
+        # Transform the matrix values to log2
+        Ymat <- log2(Ymat)
+        
+        ### Start Statistical Analysis cat(' \nPerforming Statistical Analysis with
+        ### Limma...')
+        
+        # Linear model using Ymat and Design matrices
+        fit <- lmFit(object = t(Ymat), design = D)
+        
+        
+        FinalResult <- vector("list", length = ncol(Contrast))
+        
+        for (mm in 1:ncol(Contrast)) {
+            Cused <- Contrast[, mm, drop = FALSE]
+            
+            # The contrasts we are interested in are the ones related with each Path, and we
+            # apply a kronecker product of the contrast matrix with the corresponding vector
+            # for each Path (P1 = 1 1 0 ; P2 = 1 1 1)
+            
+            if (Statistic == "LogFC" | Statistic == "Dif_LogFC") {
+                
+                if (Statistic == "LogFC") {
+                  P1 <- kronecker(Cused, matrix(c(1, 1, 0), nrow = 3))
+                  P2 <- kronecker(Cused, matrix(c(1, 1, 1), nrow = 3))
+                  
+                } else if (Statistic == "Dif_LogFC") {
+                  P1 <- kronecker(Cused, matrix(c(0, 1, 0), nrow = 3))
+                  P2 <- kronecker(Cused, matrix(c(0, 1, 1), nrow = 3))
+                  
+                }
+                
+                # C contains the vectors of the contrasts
+                C <- cbind(P1, P2)
+                
+                # Compute estimated coefficients and standard errors for the given contrasts
+                fit2 <- contrasts.fit(fit, C)
+                
+                # Empirical Bayesian Statistics
+                fit2 <- eBayes(fit2)
+                
+                # Obtain the ranking of events for each of the contrasts
+                T2 <- topTable(fit2, coef = 1, number = Inf)
+                T3 <- topTable(fit2, coef = 2, number = Inf)
+                
+                # Both tables (T2 and T3) must be in the same order
+                EvsIds <- rownames(T2)
+                ii3 <- match(EvsIds, rownames(T3))
+                T3 <- T3[ii3, ]
+                
+                # One table is created by merging both, as both have the same column names, we
+                # rename the columns from one of the tables with letters to avoid problems.
+                colnames(T3) <- letters[1:ncol(T3)]
+                T34_345 <- cbind(T2, T3)
+                
+                # By taking both pvalues, one from each contrast, we perform an Irwin Hall
+                # Sumarizaion to obtain 1 pvalue for each of the events
+                Values1 <- IHsummarization(T34_345[, 4], T34_345[, 3], T34_345[, 
+                  10], T34_345[, 9])
+                
+                # Order the events from the txt in the same way as the tables from each contrast
+                Ids <- paste(as.vector(EventsFound[, 1]), "_", as.vector(EventsFound[, 
+                  3]), sep = "")
+                
+                index <- match(EvsIds, Ids)
+                EventsFound <- EventsFound[index, ]
+                
+                # Put all the information in one data frame
+                Result <- data.frame(EventsFound[, 1], EventsFound[, 2], EventsFound[, 
+                  3], EventsFound[, 4], EventsFound[, 5], Values1$Tstats, Values1$Pvalues, 
+                  stringsAsFactors = FALSE)
+                
+                colnames(Result) <- c("Affy Gene ID", "Gene name", "Event Number", 
+                  "Event Type", "Genomic Position", "Splicing Z Value", "Splicing Pvalue")
+                
+                rownames(Result) <- paste(Result[, 1], "_", Result[, 3], sep = "")
+                
+                # Order the final dataframe according to the pvalue
+                Result <- Result[order(Result[, 7]), ]
+                Result <- Result[, -c(1, 3)]
+                
+                
+            } else if (Statistic == "DRS") {
+                DRS <- kronecker(Cused, matrix(c(0, 0, 1), nrow = 3))
+                
+                # Compute estimated coefficients and standard errors for the given contrasts
+                fit2 <- contrasts.fit(fit, DRS)
+                
+                # Empirical Bayesian Statistics
+                fit2 <- eBayes(fit2)
+                
+                # Obtain the ranking of events for each of the contrasts
+                T2 <- topTable(fit2, number = Inf)
+                
+                # Order the events from the txt in the same way as the tables from each contrast
+                Ids <- paste(as.vector(EventsFound[, 1]), "_", as.vector(EventsFound[, 
+                  3]), sep = "")
+                
+                EvsIds <- rownames(T2)
+                
+                index <- match(EvsIds, Ids)
+                EventsFound <- EventsFound[index, ]
+                
+                # Put all the information in one data frame
+                Result <- data.frame(EventsFound[, 1], EventsFound[, 2], EventsFound[, 
+                  3], EventsFound[, 4], EventsFound[, 5], T2[, 3], T2[, 5], stringsAsFactors = FALSE)
+                
+                colnames(Result) <- c("Affy Gene ID", "Gene name", "Event Number", 
+                  "Event Type", "Genomic Position", "Splicing T Value", "Splicing Adjusted Pvalue")
+                
+                rownames(Result) <- paste(Result[, 1], "_", Result[, 3], sep = "")
+                
+                # Order the final dataframe according to the pvalue
+                Result <- Result[order(Result[, 7]), ]
+                Result <- Result[, -c(1, 3)]
+                
+            }
+            # Filter Events
+            
+            if (Filter == TRUE) {
+                Ixx <- match(rownames(Result), FilterMatrix[, 1])
+                FilterMatrix <- FilterMatrix[Ixx, ]
+                Jxx <- which(FilterMatrix[, 2] == 1)
+                Result <- Result[Jxx, ]
+                
+            }
+            
+            # AA<-matrix(unlist(strsplit(rownames(Result),'[.]')),ncol=2,byrow=T)
+            # X<-nchar(AA[,1]) indxrm<-which(X>10) Result<-Result[-indxrm,]
+            
+            if (PSI) {
+                
+                indx <- match(rownames(Result), rownames(DPSIs[[mm]]))
+                indx <- indx[!is.na(indx)]
+                DPSIs[[mm]] <- DPSIs[[mm]][indx, , drop = FALSE]
+                Result <- cbind(Result, DPSIs[[mm]])
+                colnames(Result)[6] <- c("Delta PSI")
+                
+            }
+            
+            FinalResult[[mm]] <- Result
+            
+        }
+        
+        if (ncol(Contrast) == 1) {
+            FinalResult <- FinalResult[[1]]
+        }
+        
+        cat(paste("Done \n", sep = ""))
+        
+        # Return the Result to the user
+        cat("\n", format(Sys.time(), "%X"), " Analysis Completed", "\n")
+        return(FinalResult)
+        
+    } else {
+        stop("Wrong Statistical Analysis Given")
+    }
+    
 }
 

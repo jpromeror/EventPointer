@@ -468,7 +468,7 @@ ClassifyEvents<-function(SG,Events)
   }
   
   
-  for(ii in 1:length(Events))
+  for(ii in seq_along(Events))
   {
     Events[[ii]]$Type<-Type[ii]
     
@@ -790,7 +790,7 @@ getPSI <- function(ExFit) {
   
   NCols<-ncol(ExFit)
   # Perform the operations for every detectable alternative splicing event
-  for (n in 1:(nrow(ExFit)/3)) {
+  for (n in seq_len(nrow(ExFit)/3)) {
     
     # Get expression signal from path 1
     Signal1 <- ExFit[1+3*(n-1),6:NCols]
@@ -817,7 +817,7 @@ getPSI_RNASeq<-function(Result)
   CountMatrix<-vector("list",length=length(Result))
   Vec<-c()
   
-  for(jj in 1:length(Result))
+  for(jj in seq_along(Result))
   {
     # print(jj)
     A<-Result[[jj]]
@@ -857,7 +857,7 @@ getPSI_RNASeq<-function(Result)
   colnames(PSI)  <- colnames(CountMatrix)
   rownames(PSI)  <- Vec[seq(1,length(Vec),by = 3)]
   
-  for (n in 1:(nrow(CountMatrix)/3)) 
+  for (n in seq_len(nrow(CountMatrix)/3) 
   {
     Signal1 <- CountMatrix[1+3*(n-1),]
     Signal2 <- CountMatrix[2+3*(n-1),]
@@ -1026,7 +1026,7 @@ PrepareOutput<-function(Result,Final)
   GeneN<-c()
   Index<-c()
   GeneI<-c()
-  for(jj in 1:length(Result))
+  for(jj in seq_along(Result))
   {
     
     GeneN<-c(GeneN,Result[[jj]][[1]]$GeneName)
@@ -1040,7 +1040,7 @@ PrepareOutput<-function(Result,Final)
   
   # browser()
   
-  for(jj in 1:nrow(Final))
+  for(jj in seq_len(nrow(Final)))
   {
     # print(jj)
     
@@ -1194,7 +1194,7 @@ SG_Info<-function(SG_Gene)
   }
   
   
-  rownames(Graph_Edges)<-1:nrow(Graph_Edges)
+  rownames(Graph_Edges)<-seq_len(nrow(Graph_Edges))
   
   # Get Adjacency and Incidence Matrix
   
@@ -1237,7 +1237,7 @@ WriteGTF <- function(PATH,Data,Probes,Paths){
   PATHS <- as.vector(unique(Probes[,6]))
   
   
-  for(i in 1:nrow(Probes))
+  for(i in seq_len(nrow(Probes)))
   {
     
     if (STRAND=="+"){
@@ -1287,7 +1287,7 @@ WriteGTF <- function(PATH,Data,Probes,Paths){
   
   
   # browser()
-  for (i in 1:length(PATHS)){
+  for (i in seq_along(PATHS)){
     ii <- which(Paths[,7]==PATHS[i])
     # if (all(!is.na(grep("Ref",PATHS[i])))){
     if (length(!is.na(grep("Ref",PATHS[i])))!=0){
@@ -1364,7 +1364,7 @@ WriteGTF_RNASeq <- function(PATH,Data,Paths){
   
   
   # browser()
-  for (i in 1:length(PATHS)){
+  for (i in seq_along(PATHS)){
     ii <- which(Paths[,7]==PATHS[i])
     # if (all(!is.na(grep("Ref",PATHS[i])))){
     if (length(!is.na(grep("Ref",PATHS[i])))!=0){

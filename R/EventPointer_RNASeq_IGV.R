@@ -21,71 +21,63 @@
 #'
 #'    Dmatrix<-matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1),ncol=2,byrow=FALSE)
 #'    Cmatrix<-t(t(c(0,1)))
-#'    Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
+#'    Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic='LogFC',PSI=TRUE)
 #'
 #'    # IGV Visualization
 #'
-#'    EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")
-#'    PathGTF<-system.file("extdata",package="EventPointer")
+#'    EventsTxt<-paste(system.file('extdata',package='EventPointer'),'/EventsFound_RNASeq.txt',sep='')
+#'    PathGTF<-system.file('extdata',package='EventPointer')
 #'    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 #' @export
 
 
-EventPointer_RNASeq_IGV<-function(Events,SG_RNASeq,EventsTxt,PathGTF)
-{
-
-    SgF<-rowRanges(SG_RNASeq)
-
-  ########################
-  # iiP<-which(strand(SgF)@values=="+")
-  # iiN<-which(strand(SgF)@values=="-")
-  # strand(SgF)@values[iiP]<-"-"
-  # strand(SgF)@values[iiN]<-"+"
-  ##################################
-
-  # Create file to store gtf for patths (events)
-  FILE.paths <- paste(PathGTF,"/paths_RNASeq.gtf",sep="")
-  cat(file=FILE.paths,paste("#track name=",shQuote("paths",type="cmd")," gffTags=",shQuote("on",type="cmd"),sep=""),"\n")
-
-  # Read EventsFound txt
-  EventsInfo<-read.delim(file=EventsTxt,sep="\t",header=TRUE,stringsAsFactors = FALSE)
-  # xx<-paste(EventsInfo[,1],"_",EventsInfo[,2],sep="")
-  # rownames(EventsInfo)<-xx
-
-  cat("\n Generating GTF Files...")
-
-  pb <- txtProgressBar(min = 0, max = nrow(Events), style = 3)
-
-  for(jj in 1:nrow(Events))
-  {
-    setTxtProgressBar(pb, jj)
-
-    ###3 Hay que ajustar esta l?nea
-    # Gene<-unlist(strsplit(Events[jj,1],"_"))[1]
-    EventXX<-as.numeric(unlist(strsplit(rownames(Events)[jj],"_")))
-    Gene<-EventXX[1]
-    EvNumb<-EventXX[2]
-    #Gene<-EventsInfo[jj,1]
-
-    SG_Gene <- SgF[unlist(geneID(SgF))==Gene]
-
-    SG_Edges<-SG_Info(SG_Gene)$Edges
-
-    if(unique(SG_Edges[,"Strand"])=="")
-    {
-      SG_Edges[,"Strand"]<-"-"
-
+EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
+    
+    SgF <- rowRanges(SG_RNASeq)
+    
+    ######################## iiP<-which(strand(SgF)@values=='+') iiN<-which(strand(SgF)@values=='-')
+    ######################## strand(SgF)@values[iiP]<-'-' strand(SgF)@values[iiN]<-'+'
+    
+    # Create file to store gtf for patths (events)
+    FILE.paths <- paste(PathGTF, "/paths_RNASeq.gtf", sep = "")
+    cat(file = FILE.paths, paste("#track name=", shQuote("paths", type = "cmd"), 
+        " gffTags=", shQuote("on", type = "cmd"), sep = ""), "\n")
+    
+    # Read EventsFound txt
+    EventsInfo <- read.delim(file = EventsTxt, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+    # xx<-paste(EventsInfo[,1],'_',EventsInfo[,2],sep='') rownames(EventsInfo)<-xx
+    
+    cat("\n Generating GTF Files...")
+    
+    pb <- txtProgressBar(min = 0, max = nrow(Events), style = 3)
+    
+    for (jj in 1:nrow(Events)) {
+        setTxtProgressBar(pb, jj)
+        
+        ### 3 Hay que ajustar esta l?nea Gene<-unlist(strsplit(Events[jj,1],'_'))[1]
+        EventXX <- as.numeric(unlist(strsplit(rownames(Events)[jj], "_")))
+        Gene <- EventXX[1]
+        EvNumb <- EventXX[2]
+        # Gene<-EventsInfo[jj,1]
+        
+        SG_Gene <- SgF[unlist(geneID(SgF)) == Gene]
+        
+        SG_Edges <- SG_Info(SG_Gene)$Edges
+        
+        if (unique(SG_Edges[, "Strand"]) == "") {
+            SG_Edges[, "Strand"] <- "-"
+            
+        }
+        
+        # iixx<-match(Events[jj,1],rownames(EventsInfo))
+        iixx <- match(rownames(Events)[jj], EventsInfo[, 1])
+        
+        EventPaths <- GetIGVPaths(EventsInfo[iixx, ], SG_Edges)
+        WriteGTF_RNASeq(PathGTF, EventsInfo[iixx, ], EventPaths)
+        
     }
-
-    # iixx<-match(Events[jj,1],rownames(EventsInfo))
-    iixx<-match(rownames(Events)[jj],EventsInfo[,1])
-
-    EventPaths<-GetIGVPaths(EventsInfo[iixx,],SG_Edges)
-    WriteGTF_RNASeq(PathGTF,EventsInfo[iixx,],EventPaths)
-
-  }
-
-
-  close(pb)
-  cat("\n")
+    
+    
+    close(pb)
+    cat("\n")
 }
