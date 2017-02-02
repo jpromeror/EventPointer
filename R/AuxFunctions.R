@@ -299,12 +299,7 @@ AnnotateEvents_RNASeq<-function(Events)
 #' @rdname InternalFunctions
 ClassifyEvents<-function(SG,Events)
 {
-  # Create a vector to store the type of event for all of the events found
-  Type<-vector(length=length(Events))
-  
-  # Repeat the process as many events there are
-  for(XX in seq_along(Events))
-  {
+  Events<-lapply(seq_along(Events),function(XX){
     # Keep the components of Path 1 and Path 2
     P1<-Events[[XX]]$P1[,1:2]
     P2<-Events[[XX]]$P2[,1:2]
@@ -314,8 +309,8 @@ ClassifyEvents<-function(SG,Events)
     # Alternative First Exon
     if(any(Info[,1]=="S"))
     {
-      Type[XX]<-"Alternative First Exon"
-      next
+      Events[[XX]]$Type<-"Alternative First Exon"
+      # next
     }
     
     # If there is an edge that enters the End node, we have an
@@ -323,8 +318,8 @@ ClassifyEvents<-function(SG,Events)
     
     if(any(Info[,2]=="E"))
     {
-      Type[XX]<-"Alternative Last Exon"
-      next
+      Events[[XX]]$Type<-"Alternative Last Exon"
+      # next
     }
     
     # Create a Mini Adjacency Graph using only the elements
@@ -356,8 +351,55 @@ ClassifyEvents<-function(SG,Events)
     
     if(dim(MiniSGA)[1]==3 & dim(MiniSGA)[2]==3)
     {
-      Type[XX]<-"Group1"
-      next
+      # Get the nodes from Path 1 and order them in increasing order,
+      # as the elements are character (11 > 21), we must sort them
+      # numerically and then add again the .a and .b values
+      P1<-c(Events[[XX]]$P1[,"From"],Events[[XX]]$P1[,"To"])
+      P1<-unique(gsub("[.ab]","",P1))
+      P1<-matrix(sort(c(paste(P1,".a",sep=""),paste(P1,".b",sep=""))),ncol=2,byrow=TRUE)
+      
+      # match the P1 matrix rows in the SG$Edges matrix to get te information from the edges
+      iix<-which(outer(SG$Edges[,"From"],P1[,1],"==") & outer(SG$Edges[,"To"],P1[,2],"=="),arr.ind=TRUE)[,1]
+      
+      # Keep the edges
+      P1<-SG$Edges[iix,]
+      P1<-P1[rownames(P1)[order(as.numeric(rownames(P1)))],]
+      
+      # Conditions to indicate type of event
+      Cond<-(as.numeric(P1[c(2:3),"Start"])-1)-(as.numeric(P1[c(1:2),"End"]))
+      Cond2<-diff(as.numeric(rownames(P1)))
+      
+      if(any(Cond2>1) | any(is.na(Cond)))
+      {
+        Events[[XX]]$Type<-"Complex Event"
+        # next
+        
+      }
+      
+      if(Cond[1]>0 & Cond[2]>0)
+      {
+        Events[[XX]]$Type<-"Cassette Exon"
+        # next
+      }
+      
+      if(Cond[1]==0 & Cond[2]==0)
+      {
+        Events[[XX]]$Type<-"Retained Intron"
+        # next
+      }
+      
+      if(Cond[1]>0 & Cond[2]==0)
+      {
+        Events[[XX]]$Type<-"Alternative 5' Splice Site"
+        # next
+      }
+      
+      if(Cond[1]==0 & Cond[2]>0)
+      {
+        Events[[XX]]$Type<-"Alternative 3' Splice Site"
+        # next
+      }
+      
     }
     
     # The case of Mutually Exclusive Exons
@@ -390,94 +432,41 @@ ClassifyEvents<-function(SG,Events)
       # next to the other to be a mutually exclusive case.
       if(MiniSGA[3,3]==0 & all(diff(Names)==1))
       {
-        Type[XX]<-"Mutually Exclusive Exons"
-        next
+        Events[[XX]]$Type<-"Mutually Exclusive Exons"
+        # next
       }
     }
     
-    Type[XX]<-"Complex Event"
+    if(is.null(Events[[XX]]$Type))
+    {
+      Events[[XX]]$Type<-"Complex Event"
+    }
     
     
-  }
+    return(Events[[XX]])
+  })
   
-  ## Certain conditions need to be obtained to classify all the events
-  ## that belong to Group 1 (Cassettes,RetIntrons,Alt3,Alt5..)
   
-  Gs1<-which(Type=="Group1")
   
-  for(jj in Gs1)
-  {
-    # Get the nodes from Path 1 and order them in increasing order,
-    # as the elements are character (11 > 21), we must sort them
-    # numerically and then add again the .a and .b values
-    P1<-c(Events[[jj]]$P1[,"From"],Events[[jj]]$P1[,"To"])
-    P1<-unique(gsub("[.ab]","",P1))
-    P1<-matrix(sort(c(paste(P1,".a",sep=""),paste(P1,".b",sep=""))),ncol=2,byrow=TRUE)
-    
-    # match the P1 matrix rows in the SG$Edges matrix to get te information from the edges
-    iix<-which(outer(SG$Edges[,"From"],P1[,1],"==") & outer(SG$Edges[,"To"],P1[,2],"=="),arr.ind=TRUE)[,1]
-    
-    # Keep the edges
-    P1<-SG$Edges[iix,]
-    P1<-P1[rownames(P1)[order(as.numeric(rownames(P1)))],]
-    
-    # Conditions to indicate type of event
-    Cond<-(as.numeric(P1[c(2:3),"Start"])-1)-(as.numeric(P1[c(1:2),"End"]))
-    Cond2<-diff(as.numeric(rownames(P1)))
-    
-    if(any(Cond2>1) | any(is.na(Cond)))
-    {
-      Type[jj]<-"Complex Event"
-      next
-      
-    }
-    
-    if(Cond[1]>0 & Cond[2]>0)
-    {
-      Type[jj]<-"Cassette Exon"
-      next
-    }
-    
-    if(Cond[1]==0 & Cond[2]==0)
-    {
-      Type[jj]<-"Retained Intron"
-      next
-    }
-    
-    if(Cond[1]>0 & Cond[2]==0)
-    {
-      Type[jj]<-"Alternative 5' Splice Site"
-      next
-    }
-    
-    if(Cond[1]==0 & Cond[2]>0)
-    {
-      Type[jj]<-"Alternative 3' Splice Site"
-      next
-    }
-    
-  }
   
   if(SG$Edges[1,"Strand"]=="-")
   {
-    Type[which(Type=="Alternative 5' Splice Site")]<-"Alternative 3' Splice Site"
-    Type[which(Type=="Alternative 3' Splice Site")]<-"Alternative 5' Splice Site"
-    Type[which(Type=="Alternative First Exon")]<-"Alternative Last Exon"
-    Type[which(Type=="Alternative Last Exon")]<-"Alternative First Exon"
+    
+    Types<-sapply(seq_along(Events),function(x){Events[[x]]$Type})
+    
+    Types[which(Types=="Alternative 5' Splice Site")]<-"Alternative 3' Splice Site"
+    Types[which(Types=="Alternative 3' Splice Site")]<-"Alternative 5' Splice Site"
+    Types[which(Types=="Alternative First Exon")]<-"Alternative Last Exon"
+    Types[which(Types=="Alternative Last Exon")]<-"Alternative First Exon"
+    
+    Events<-lapply(seq_along(Events),function(x){Events[[x]]$Type<-Types[x];return(Events[[x]])})
     
   }
   
-  
-  for(ii in seq_along(Events))
-  {
-    Events[[ii]]$Type<-Type[ii]
-    
-  }
   
   
   return(Events)
 }
-
 
 #' @rdname InternalFunctions
 
@@ -597,36 +586,31 @@ getPathFPKMs <- function(x, readsC, widthinit) {
 }
 
 #' @rdname InternalFunctions
+
 getEventPaths<-function(Events,SG)
 {
-  Exx<-vector("list",length=nrow(Events$triplets))
   
-  for(ii in seq_len(nrow(Events$triplets)))
-  {
-    P1<-SG$Edges[which(Events$groups==Events$triplets[ii,1]),]
-    P2<-SG$Edges[which(Events$groups==Events$triplets[ii,2]),]
-    Ref<-SG$Edges[which(Events$groups==Events$triplets[ii,3]),]
+  Groups<-Events$groups
+  Triplets<-Events$triplets
+  
+  P1<-lapply(seq_len(nrow(Triplets)),function(x){A<-SG$Edges[which(Groups==Triplets[x,1]),];return(A)})
+  P2<-lapply(seq_len(nrow(Triplets)),function(x){A<-SG$Edges[which(Groups==Triplets[x,2]),];return(A)})
+  Ref<-lapply(seq_len(nrow(Triplets)),function(x){A<-SG$Edges[which(Groups==Triplets[x,3]),];return(A)})
+  
+  Result<-lapply(seq_along(P1),function(X){
     
-    if(nrow(P1)>nrow(P2))
+    if(nrow(P1[[X]])>nrow(P2[[X]]))
     {
-      
-      Exx[[ii]]$P1<-P1
-      Exx[[ii]]$P2<-P2
-      Exx[[ii]]$Ref<-Ref
-      
+      A<-list(P1=P1[[X]],P2=P2[[X]],Ref=Ref[[X]])
     }else{
-      
-      Exx[[ii]]$P1<-P2
-      Exx[[ii]]$P2<-P1
-      Exx[[ii]]$Ref<-Ref
-      
+      A<-list(P1=P2[[X]],P2=P1[[X]],Ref=Ref[[X]])
     }
     
+    return(A)
     
-  }
+  })
   
-  return(Exx)
-  
+  return(Result)
 }
 
 #' @rdname InternalFunctions
@@ -857,7 +841,7 @@ getPSI_RNASeq<-function(Result)
   colnames(PSI)  <- colnames(CountMatrix)
   rownames(PSI)  <- Vec[seq(1,length(Vec),by = 3)]
   
-  for (n in seq_len(nrow(CountMatrix)/3) 
+  for (n in seq_len(nrow(CountMatrix)/3)) 
   {
     Signal1 <- CountMatrix[1+3*(n-1),]
     Signal2 <- CountMatrix[2+3*(n-1),]
