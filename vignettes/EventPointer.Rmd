@@ -19,7 +19,7 @@ output:
     fig_caption: true
 ---
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r LoadFunctions, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 library(knitr)
 opts_chunk$set(error = FALSE)
 library(EventPointer)
@@ -32,7 +32,7 @@ library(EventPointer)
 # Installation
 EventPointer can be installed from Bioconductor using the folloiwng lines:
 
-```{r,eval=FALSE}
+```{r, eval=FALSE}
 source("http://www.bioconductor.org/biocLite.R")
 biocLite("EventPointer")
 ```
@@ -111,7 +111,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 The following code chunks show examples on how to run the function using both Ensembl and Affymetrix GTF using example data included in the package. This data corresponds to the Affymetrix HTA 2.0 GTF represnting only the DONSON gene and the probes that are mapped to it.
 
   Using Affymetrix GTF as reference transcriptome
-```{r, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r CDFGTF, eval=TRUE, warning=FALSE, collapse=TRUE}
 
 # Set input variables
    PathFiles<-system.file("extdata",package="EventPointer")
@@ -148,7 +148,7 @@ The aroma.affymetrx R package provides usersr different functions to work with a
 
 The following code chunk displays the pipeline used to get the results required by EventPointer after the pre-processing using aroma.affymetrix. The code is not intended to be a runable example, but just to show users the settings a functions that can be used. In order for users to have a runable example, the corrrespoding folder structure and files are required.
 
-```{r, eval=FALSE}
+```{r aroma, eval=FALSE}
 
 # Simple example of Aroma.Affymetrix Preprocessing Pipeline
 
@@ -193,7 +193,7 @@ above the threshold.
 
 The rest of the events are not shown unless the `Filter` variable is set to `FALSE`
 
-```{r, eval=TRUE}
+```{r EP_arrays, eval=TRUE}
 
    data(ArraysData)
 
@@ -252,7 +252,7 @@ Once the process is completed two GTF files are generated in the specified direc
 ![**Figure 6.** GTF files generated with EventPointer_IGV](Figure6.png)
 
 
-```{r, eval=TRUE,collapse=TRUE}
+```{r Arrays_IGV, eval=TRUE, collapse=TRUE}
 
 # Set Input Variables
   
@@ -298,7 +298,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 - **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
 
 
-```{r, eval=TRUE,collapse=TRUE}
+```{r PrepareBam, eval=TRUE, collapse=TRUE}
 # Obtain the samples and directory for .bam files
 
 # the object si contains example sample information from the SGSeq R package 
@@ -329,9 +329,8 @@ For this purpose, the function EventDetection is used.
 - **cores**: Number of cores used for parallel processing
 - **Path**: Directory where to write the EventsFound.txt file
 
-```{r, eval=TRUE}
+```{r EventDetection, eval=TRUE}
   # Run EventDetection function
-   
    TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 ```
@@ -340,7 +339,7 @@ This function retireves a list with all the events found for all the genes prese
 
 The list is organized in the following way:
 
-```{r, eval=FALSE}
+```{r ListofLists, eval=FALSE}
 Events[[i]][[j]]
 ```
 
@@ -364,7 +363,7 @@ The algorithm displays the different parameters that are selected to perform the
 Following our example, the code chunk to obtain the results:
 
 
-```{r, eval=TRUE}
+```{r EP_RNASeq, eval=TRUE}
    Dmatrix<-matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1),ncol=2,byrow=FALSE)
    Cmatrix<-t(t(c(0,1)))
    Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
@@ -395,7 +394,7 @@ Once the process is completed the GTF file is generated in the specified directo
 - **paths_RNASeq.gtf** : GTF file representing the alternative splicing events.
 
 
-```{r, eval=TRUE,collapse=TRUE}
+```{r RNAS_IGV, eval=TRUE, collapse=TRUE}
 
    # IGV Visualization
    EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")

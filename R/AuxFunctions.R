@@ -329,7 +329,7 @@ ClassifyEvents<-function(SG,Events)
     ii<-sort(match(Info[,1],rownames(SG$Adjacency)))
     jj<-sort(match(Info[,2],rownames(SG$Adjacency)))
     
-    # The new one will have those rows and columsn
+    # The new one will have those rows and columns
     MiniSGA<-SG$Adjacency[ii,jj]
     
     # Get unique values, as the elements might be repeated
@@ -374,31 +374,34 @@ ClassifyEvents<-function(SG,Events)
         Events[[XX]]$Type<-"Complex Event"
         # next
         
+      }else{
+        
+        if(Cond[1]>0 & Cond[2]>0)
+        {
+          Events[[XX]]$Type<-"Cassette Exon"
+          # next
+        }
+        
+        if(Cond[1]==0 & Cond[2]==0)
+        {
+          Events[[XX]]$Type<-"Retained Intron"
+          # next
+        }
+        
+        if(Cond[1]>0 & Cond[2]==0)
+        {
+          Events[[XX]]$Type<-"Alternative 5' Splice Site"
+          # next
+        }
+        
+        if(Cond[1]==0 & Cond[2]>0)
+        {
+          Events[[XX]]$Type<-"Alternative 3' Splice Site"
+          # next
+        }
+        
       }
       
-      if(Cond[1]>0 & Cond[2]>0)
-      {
-        Events[[XX]]$Type<-"Cassette Exon"
-        # next
-      }
-      
-      if(Cond[1]==0 & Cond[2]==0)
-      {
-        Events[[XX]]$Type<-"Retained Intron"
-        # next
-      }
-      
-      if(Cond[1]>0 & Cond[2]==0)
-      {
-        Events[[XX]]$Type<-"Alternative 5' Splice Site"
-        # next
-      }
-      
-      if(Cond[1]==0 & Cond[2]>0)
-      {
-        Events[[XX]]$Type<-"Alternative 3' Splice Site"
-        # next
-      }
       
     }
     
@@ -417,10 +420,12 @@ ClassifyEvents<-function(SG,Events)
     #
     #              * Element Must be Zero
     
-    if(dim(MiniSGA)[1]==5 & dim(MiniSGA)[2]==5)
+    Names<-c(rownames(MiniSGA),colnames(MiniSGA))
+    
+    if(dim(MiniSGA)[1]==5 & dim(MiniSGA)[2]==5 &  !any(Names== "S" | Names=="E"))
     {
       # Get Row and Column Names from MiniSGA and join them in a vector
-      Names<-c(rownames(MiniSGA),colnames(MiniSGA))
+      
       
       # Substitute remove .a./b from the Names Vector and keep unique values
       Names<-unique(gsub("[.ab]","",Names))
@@ -467,7 +472,6 @@ ClassifyEvents<-function(SG,Events)
   
   return(Events)
 }
-
 #' @rdname InternalFunctions
 
 ##########################################################
@@ -1000,6 +1004,10 @@ PrepareProbes<-function(Probes,Class)
 PrepareOutput<-function(Result,Final)
 {
   
+  GeneN<-sapply(seq_along(Result),function(x){Result[[x]][[1]]$GeneName})
+  GeneI<-sapply(seq_along(Result),function(x){Result[[x]][[1]]$Gene})
+  Index<-seq_along(Result)
+  
   iix<-matrix(as.numeric(unlist(strsplit(Final[,1],"_"))),ncol=2,byrow=TRUE)
   
   Types<-vector("list",length=nrow(Final))
@@ -1007,29 +1015,12 @@ PrepareOutput<-function(Result,Final)
   GeneList<-vector("list",length=nrow(Final))
   GeneID<-vector("list",length=nrow(Final))
   
-  GeneN<-c()
-  Index<-c()
-  GeneI<-c()
-  for(jj in seq_along(Result))
-  {
-    
-    GeneN<-c(GeneN,Result[[jj]][[1]]$GeneName)
-    GeneI<-c(GeneI,Result[[jj]][[1]]$Gene)
-    Index<-c(Index,jj)
-    
-    
-  }
-  
   InfoX<-data.frame(GeneName=GeneN,GeneID=as.numeric(GeneI),Index=as.numeric(Index),stringsAsFactors = FALSE)
   
-  # browser()
-  
-  for(jj in seq_len(nrow(Final)))
-  {
-    # print(jj)
+  Output<-lapply(seq_len(nrow(Final)),function(x){
     
-    A<-InfoX[match(iix[jj,1],InfoX[,2]),3]
-    B<-iix[jj,2]
+    A<-InfoX[match(iix[x,1],InfoX[,2]),3]
+    B<-iix[x,2]
     
     EventType<-Result[[A]][[B]]$Type
     
@@ -1044,22 +1035,20 @@ PrepareOutput<-function(Result,Final)
     Position<-paste(Chr,":",St,"-",Sp,sep="")
     
     
-    Types[[jj]]<-EventType
-    Positions[[jj]]<-Position
+    Res<-data.frame(Gene=InfoX[A,1],Event_Type=EventType,Position=Position,Pvalue=Final[x,2],Zvalue=Final[x,3],stringsAsFactors = FALSE)
+    rownames(Res)<-Final[x,1]
+    return(Res)
     
-    GeneList[[jj]]<-Final[jj,1]
-    GeneID[[jj]]<-InfoX[A,1]
-  }
+  })
   
-  Res<-data.frame(Gene=unlist(GeneID),Event_Type=unlist(Types),Position=unlist(Positions),Pvalue=Final[,2],Zvalue=Final[,3],stringsAsFactors = FALSE)
-  rownames(Res)<-unlist(GeneList)
-  Pval_Order<-order(Res[,"Pvalue"])
+  Output<-do.call(rbind,Output)
+  Pval_Order<-order(Output[,"Pvalue"])
+  Output<-Output[Pval_Order,]
   
-  Res<-Res[Pval_Order,]
-  
-  return(Res)
+  return(Output)
   
 }
+
 
 #' @rdname InternalFunctions
 SG_Info<-function(SG_Gene)
