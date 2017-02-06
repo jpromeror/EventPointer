@@ -292,7 +292,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 
 - **Samples** : Name of the .bam files to be analyzed (Sample1.bam,Sample2.bam,...,etc)
 - **SamplePath**: Path where the bam files are stored
-- **Ref_Transc**: Reference transcriptome used to name the genes found. Options are: "ensembl","UCSC" or "GTF".
+- **Ref_Transc**: Reference transcriptome used to name the genes found. Options are: "Ensembl","UCSC" or "GTF".
 - **fileTransc**: Path to the GTF reference transcriptome ff Ref_Transc is "GTF".
 - **cores**: Number of cores used for parallel processing
 - **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
