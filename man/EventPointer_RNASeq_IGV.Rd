@@ -32,12 +32,11 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
 
    Dmatrix<-matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1),ncol=2,byrow=FALSE)
    Cmatrix<-t(t(c(0,1)))
-   Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
+   Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic='LogFC',PSI=TRUE)
 
    # IGV Visualization
 
-   EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")
-   PathGTF<-system.file("extdata",package="EventPointer")
+   EventsTxt<-paste(system.file('extdata',package='EventPointer'),'/EventsFound_RNASeq.txt',sep='')
+   PathGTF<-system.file('extdata',package='EventPointer')
    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 }
-

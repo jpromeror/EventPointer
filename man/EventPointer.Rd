@@ -37,7 +37,7 @@ Statistical analysis of alternative splcing events
 
    Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
    Cmatrix<-t(t(c(0,1)))
-   EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+   EventsFound<-paste(system.file('extdata',package='EventPointer'),'/EventsFound.txt',sep='')
 
  Events<-EventPointer(Design=Dmatrix,
                       Contrast=Cmatrix,
@@ -45,8 +45,7 @@ Statistical analysis of alternative splcing events
                       Eventstxt=EventsFound,
                       Filter=TRUE,
                       Qn=0.25,
-                      Statistic="LogFC",
+                      Statistic='LogFC',
                       PSI=TRUE)
 
 }
-

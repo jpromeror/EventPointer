@@ -37,7 +37,13 @@
 #'                       Statistic='LogFC',
 #'                       PSI=TRUE)
 #'
-#'  EventPointer_IGV(Events[1,,drop=FALSE],'GTF',DONSON_GTF,PSRProbes,JunctionProbes,Directory,EventsFound)
+#'  EventPointer_IGV(Events=Events[1,,drop=FALSE],
+#'                   input='GTF',
+#'                   inputFile=DONSON_GTF,
+#'                   PSR=PSRProbes,
+#'                   Junc=JunctionProbes,
+#'                   PathGTF=Directory,
+#'                  EventsFile= EventsFound)
 #'
 #' @export
 

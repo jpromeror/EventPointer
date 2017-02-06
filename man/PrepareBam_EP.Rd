@@ -33,15 +33,14 @@ Prepares the information contained in .bam files to be analyzed by EventPointer
 
    BamInfo<-si
    Samples<-BamInfo[,2]
-   PathToSamples <- system.file("extdata/bams", package = "SGSeq")
-   PathToGTF<-paste(system.file("extdata",package="EventPointer"),"/FBXO31.gtf",sep="")
+   PathToSamples <- system.file('extdata/bams', package = 'SGSeq')
+   PathToGTF<-paste(system.file('extdata',package='EventPointer'),'/FBXO31.gtf',sep='')
 
   # Run PrepareBam function
    SG_RNASeq<-PrepareBam_EP(Samples=Samples,
                             SamplePath=PathToSamples,
-                            Ref_Transc="GTF",
+                            Ref_Transc='GTF',
                             fileTransc=PathToGTF,
                             cores=1)
 }
 }
-

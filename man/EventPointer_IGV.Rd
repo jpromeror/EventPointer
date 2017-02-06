@@ -32,17 +32,17 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
 }
 \examples{
 
-   PathFiles<-system.file("extdata",package="EventPointer")
-   DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
-   PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
-   JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
+   PathFiles<-system.file('extdata',package='EventPointer')
+   DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
+   PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
+   JunctionProbes<-paste(PathFiles,'/Junction_Probes.txt',sep='')
    Directory<-tempdir()
 
    data(ArraysData)
 
    Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
    Cmatrix<-t(t(c(0,1)))
-   EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+   EventsFound<-paste(system.file('extdata',package='EventPointer'),'/EventsFound.txt',sep='')
 
    Events<-EventPointer(Design=Dmatrix,
                       Contrast=Cmatrix,
@@ -50,10 +50,15 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
                       Eventstxt=EventsFound,
                       Filter=TRUE,
                       Qn=0.25,
-                      Statistic="LogFC",
+                      Statistic='LogFC',
                       PSI=TRUE)
 
- EventPointer_IGV(Events[1,,drop=FALSE],"GTF",DONSON_GTF,PSRProbes,JunctionProbes,Directory,EventsFound)
+ EventPointer_IGV(Events=Events[1,,drop=FALSE],
+                  input='GTF',
+                  inputFile=DONSON_GTF,
+                  PSR=PSRProbes,
+                  Junc=JunctionProbes,
+                  PathGTF=Directory,
+                 EventsFile= EventsFound)
 
 }
-
