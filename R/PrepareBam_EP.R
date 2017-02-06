@@ -31,8 +31,8 @@
 #' @export
 
 
-PrepareBam_EP <- function(Samples, SamplePath, Ref_Transc = "Ensembl", fileTransc = NULL, 
-    cores = 1, Alpha = 2) {
+PrepareBam_EP <- function(Samples, SamplePath, Ref_Transc = "Ensembl", 
+                          fileTransc = NULL, cores = 1, Alpha = 2) {
     # Event Pointer for RNASeq Data
     cat("Preparing BAM files for EventPointer...")
     
@@ -40,7 +40,8 @@ PrepareBam_EP <- function(Samples, SamplePath, Ref_Transc = "Ensembl", fileTrans
     # to the .bam file
     
     Location <- paste(SamplePath, "/", Samples, sep = "")
-    Bams <- data.frame(sample_name = Samples, file_bam = Location, stringsAsFactors = FALSE)
+    Bams <- data.frame(sample_name = Samples, file_bam = Location, 
+                       stringsAsFactors = FALSE)
     
     cat("\n Obtaining Bam Information")
     cat("\n")
@@ -58,23 +59,27 @@ PrepareBam_EP <- function(Samples, SamplePath, Ref_Transc = "Ensembl", fileTrans
     
     stopifnot(Ref_Transc == "Ensembl" | Ref_Transc == "UCSC" | Ref_Transc == "GTF")
     
-    if (Ref_Transc == "Ensembl") {
-        TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
-            host = "grch37.ensembl.org")
+    if (Ref_Transc == "Ensembl") 
+      {
+        TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                                    dataset = "hsapiens_gene_ensembl", 
+                                    host = "grch37.ensembl.org")
         
-    } else if (Ref_Transc == "UCSC") {
+      }else if (Ref_Transc == "UCSC") {
+        
         TxDb <- makeTxDbFromUCSC(genome = "hg19", tablename = "knownGene")
         
-    } else if (Ref_Transc == "GTF") {
+      }else if (Ref_Transc == "GTF") {
         
         stopifnot(!is.null(fileTransc))
         
-        TxDb <- makeTxDbFromGFF(file = fileTransc, format = "gtf", dataSource = "External Transcriptome")
+        TxDb <- makeTxDbFromGFF(file = fileTransc, format = "gtf", 
+                                dataSource = "External Transcriptome")
         
-    } else {
+      } else {
         
         stop("Unknown Reference Transcriptome")
-    }
+     }
     
     
     # Steps for the Reference Transcriptome
@@ -83,7 +88,7 @@ PrepareBam_EP <- function(Samples, SamplePath, Ref_Transc = "Ensembl", fileTrans
     TxF_Ref <- convertToTxFeatures(TxDb)
     
     # Convert from TxFeatures to Splicing Graph (Genomic Features)
-    SgF_Ref <- convertToSGFeatures(TxF_Ref)
+    #SgF_Ref <- convertToSGFeatures(TxF_Ref)
     
     # Steps for bam files
     

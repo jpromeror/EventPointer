@@ -23,6 +23,8 @@
 EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", PSI = FALSE) {
     ### Screen output for users new output
     
+  stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
+  
     options(warn = -1)
     
     if (Statistic == "LogFC") {
