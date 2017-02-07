@@ -122,7 +122,8 @@ The following code chunks show examples on how to run the function using both En
 
 # Run the function
 
-   CDFfromGTF(input="GTF",inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
+   CDFfromGTF(input="GTF",inputFile=DONSON_GTF,
+              PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
 
 ```
 
@@ -298,7 +299,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 - **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
 
 
-```{r PrepareBam, eval=TRUE, collapse=TRUE}
+```{r PrepareBam, eval=FALSE, collapse=TRUE}
 # Obtain the samples and directory for .bam files
 
 # the object si contains example sample information from the SGSeq R package 
@@ -331,6 +332,7 @@ For this purpose, the function EventDetection is used.
 
 ```{r EventDetection, eval=TRUE}
   # Run EventDetection function
+   data(SG_RNASeq)
    TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 ```
