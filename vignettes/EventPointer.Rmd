@@ -299,7 +299,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 - **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
 
 
-```{r PrepareBam, eval=FALSE, collapse=TRUE}
+```{r PrepareBam, eval=TRUE, collapse=TRUE}
 # Obtain the samples and directory for .bam files
 
 # the object si contains example sample information from the SGSeq R package 
