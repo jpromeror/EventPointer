@@ -49,7 +49,7 @@ EventDetection <- function(Input, cores, Path) {
     Result <- foreach(jj = seq_along(genes)) %dopar% # for(jj in 1:length(genes))
     {
         setTxtProgressBar(pb, jj)
-         print(jj)
+         # print(jj)
         Gene <- genes[jj]
         
         SG_Gene <- SgF[geneID(SgF) == Gene]

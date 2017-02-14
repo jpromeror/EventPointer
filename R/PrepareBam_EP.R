@@ -13,6 +13,7 @@
 #' the different splicing graphs found and the counts related to each of the elements.
 #'
 #' @examples
+#' \dontrun{
 #'  # Obtain the samples and directory for .bam files
 #'
 #'    BamInfo<-si
@@ -26,6 +27,7 @@
 #'                             Ref_Transc='GTF',
 #'                             fileTransc=PathToGTF,
 #'                             cores=1)
+#'}
 #' @export
 
 
