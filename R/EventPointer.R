@@ -41,8 +41,14 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
     options(warn = -1)
     
     # Perform statistical test depending on the selection of the user
+  
+  if(class(Design)!="matrix" | class(Contrast)!="matrix")
+  {
+    stop("Wrong Design and/or Contrast matrices")
     
-    stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
+  }
+    
+    # stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
     
     if (Statistic == "LogFC") {
         stt <- "Logarithm of the fold change of both isoforms"
@@ -53,6 +59,9 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
     } else if (Statistic == "DRS") {
         stt <- "Difference of the logarithm of the fold change of both isoforms"
         
+    }else{
+      
+        stop("Wrong statistical test given")
     }
     
     # Display if PSI will be calculated

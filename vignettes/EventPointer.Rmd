@@ -127,7 +127,7 @@ The following code chunks show examples on how to run the function using part of
 
 ```
 
-<span style="color:red">**Note:**</span> Both the .flat and .CDF file take large accounts of space in the hard drive, it is recommended that the directory
+<span style="color:red">**Note:**</span> Both the .flat and .CDF file take large amounts of space in the hard drive, it is recommended that the directory
 has at least 1.5 GB of free space.
 
 
@@ -206,7 +206,7 @@ The rest of the events are not shown unless the `Filter` variable is set to `FAL
                       Contrast=Cmatrix,
                       ExFit=ArraysData,
                       Eventstxt=EventsFound,
-                      Filter=TRUE,
+                      Filter=FALSE,
                       Qn=0.25,
                       Statistic="LogFC",
                       PSI=TRUE)
@@ -214,7 +214,9 @@ The rest of the events are not shown unless the `Filter` variable is set to `FAL
 
 Table 1 displays the output of EventPointer function 
 
-![**Table 1.** Output for EventPointer ](Figure4.png)
+```{r EP_Arrays_Res_Table, echo=FALSE}
+kable(Events[1:5,],digits=5,row.names=TRUE,align="c",caption = "Table 1: EventPointer Arrays results")
+```
 
 The columns of the `data.frame` are:
 
@@ -285,6 +287,13 @@ Each time an experiment is analyzed with EventPointer, the complete process need
 
 For the examples in this part of the vignette, we will use .bam files depicted in the [SGSeq vignette ](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html) that correspond to paired-end RNA-seq data from four tumor and four normal colorectal samples, which are part of a data set published in [Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As stated in [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) the bam files only include reads mapping to a single gene of interest (FBXO31).
 
+<span style="color:red">**Note:**</span> For sequencing data, there are two simple requirements for the BAM files in order to get EventPointer working correctly:
+
+1. The BAM files should include the **XS-flag**, the flag can be included in the files when running the alignment. Most of the available software has parameters to incude the flag.
+
+2. All files to be analyzed should have the corresponding index files **(.bai)** in the same directory as the BAM files. Create the index before running EventPointer.
+
+
 ## BAM Preparation
 
 The first step to analyze alternative splicing events in RNA-Seq data, is the creation of the splicing graphs. This step relies entirely on SGSeq R package.
@@ -299,7 +308,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 - **Alpha**: Internal SGSeq parameter to include or exclude regions (See Advanced Use)
 
 
-```{r PrepareBam, eval=TRUE, collapse=TRUE}
+```{r PrepareBam, eval=FALSE, collapse=TRUE}
 # Obtain the samples and directory for .bam files
 
 # the object si contains example sample information from the SGSeq R package 
@@ -371,9 +380,12 @@ Following our example, the code chunk to obtain the results:
    Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
 ```
 
+
 Table 2 displays the output of EventPointer function 
 
-![**Table 2.** Output for EventPointer ](Figure7.png)
+```{r EP_RNASeq_Res_Table, echo=FALSE}
+kable(Events[1:5,],digits=5,row.names=TRUE,align="c",caption = "Table 2: EventPointer RNASeq results")
+```
 
 
 ## IGV visualization

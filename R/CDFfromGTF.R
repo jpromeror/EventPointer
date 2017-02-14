@@ -70,7 +70,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     
     cat("Creating SG Information...")
     
-    stopifnot(input == "Ensembl" | input == "UCSC" | input == "GTF")
+    # stopifnot(input == "Ensembl" | input == "UCSC" | input == "GTF")
     
     if (input == "Ensembl") {
         TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
@@ -89,13 +89,20 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
         SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
         
     } else if (input == "GTF") {
-        stopifnot(!is.null(inputFile))
+        # stopifnot(!is.null(inputFile))
+      if(is.null(inputFile))
+      {
+        stop("inputFile parameter is empty")
+      }
         
         TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
         
         TranscriptFeatures <- convertToTxFeatures(TxDb)
         SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
         # Retrieve information from the TxDb variable (Transcripts then SG)
+    }else{
+      
+      stop("Unknown reference genome")
     }
     
     # Read Information for the probes in the array

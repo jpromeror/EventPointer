@@ -67,7 +67,20 @@ EventPointer_IGV <- function(Events, input, inputFile = NULL, PSR, Junc, PathGTF
     # SGSeq R package
     cat("Creating SG Information...")
     
-    stopifnot(input == "Ensembl" | input == "UCSC" | input == "GTF")
+    # stopifnot(input == "Ensembl" | input == "UCSC" | input == "GTF")
+  
+    if(is.null(Events))
+    {
+      
+      stop("No alternative splicing events provided")
+    }
+  
+    if(is.null(PSR) | is.null(Junc))
+    {
+      stop("Missing PSR and/or Junc files")
+    
+    }
+  
     
     if (input == "Ensembl") {
         TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
@@ -86,20 +99,27 @@ EventPointer_IGV <- function(Events, input, inputFile = NULL, PSR, Junc, PathGTF
         SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
         
     } else if (input == "GTF") {
-        stopifnot(!is.null(inputFile))
+      
+        # stopifnot(!is.null(inputFile))
+        if(is.null(inputFile))
+        {
+          stop("inputFile field empty")
+        }
         TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
         
         TranscriptFeatures <- convertToTxFeatures(TxDb)
         SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
         # Retrieve information from the TxDb variable (Transcripts then SG)
+    }else{
+      
+      stop("Wrong input field")
     }
     
     # Read Information for the probes in the array
     
     cat("\nReading Information On Probes...")
     
-    stopifnot(!is.null(PSR) & !is.null(Junc))
-    
+
     # Read ProbeSets TXT
     ProbeSets <- read.delim(file = PSR, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
     

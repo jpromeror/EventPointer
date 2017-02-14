@@ -23,8 +23,13 @@
 EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", PSI = FALSE) {
     ### Screen output for users new output
     
-  stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
+  # stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
   
+    if(is.null(Events))
+    {
+      stop("Missing alternative splicing events")
+      
+    }
     options(warn = -1)
     
     if (Statistic == "LogFC") {
@@ -36,12 +41,21 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
     } else if (Statistic == "DRS") {
         stt <- "Difference of the logarithm of the fold change of both isoforms"
         
+    }else{
+      
+      stop("Wrong statistical test provided")
     }
     
     if (PSI) {
         psi_m <- " Delta PSI will be calculated"
         
     }
+  
+  if(class(Design)!="matrix" | class(Contrast)!="matrix")
+  {
+    stop("Wrong Design and/or Contrast matrices")
+    
+  }
     
     TimeS <- paste(format(Sys.time(), "%X"), sep = "")
     cat(paste(TimeS, " Running EventPointer: ", sep = ""), "\n")

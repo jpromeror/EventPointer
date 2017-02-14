@@ -28,6 +28,7 @@ the different splicing graphs found and the counts related to each of the elemen
 Prepares the information contained in .bam files to be analyzed by EventPointer
 }
 \examples{
+\dontrun{
  # Obtain the samples and directory for .bam files
 
    BamInfo<-si
@@ -41,4 +42,5 @@ Prepares the information contained in .bam files to be analyzed by EventPointer
                             Ref_Transc='GTF',
                             fileTransc=PathToGTF,
                             cores=1)
+}
 }

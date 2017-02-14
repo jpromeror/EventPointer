@@ -21,6 +21,21 @@
 EventDetection <- function(Input, cores, Path) {
     ################################### Detect AS Events Using EP Methodology
     
+  if(is.null(Input))
+  {
+    stop("Input field is empty")
+  }
+  
+  if(class(cores)!="numeric")
+  {
+    stop("Number of cores incorrect")
+  }
+  
+  if(is.null(Path))
+  {
+    stop("Path field is empty")
+  }
+  
     SgF <- rowRanges(Input)
     SgFC <- Input
     
