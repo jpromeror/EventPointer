@@ -85,7 +85,7 @@ The Junction probes file is also a tab separated .txt composed of 10 columns: Pr
 
 For the GTF the standard format is used. (For more information see [GTF](http://mblab.wustl.edu/GTF22.html))
 
-For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/xu2opx7zp90hov0/AADAXYQ1j0005EB7dMmfUE9Qa?dl=0)
+For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/wpwz1jx0l112icw/AAAOU0M2QS0TjqHAhrrdEhp6a?dl=0)
 
 <span style="color:red">**Note:**</span> It is advisable to work with the HTA 2.0 reference GTF file, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
 
