@@ -502,8 +502,18 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
     return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror))
   }
   # Add a new equation to make the values of u and v close to each other
-  if (is.null(lambda)) lambda <- 1
-  penalty <- sum(Salida$residuals)/abs(diff(Salida$x))*lambda*abs(log(Salida$x[1]+1e-3)-log(Salida$x[2]+1e-3))/sqrt(3)
+  if(is.null(lambda)) 
+    {
+      lambda <- 1
+    }
+    
+  if(identical(Salida$x[1],Salida$x[2]))
+  {
+    penalty<-0
+  }else{
+    penalty <- sum(Salida$residuals)/abs(diff(Salida$x))*lambda*abs(log(Salida$x[1]+1e-3)-log(Salida$x[2]+1e-3))/sqrt(3)
+  }
+  
   A <- rbind(A,c(penalty,-penalty),c(penalty,0),c(0,penalty))
   b <- c(SignalR,0,penalty,penalty)
   Salida <- nnls(A,b)$x # non negative least squares
