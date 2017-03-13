@@ -6,7 +6,8 @@ test_EventPointer_IGV <- function() {
                                PSR=NULL,
                                Junc=NULL,
                                PathGTF=NULL,
-                               EventsFile=NULL), error=conditionMessage)
+                               EventsFile=NULL,
+                               microarray="HTA-2_0"), error=conditionMessage)
   
   checkIdentical("No alternative splicing events provided", obs)
   
@@ -16,9 +17,10 @@ test_EventPointer_IGV <- function() {
                                    PSR="Test",
                                    Junc="Test",
                                    PathGTF=NULL,
-                                   EventsFile=NULL), error=conditionMessage)
+                                   EventsFile=NULL,
+                                   microarray="RTA"), error=conditionMessage)
   
-  checkIdentical("Wrong input field", obs)
+  checkIdentical("Unknown reference genome", obs)
   
  
   
@@ -28,9 +30,10 @@ test_EventPointer_IGV <- function() {
                                    PSR="Test",
                                    Junc="Test",
                                    PathGTF=NULL,
-                                   EventsFile=NULL), error=conditionMessage)
+                                   EventsFile=NULL,
+                                   microarray="ClariomD"), error=conditionMessage)
   
-  checkIdentical("inputFile field empty", obs)
+  checkIdentical("inputFile parameter is empty", obs)
   
   obs <- tryCatch(EventPointer_IGV(Events="Test",
                                    input="GTF",
@@ -38,7 +41,8 @@ test_EventPointer_IGV <- function() {
                                    PSR="Test",
                                    Junc=NULL,
                                    PathGTF=NULL,
-                                   EventsFile=NULL), error=conditionMessage)
+                                   EventsFile=NULL,
+                                   microarray="HTA-2_0"), error=conditionMessage)
   
   checkIdentical("Missing PSR and/or Junc files", obs)
   

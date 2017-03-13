@@ -27,3 +27,4 @@ Identification of all the alternative splicing events in the splicing graphs
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
 
 }
+

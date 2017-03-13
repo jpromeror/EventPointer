@@ -37,6 +37,7 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
    # IGV Visualization
 
    EventsTxt<-paste(system.file('extdata',package='EventPointer'),'/EventsFound_RNASeq.txt',sep='')
-   PathGTF<-system.file('extdata',package='EventPointer')
+   PathGTF<-tempdir()
    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 }
+

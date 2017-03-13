@@ -7,7 +7,7 @@
 #' @param PSR Path to the Exon probes txt file
 #' @param Junc Path to the Junction probes txt file
 #' @param PathCDF Directory where the output will be saved
-#' @param microarray to be used
+#' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
 #'
 #' @return The function displays a progress bar to show the user the progress of the function. However, there is no value returned in R as
 #' the function creates three files that are used later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
@@ -21,10 +21,11 @@
 #'    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
 #'    JunctionProbes<-paste(PathFiles,'/Junction_Probes.txt',sep='')
 #'    Directory<-tempdir()
+#'    microarray<-"HTA-2_0"
 #'
 #'   # Run the function
 #'
-#'    CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
+#'    CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
 #'
 #' @export
 #' @import Matrix
@@ -52,7 +53,7 @@
 #' @importFrom S4Vectors queryHits subjectHits
 
 
-CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, microarray = "HTA-2_0") {
+CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, microarray = NULL){
     
     # CDFfromGTF is the corresponding function to create a CDF file based on the GTF
     # file provided that contains the 'reference' trasncriptome to be used to
@@ -70,41 +71,141 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     
     cat("Creating SG Information...")
     
-    # stopifnot(input == "Ensembl" | input == "UCSC" | input == "GTF")
-    
-    if (input == "Ensembl") {
-        TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
-            host = "grch37.ensembl.org")
-        
-        # Retrieve information from the TxDb variable (Transcripts then SG)
-        TranscriptFeatures <- convertToTxFeatures(TxDb)
-        SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-        
-    } else if (input == "UCSC") {
-        
-        TxDb <- makeTxDbFromUCSC(genome = "hg19", tablename = "knownGene")
-        
-        # Retrieve information from the TxDb variable (Transcripts then SG)
-        TranscriptFeatures <- convertToTxFeatures(TxDb)
-        SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-        
-    } else if (input == "GTF") {
-        # stopifnot(!is.null(inputFile))
+  # Possible Arrays: HTA-2_0, ClariomD, RTA and MTA
+  
+  if(is.null(microarray))
+  {
+    stop("Microarray field empty")
+  }
+  
+  if(microarray=="HTA-2_0")
+  {
+    if(input=="Ensembl")
+    {
+      TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                                  dataset = "hsapiens_gene_ensembl", 
+                                  host = "grch37.ensembl.org")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="UCSC")
+    {
+      TxDb <- makeTxDbFromUCSC(genome = "hg19", tablename = "knownGene")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="GTF")
+    {
       if(is.null(inputFile))
       {
         stop("inputFile parameter is empty")
       }
-        
-        TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
-        
-        TranscriptFeatures <- convertToTxFeatures(TxDb)
-        SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-        # Retrieve information from the TxDb variable (Transcripts then SG)
+      
+      TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
     }else{
       
       stop("Unknown reference genome")
     }
     
+  }else if(microarray=="ClariomD")
+  {
+    if(input=="Ensembl")
+    {
+      TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                                  dataset = "hsapiens_gene_ensembl")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="UCSC")
+    {
+      TxDb <- makeTxDbFromUCSC(genome = "hg38", tablename = "knownGene")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="GTF")
+    {
+      if(is.null(inputFile))
+      {
+        stop("inputFile parameter is empty")
+      }
+      
+      TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else{
+      
+      stop("Unknown reference genome")
+    }
+  }else if(microarray=="RTA")
+  {
+    if(input=="Ensembl")
+    {
+      TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                                  dataset = "rnorvegicus_gene_ensembl")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="UCSC")
+    {
+      TxDb <- makeTxDbFromUCSC(genome = "rn6", tablename = "refGene")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="GTF")
+    {
+      if(is.null(inputFile))
+      {
+        stop("inputFile parameter is empty")
+      }
+      
+      TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else{
+      
+      stop("Unknown reference genome")
+    }
+  }else if(microarray=="MTA")
+  {
+    if(input=="Ensembl")
+    {
+      TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                                  dataset = "mmusculus_gene_ensembl")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="UCSC")
+    {
+      TxDb <- makeTxDbFromUCSC(genome = "mm10", tablename = "knownGene")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else if(input=="GTF")
+    {
+      if(is.null(inputFile))
+      {
+        stop("inputFile parameter is empty")
+      }
+      
+      TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+      TranscriptFeatures <- convertToTxFeatures(TxDb)
+      SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
+      
+    }else{
+      
+      stop("Unknown reference genome")
+    }
+    
+  }else{
+    
+    stop("Microarray should be: HTA-2_0, ClariomD, MTA or RTA")
+  }
+  
     # Read Information for the probes in the array
     
     cat("\nReading Information On Probes...")
@@ -356,14 +457,12 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     
     # tag<-'r'
     
-    # This is fixed for the array, as we use HTA 2.0 the values will remain the same.
-    # Important to change depending on the array that will be used!!!
     ROWS <- 2572
     COLS <- 2680
     
     cat("Done")
     
-    write.table(Result, file = paste(PathCDF, "/EventsFound.txt", sep = ""), sep = "\t", 
+    write.table(Result, file = paste(PathCDF, "/EventsFound_",microarray,".txt", sep = ""), sep = "\t", 
         quote = FALSE, col.names = TRUE, row.names = FALSE)
     
     write.table(Flat, file = paste(PathCDF, "/", microarray, ".flat", sep = ""), 

@@ -15,3 +15,4 @@ used in the \code{SGSeq} R package vignette.
 \description{
 Alternative splicing events detected by EventPointer
 }
+
