@@ -159,7 +159,7 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
                 Final <- data.frame(Gen = rownames(T34_345), Pvalue = Values1$Pvalues, 
                   ZValue = Values1$Tstats, stringsAsFactors = FALSE)
                 
-                Events <- PrepareOutput(Events, Final)
+                EventsN <- PrepareOutput(Events, Final)
                 
                 
             } else if (Statistic == "DRS") {
@@ -174,11 +174,11 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
                 # Obtain the ranking of events for each of the contrasts
                 T2 <- topTable(fit2, number = Inf)
                 
-                Final <- data.frame(rownames(T2), T2[, 5], T2[, 3], stringsAsFactors = FALSE)
+                Final <- data.frame(rownames(T2), T2[, 4], T2[, 3], stringsAsFactors = FALSE)
                 
-                colnames(Final) <- c("Gene", "Adjusted Pvalue", "T-statistic")
+                colnames(Final) <- c("Gene", "Pvalue", "Zvalue")
                 
-                Events <- PrepareOutput(Events, Final)
+                EventsN <- PrepareOutput(Events, Final)
                 
                 
                 
@@ -190,14 +190,14 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
             
             if (PSI) {
                 
-                IIx <- match(rownames(Events), rownames(DPSIs[[mm]]))
-                Events <- cbind(Events, DPSIs[[mm]][IIx, ])
-                colnames(Events)[6] <- "Delta PSI"
+                IIx <- match(rownames(EventsN), rownames(DPSIs[[mm]]))
+                EventsN <- cbind(EventsN, DPSIs[[mm]][IIx, ])
+                colnames(EventsN)[6] <- "Delta PSI"
                 
                 
             }
             
-            FinalResult[[mm]] <- Events
+            FinalResult[[mm]] <- EventsN
             
             
         }
