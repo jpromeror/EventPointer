@@ -13,8 +13,8 @@ data(ArraysData)
 ArraysData object contains preprocessed junction arrays data. The preprocessing was
 done using \code{aroma.affymetrix} R package, refer to EventPointer vignette for the pipeline
 used for the preprocessing. The data corresponds to 4 samples from the SUM149 Cell line
-hybridized to the HTA 2.0 Affymetrix array. The first two samples are control (DMSO) and the
-second ones are treated using CX4945.
+hybridized to the HTA 2.0 Affymetrix array. The first two samples are control and the
+second ones are treated.
 }
 \description{
 Preprocessed arrays data
