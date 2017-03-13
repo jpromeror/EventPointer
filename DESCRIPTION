@@ -1,40 +1,45 @@
 Package: EventPointer
 Type: Package
-Title: Identification and statistical analysis of alternative splicing events using junction arrays or RNASeq data 
-Version: 0.99.27
+Title: Identification and statistical analysis of alternative splicing events
+    using junction arrays or RNASeq data
+Version: 0.99.28
 Author: Juan Pablo Romero
 Maintainer: Juan Pablo Romero <jpromero@ceit.es>
 Description: EventPointer is a software to identify alternative splicing events
-             in complex experimental designs such as time course and paired samples studies.
-             The algorithm can be applied to both data from Affymetrix arrays and Sequencing (RNASeq) data.
-Depends: R (>= 3.4),
-          SGSeq,
-          Matrix,
-          SummarizedExperiment
-Imports: GenomicFeatures,
-          stringr,
-          GenomeInfoDb,
-          igraph,
-          MASS,
-          nnls,
-          limma,
-          matrixStats,
-          RBGL,
-          prodlim,
-          graph,
-          methods,
-          utils,
-          stats,
-          doParallel,
-          foreach,
-          affxparser,
-          GenomicRanges,
-          S4Vectors
-Suggests: knitr,
-          rmarkdown,
-          BiocStyle,
-          RUnit,
-          BiocGenerics
+    in complex experimental designs such as time course and paired samples studies.
+    The algorithm can be applied to both data from Affymetrix arrays and Sequencing
+    (RNASeq) data.
+Depends:
+    R (>= 3.4),
+    SGSeq,
+    Matrix,
+    SummarizedExperiment
+Imports:
+    GenomicFeatures,
+    stringr,
+    GenomeInfoDb,
+    igraph,
+    MASS,
+    nnls,
+    limma,
+    matrixStats,
+    RBGL,
+    prodlim,
+    graph,
+    methods,
+    utils,
+    stats,
+    doParallel,
+    foreach,
+    affxparser,
+    GenomicRanges,
+    S4Vectors
+Suggests:
+    knitr,
+    rmarkdown,
+    BiocStyle,
+    RUnit,
+    BiocGenerics
 License: Artistic-2.0
 LazyData: true
 RoxygenNote: 6.0.1

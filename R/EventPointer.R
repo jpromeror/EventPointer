@@ -334,10 +334,10 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
                 
                 # Put all the information in one data frame
                 Result <- data.frame(EventsFound[, 1], EventsFound[, 2], EventsFound[, 
-                  3], EventsFound[, 4], EventsFound[, 5], T2[, 3], T2[, 5], stringsAsFactors = FALSE)
+                  3], EventsFound[, 4], EventsFound[, 5], T2[, 3], T2[, 4], stringsAsFactors = FALSE)
                 
                 colnames(Result) <- c("Affy Gene ID", "Gene name", "Event Number", 
-                  "Event Type", "Genomic Position", "Splicing T Value", "Splicing Adjusted Pvalue")
+                  "Event Type", "Genomic Position", "Splicing Z Value", "Splicing Pvalue")
                 
                 rownames(Result) <- paste(Result[, 1], "_", Result[, 3], sep = "")
                 

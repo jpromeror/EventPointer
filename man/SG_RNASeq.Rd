@@ -15,3 +15,4 @@ from the dataset published in Seshagiri et al. 2012 and used in the \code{SGSeq}
 \description{
 Splicing graph elements predicted from BAM files
 }
+
