@@ -507,12 +507,7 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
       lambda <- 1
     }
     
-  if(identical(Salida$x[1],Salida$x[2]))
-  {
-    penalty<-0
-  }else{
-    penalty <- sum(Salida$residuals)/abs(diff(Salida$x))*lambda*abs(log(Salida$x[1]+1e-3)-log(Salida$x[2]+1e-3))/sqrt(3)
-  }
+  penalty <- sum(Salida$residuals)/(1e-4+abs(diff(Salida$x))*lambda*abs(log(Salida$x[1]+1e-3)-log(Salida$x[2]+1e-3))/sqrt(3))
   
   A <- rbind(A,c(penalty,-penalty),c(penalty,0),c(0,penalty))
   b <- c(SignalR,0,penalty,penalty)
@@ -787,17 +782,18 @@ getPSI <- function(ExFit) {
   rownames(PSI)  <- ExFit[seq(1,nrow(ExFit),by = 3),1]
   
   NCols<-ncol(ExFit)
+  ExFit2 <-  as.matrix(ExFit[,6:NCols])
   # Perform the operations for every detectable alternative splicing event
   for (n in seq_len(nrow(ExFit)/3)) {
     
     # Get expression signal from path 1
-    Signal1 <- ExFit[1+3*(n-1),6:NCols]
+    Signal1 <- ExFit2[1+3*(n-1),]
     
     # Get expression signal from path 2
-    Signal2 <- ExFit[2+3*(n-1),6:NCols]
+    Signal2 <- ExFit2[2+3*(n-1),]
     
     # Get expression signal from Reference
-    SignalR <- ExFit[3+3*(n-1),6:NCols]
+    SignalR <- ExFit2[3+3*(n-1),]
     
     # Function to estimate concentrations from the interrogated isoforms
     Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda = 1)

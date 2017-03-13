@@ -5,7 +5,7 @@
 \title{CDF file creation for EventPointer}
 \usage{
 CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
-  microarray = "HTA-2_0")
+  microarray = NULL)
 }
 \arguments{
 \item{input}{Reference transcriptome used to build the CDF file. Must be one of Ensembl, UCSC or GTF.}
@@ -18,7 +18,7 @@ CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
 
 \item{PathCDF}{Directory where the output will be saved}
 
-\item{microarray}{to be used}
+\item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA}
 }
 \value{
 The function displays a progress bar to show the user the progress of the function. However, there is no value returned in R as
@@ -36,9 +36,11 @@ Generates the CDF file to be used under the aroma.affymetrix framework
    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
    JunctionProbes<-paste(PathFiles,'/Junction_Probes.txt',sep='')
    Directory<-tempdir()
+   microarray<-"HTA-2_0"
 
   # Run the function
 
-   CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
+   CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
 
 }
+

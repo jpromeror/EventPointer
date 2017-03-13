@@ -26,7 +26,7 @@
 #'    # IGV Visualization
 #'
 #'    EventsTxt<-paste(system.file('extdata',package='EventPointer'),'/EventsFound_RNASeq.txt',sep='')
-#'    PathGTF<-system.file('extdata',package='EventPointer')
+#'    PathGTF<-tempdir()
 #'    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 #' @export
 

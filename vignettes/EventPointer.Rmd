@@ -3,7 +3,7 @@ title: "EventPointer: An effective identification of alternative splicing events
 author: "Juan P. Romero"
 date: "`r BiocStyle::doc_date()`"
 abstract: >
-  *EventPointer* is a software to identify alternative splicing events in complex experimental designs such as time course and paired samples studies. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
+  *EventPointer* is an R package to identify alternative splicing events in complex experimental designs such as time course and paired samples studies. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
   
   The software retrieves a data.frame with the detected alternative splicing events: gene name, type of event (cassette, alternative 3',...,etc), genomic position, statistical significance and percent spliced in ($\Delta \Psi$) for all the events.
   
@@ -65,17 +65,17 @@ To cite *EventPointer*:
 
 # Analysis of junction arrays
 ## Overview of junction arrays
-*EventPointer* is prepared to work with the Affymetrix Human Transcriptome Array 2.0 (HTA 2.0). As newer arrays are developed, such as the Affymetrix Clariom array, EventPointer will be able to work with them as long as the required files are availble for download. 
+*EventPointer* is prepared to work with different Affymetrix arrays, such as: HTA 2.0, Clariom-D, RTA and MTA.
 
-To build the CDF file (to work under the aroma.affymetrix framework), EventPointer requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the requried information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded.
+To build the CDF file (to work under the aroma.affymetrix framework), EventPointer requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the required information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded. For the other arrays, the newest version of the genome is used.
 
 The required files are: 
 
 1. Exon probes genomic position (Tab separated .txt file)
 2. Junction probes genomic position (Tab separated .txt file)
-3. HTA 2.0 reference transcriptome (GTF file)
+3. Reference transcriptome (GTF file)
 
-Files 1 and 2 contain probe information that can be obtained in the technical documentation tab from the  [affymetrix microarray webpage](http://www.affymetrix.com/estore/catalog/prod760002/AFFY/Human+Transcriptome+Array+2.0#1_3). 
+Files 1 and 2 contain probe information for the array. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/wpwz1jx0l112icw/AAAOU0M2QS0TjqHAhrrdEhp6a?dl=0)
 
 The format of these files is briefly explained in the following paragraphs:
 
@@ -85,9 +85,9 @@ The Junction probes file is also a tab separated .txt composed of 10 columns: Pr
 
 For the GTF the standard format is used. (For more information see [GTF](http://mblab.wustl.edu/GTF22.html))
 
-For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/wpwz1jx0l112icw/AAAOU0M2QS0TjqHAhrrdEhp6a?dl=0)
+For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. 
 
-<span style="color:red">**Note:**</span> It is advisable to work with the HTA 2.0 reference GTF file, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
+<span style="color:red">**Note:**</span> It is advisable to work with reference GTF files, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
 
 ## CDF file creation
 
@@ -95,12 +95,12 @@ The function **CDFfromGTF** generates the CDF file used afterwards in the aroma.
 
 The required input for the function is described below:
 
-- **input** : Reference transcriprome. Available options are : "Ensembl","UCSC" and "GTF".
+- **input** : Reference transcriptome. Available options are : "Ensembl","UCSC" and "GTF".
 - **inputFile**: If input is "GTF", inputFile should point to the GTF file to be used.
 - **PSR**: Path to the Exon probes txt file
 - **Junc**: Path to the Junction probes txt file
 - **PathCDF**: Directory where the output will be saved
-- **microarray**: Microarray being used 
+- **microarray**: Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
 
 This function takes a couple of hours to complete (depending on the computer), and creates the following files:
 
@@ -108,7 +108,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 2. .flat file : Used to build the corresponding CDF file.
 3. .CDF file: Output required for the aroma.affymetrix preprocessing pipeline.
 
-The following code chunks show examples on how to run the function using part of the Affymetrix GTF and the example data included in the package. This data corresponds to the Affymetrix HTA 2.0 GTF represnting only the DONSON gene and the probes that are mapped to it.
+The following code chunks show examples on how to run the function using part of the Affymetrix GTF and the example data included in the package. This data corresponds to the Affymetrix HTA 2.0 GTF representing only the DONSON gene and the probes that are mapped to it.
 
   Using Affymetrix GTF as reference transcriptome
 ```{r CDFGTF, eval=TRUE, warning=FALSE, collapse=TRUE}
@@ -119,11 +119,13 @@ The following code chunks show examples on how to run the function using part of
    PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
    Directory<-tempdir()
+   array<-"HTA-2_0"
 
 # Run the function
 
    CDFfromGTF(input="GTF",inputFile=DONSON_GTF,
-              PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory)
+              PSR=PSRProbes,Junc=JunctionProbes,
+              PathCDF=Directory,microarray=array)
 
 ```
 
@@ -143,11 +145,11 @@ Once the CDF file has been created, it can be used for the analysis of different
 
 ### aroma.affymetrix pre-processing pipeline
 
-For microarray dataa, a pre-processing pipeline must be applied to the .cel files of the experiment.Usually this pre-processing is done using the aroma.affymetrix R package. This procedure normalizes and summarizes the expression of the different probesets into single values.
+For microarray data, a pre-processing pipeline must be applied to the .cel files of the experiment. Usually this pre-processing is done using the aroma.affymetrix R package. This procedure normalizes and summarizes the expression of the different probesets into single values.
 
 The aroma.affymetrix R package provides users different functions to work with affymetrix arrays. The functions are used to extract all the information contained in the .cel files and to do all the required pre-processing steps such as background correction, normalization and summarization. The package requires a certain folder structure in order to work correctly. For more information about aroma.affymetrix visit the webpage:[aroma project](http://www.aroma-project.org/) 
 
-The following code chunk displays the pipeline used to get the results required by EventPointer after the pre-processing using aroma.affymetrix. The code is not intended to be a runable example, but just to show users the settings a functions that can be used. In order for users to have a runable example, the corrrespoding folder structure and files are required.
+The following code chunk displays the pipeline used to get the results required by EventPointer after the pre-processing using aroma.affymetrix. The code is not intended to be a runable example, but just to show users the settings and functions that can be used. In order for users to have a runable example, the corrrespoding folder structure and files are required.
 
 ```{r aroma, eval=FALSE}
 
@@ -156,7 +158,6 @@ The following code chunk displays the pipeline used to get the results required 
 verbose <- Arguments$getVerbose(-8);
 timestampOn(verbose);
 projectName <- "Experiment"
-chipType <- "EP_HTA-2_0"
 cdfGFile <- "EP_HTA-2_0,r"
 cdfG <- AffymetrixCdfFile$byChipType(cdfGFile)
 cs <- AffymetrixCelSet$byName(projectName, cdf=cdfG)
@@ -238,14 +239,15 @@ EventPointer creates two different GTF files to visualize the alternative splici
 To create the GTF files, the algorithm uses the EventPointer_IGV functions with the following parameters:
 
 - **Events** : Data.frame generated by EventPointer with the events to be included in the GTF file.
-- **input**: Reference transcriprome. Available options are : "Ensembl","UCSC" and "GTF".
+- **input**: Reference transcriptome. Available options are : "Ensembl","UCSC" and "GTF".
 - **inputFile**: If input is "GTF", inputFile should point to the GTF file to be used.
 - **PSR**: Path to the Exon probes txt file.
 - **Junc**: Path to the Junction probes txt file.
 - **PathGTF**: Directory where to write the GTF files.
 - **EventsFile**: Path to EventsFound.txt file generated with CDFfromGTF function.
+- **microarray**: Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
 
-The inital process of the function is slow, as the splicing graphs must be created every time the function is executed. A progress bar is displayed to the user to inform about the status of the function.
+The inital process of the function is slow, as the splicing graphs must be created every time the function is executed. A progress bar is displayed to the user to inform about the progress of the function.
 
 Once the process is completed two GTF files are generated in the specified directory:
 
@@ -264,11 +266,12 @@ Once the process is completed two GTF files are generated in the specified direc
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
    Directory<-tempdir()
    EventsFound<-paste(system.file("extdata",package="EventPointer"),"/EventsFound.txt",sep="")
+   array<-"HTA-2_0"
 
                       
 # Generate Visualization files  
 
- EventPointer_IGV(Events[1,,drop=FALSE],"GTF",DONSON_GTF,PSRProbes,JunctionProbes,Directory,EventsFound)
+ EventPointer_IGV(Events[1,,drop=FALSE],"GTF",DONSON_GTF,PSRProbes,JunctionProbes,Directory,EventsFound,array)
 
 
 ```
@@ -285,9 +288,9 @@ In comparison with arrays, when dealing with sequencing data, the splicing graph
 
 Each time an experiment is analyzed with EventPointer, the complete process needs to be executed which may cause long waiting times to get the results. To avoid this issue, we have divided every step of the algorithm in different functions so as the user can reuse previous result and thus reduce computational time.
 
-For the examples in this part of the vignette, we will use .bam files depicted in the [SGSeq vignette ](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html) that correspond to paired-end RNA-seq data from four tumor and four normal colorectal samples, which are part of a data set published in [Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As stated in [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) the bam files only include reads mapping to a single gene of interest (FBXO31).
+For the examples in this part of the vignette, we will use .bam files depicted in the [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) that correspond to paired-end RNA-seq data from four tumor and four normal colorectal samples, which are part of a data set published in [Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As stated in [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) the bam files only include reads mapping to a single gene of interest (FBXO31).
 
-<span style="color:red">**Note:**</span> For sequencing data, there are two simple requirements for the BAM files in order to get EventPointer working correctly:
+<span style="color:red">**Note:**</span> For sequencing data, there are two  requirements for the BAM files in order to get EventPointer working correctly:
 
 1. The BAM files should include the **XS-flag**, the flag can be included in the files when running the alignment. Most of the available software has parameters to incude the flag.
 
@@ -327,7 +330,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
                             cores=1)
 ```
 
-The output of PrepareBam_EP function is a SGFeaturesCounts object, for more information check [SGSeq Vignette](https://www.bioconductor.org/help/course-materials/2015/BioC2015/SGSeqBioC2015.html). Briefly the SGFeaturesCounts contains a GRanges object with all the required elements to create the different splicing graphs found in the given samples. It also contains the number of counts associated with each event.
+The output of PrepareBam_EP function is a SGFeaturesCounts object, for more information check [SGSeq Vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html). Briefly the SGFeaturesCounts contains a GRanges object with all the required elements to create the different splicing graphs found in the given samples. It also contains the number of counts associated with each element of the splicing graph.
 
 ## Event Detection
 
@@ -401,7 +404,7 @@ To create the GTF files, the algorithm uses the following code.
 - **PathGTF**: Directory where to write the GTF files.
 
 
- A progress bar is displayed to the user to inform about the status of the function.
+ A progress bar is displayed to the user to inform about the progress of the function.
 
 Once the process is completed the GTF file is generated in the specified directory:
 
