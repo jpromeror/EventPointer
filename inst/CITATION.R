@@ -14,7 +14,7 @@ citEntry(entry = "article",
          number = "1",
          pages = "467",
          doi = "10.1186/s12864-016-2816-x",
-         textVersion = paste("Romero JP, et al. (2016) EventPointer: an effective identification",
+         textVersion = paste("Romero Juan P. , et al. (2016) EventPointer: an effective identification",
                              "of alternative splicing events using junction arrays. BMC Genomics 17(1): 467.",
                              "doi:10.1186/s12864-016-2816-x"))
 
