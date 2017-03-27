@@ -2,13 +2,13 @@ Package: EventPointer
 Type: Package
 Title: An effective identification of alternative splicing events
 	   using junction arrays and RNA-Seq data
-Version: 0.99.33
+Version: 0.99.34
 Author: Juan Pablo Romero, Ander Muniategui, Fernando Carazo, Ander Aramburu, Angel Rubio
 Maintainer: Juan Pablo Romero <jpromero@ceit.es>
 Description: EventPointer is an R package to identify alternative splicing events 
-		in complex experimental designs such as time course and paired samples 
-		studies. The algorithm can be used to analyze data from either junction 
-		arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
+		that involve either simple (case-control experiment) or complex experimental designs 
+		such as time course experiments and studies including paired-samples. The algorithm can
+		be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
 		The software retrieves a data.frame with the detected alternative splicing 
 		events: gene name, type of event (cassette, alternative 3',...,etc), genomic 
 		position, statistical significance and percent spliced in (Delta PSI) for all 
