@@ -3,9 +3,9 @@ title: "EventPointer: An effective identification of alternative splicing events
 author: "Juan P. Romero"
 date: "`r BiocStyle::doc_date()`"
 abstract: >
-  *EventPointer* is an R package to identify alternative splicing events in complex experimental designs such as time course and paired samples studies. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
+  *EventPointer* is an R package to identify alternative splicing events that involve either simple (case-control experiment) or complex experimental designs such as time course experiments and studies including paired-samples. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
   
-  The software retrieves a data.frame with the detected alternative splicing events: gene name, type of event (cassette, alternative 3',...,etc), genomic position, statistical significance and percent spliced in ($\Delta \Psi$) for all the events.
+  The software returns a data.frame with the detected alternative splicing events: gene name, type of event (cassette, alternative 3',...,etc), genomic position, statistical significance and increment of the percent spliced in ($\Delta \Psi$) for all the events.
   
   The algorithm can generate a series of files to visualize the detected alternative splicing events in IGV. This eases the interpretation of results and the design of primers for standard PCR validation.
 vignette: >
@@ -67,7 +67,7 @@ To cite *EventPointer*:
 ## Overview of junction arrays
 *EventPointer* is prepared to work with different Affymetrix arrays, such as: HTA 2.0, Clariom-D, RTA and MTA.
 
-To build the CDF file (to work under the aroma.affymetrix framework), EventPointer requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the required information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded. For the other arrays, the newest version of the genome is used.
+To build the CDF file (to work under the aroma.affymetrix framework), EventPointer requires a GTF file with the reference transcriptome information. In case not provided, the algorithm automatically downloads the required information from different databases such as ENSEMBL or UCSC. As the probes for the HTA 2.0 array are mapped to the HG19 genome, the latests versions of the ensembl and ucsc genome, mapped to the hg19 version, will be downloaded. For the other arrays, the following genomes are used: ClariomD = GRCh38, MTA = mm10 and RTA = rn6.
 
 The required files are: 
 
@@ -75,7 +75,8 @@ The required files are:
 2. Junction probes genomic position (Tab separated .txt file)
 3. Reference transcriptome (GTF file)
 
-Files 1 and 2 contain probe information for the array. These files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/wpwz1jx0l112icw/AAAOU0M2QS0TjqHAhrrdEhp6a?dl=0)
+Files 1 and 2 contain probe information for the array. These files and the corresponding
+CDF files can be downloaded from the following URL: [EventPointer Dropbox](https://www.dropbox.com/sh/wpwz1jx0l112icw/AAAOU0M2QS0TjqHAhrrdEhp6a?dl=0)
 
 The format of these files is briefly explained in the following paragraphs:
 
@@ -85,13 +86,21 @@ The Junction probes file is also a tab separated .txt composed of 10 columns: Pr
 
 For the GTF the standard format is used. (For more information see [GTF](http://mblab.wustl.edu/GTF22.html))
 
-For the examples shown in this vignette, the R package includes a series of example files to run the corresponding functions. However, to build the complete CDF , the complete files must be used. 
+This vignette uses the probes and annotation file for the DONSON gene in order to
+run the examples in a short amount of time. To generate the corresponding  CDF file
+for the whole genome, the files from the Dropbox link must be used.
 
-<span style="color:red">**Note:**</span> It is advisable to work with reference GTF files, as the probes are annotated to it. However, if other database is used, the algorithm will only include probes that are mapped to such database.
+<span style="color:red">**Note:**</span> It is advisable to work with reference GTF files, as the probes are annotated to them. However, if other database is used, the algorithm will only include probes that are mapped to such database.
 
 ## CDF file creation
 
+This step can be skipped if the corresponding CDF file is doownloaded from the Dropbox
+link. The available CDF files were generated using the GTF files for each of the arrays,
+if users want to generate a CDF for other databases (Ensembl or UCSC), this step should
+be used.
+
 The function **CDFfromGTF** generates the CDF file used afterwards in the aroma.affymetrix pre-processing pipeline. Internally, it calls flat2cdf function written by Elizabeth Purdom. More information about it can be seen in the following webpage: [Create CDF from scratch](http://www.aroma-project.org/howtos/create_CDF_from_scratch/) 
+
 
 The required input for the function is described below:
 
@@ -100,7 +109,7 @@ The required input for the function is described below:
 - **PSR**: Path to the Exon probes txt file
 - **Junc**: Path to the Junction probes txt file
 - **PathCDF**: Directory where the output will be saved
-- **microarray**: Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
+- **microarray**: Microarray used to create the CDF file. Must be one of: "HTA-2_0", "ClariomD", "RTA" or "MTA".
 
 This function takes a couple of hours to complete (depending on the computer), and creates the following files:
 
@@ -284,15 +293,13 @@ As we have updated the algorithm, we are currently working on the implementation
 ## Overview of RNA-Seq
 *EventPointer* is also able to identify alternative splicing events from RNA-Seq data. The only required files are the corresponding .BAM files from the experiment. 
 
-In comparison with arrays, when dealing with sequencing data, the splicing graphs must contain all the elements that appear in each of the samples. For example, if we were analyzing an experiment that contains normal and tumoral samples, the isoforms in the normal samples might differ from the ones in the tumoral ones. To be able to identify if there is differential alternative splicing, the splicing graph must have the features that belong to the isoforms present in both conditions.
-
 Each time an experiment is analyzed with EventPointer, the complete process needs to be executed which may cause long waiting times to get the results. To avoid this issue, we have divided every step of the algorithm in different functions so as the user can reuse previous result and thus reduce computational time.
 
 For the examples in this part of the vignette, we will use .bam files depicted in the [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) that correspond to paired-end RNA-seq data from four tumor and four normal colorectal samples, which are part of a data set published in [Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As stated in [SGSeq vignette ](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html) the bam files only include reads mapping to a single gene of interest (FBXO31).
 
 <span style="color:red">**Note:**</span> For sequencing data, there are two  requirements for the BAM files in order to get EventPointer working correctly:
 
-1. The BAM files should include the **XS-flag**, the flag can be included in the files when running the alignment. Most of the available software has parameters to incude the flag.
+1. The BAM files should include the **XS-flag**, the flag can be included in the files when running the alignment. Most of the available software has parameters to incude the flag. For example, in the case of [STAR](https://github.com/alexdobin/STAR) the flag *--outSAMattributes XS* must be included when mapping
 
 2. All files to be analyzed should have the corresponding index files **(.bai)** in the same directory as the BAM files. Create the index before running EventPointer.
 
@@ -433,7 +440,7 @@ There are a number of alternatives to detect AS using these coefficients. Either
 
 A contrast on $\beta_5$ would seem to be more sensitive than a contrast on $\beta_4$ or $\beta_4$ + $\beta_5$ ; however, in practice, this contrast proved to be "too sensitive" and led to many false positives especially in weakly expressed isoforms. If one of the paths is not expressed in any condition, its signal will be similar in either condition (the background level) and a change in the expression of the other isoform will drive to a false positive detection. This contrast can be used only if the signals are filtered to guarantee that they are above the background.
 
-In the PCR validation, the contrast that provided the best performance was the combination of the fold changes of both isoforms (i.e. $\beta_3$ + $\beta_4$ and $\beta_3$+$\beta_4$ + $\beta_5$ in Table 4) plus the requirement that the fold-changes have opposite directions, i.e. if isoform 1 significantly increases its expression, isoform 2 must significantly decrease its expression and visa versa. Therefore, if this test requires that the detected AS events show a significant change of the expression both paths and this change must be in opposite direction.
+In the PCR validation, the contrast that provided the best performance was the combination of the fold changes of both isoforms (i.e. $\beta_3$ + $\beta_4$ and $\beta_3$+$\beta_4$ + $\beta_5$ in Table 4) plus the requirement that the fold-changes have opposite directions, i.e. if isoform 1 significantly increases its expression, isoform 2 must significantly decrease its expression and vice versa. Therefore, if this test requires that the detected AS events show a significant change of the expression both paths and this change must be in opposite direction.
 
 In order to compute this contrast, we summed up the p-values (one-tailed) for both contrasts. If the null hypothesis holds, the expected null distribution is triangular from 0 to 2 with the peak at 1, and the summation of the p-values must be close to 0 or close to 2 for genes with differential AS. Using this triangular distribution, it is possible to assign an overall p-value to their sum. We preferred this combination rather than the classical Fisher method since in the latter a single good p-value yields a good summary p-value for the event. Using this approach, both p-values must be close to zero or one in order to generate a significant overall p-value.
 
@@ -454,6 +461,28 @@ Alpha is a parameter used by SGSeq R package to predict the features that are al
 **Alpha** Minimum FPKM required for a splice junction to be included.
 
 The user can change the value to be more or less restrictive when deciding if a feature is included or not. As the alpha value increases, the algorithm will slow down as the splicing graphs would became more complex.
+
+## Percent Spliced In
+
+EventPointer estimates the abundance of the isoforms mapped to each of the
+paths, in an splicing event, to obtain the PSI values. With this values, a simple
+linear model, using the provided design and contrast matrices, is solved and this
+increment is returned to the user in the data.frame (if PSI argument is TRUE).
+
+It is possible to obtain the estimated PSI values using the following commands:
+
+```{r PSI_ADV, eval=TRUE, collapse=TRUE}
+
+# Microarrays
+data(ArraysData)
+PSI_Arrays<-EventPointer:::getPSI(ArraysData)
+
+# RNASeq
+data(AllEvents_RNASeq)
+PSI_RNASeq<-EventPointer:::getPSI_RNASeq(AllEvents_RNASeq)
+```
+
+
 
 # References
 
