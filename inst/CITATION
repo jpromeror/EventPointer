@@ -1,4 +1,4 @@
-citEntry(entry = "article",
+bibentry(bibtype = "article",
          title = "EventPointer: an effective identification of alternative splicing events using junction arrays",
          author = personList(
            as.person("Juan P. Romero"),
