@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+citEntry(entry = "article",
+=======
 bibentry(bibtype = "article",
+>>>>>>> master
          title = "EventPointer: an effective identification of alternative splicing events using junction arrays",
          author = personList(
            as.person("Juan P. Romero"),
