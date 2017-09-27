@@ -3,3 +3,9 @@
  * Compatibility with Affymetrix Clariom, HTA 2.0, MTA and RTA arrays
  * Dropbox URL updated with required files for all arrays
  * RNASeq pipeline stable
+
+  Version 1.2
+ ------------------
+ * Minor bugs fixed
+ * Any Custom GTF is now usable with EventPointer
+ * EventsFound located in Dropbox URL now contains gene names.

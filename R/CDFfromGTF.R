@@ -2,8 +2,8 @@
 #'
 #' Generates the CDF file to be used under the aroma.affymetrix framework
 #'
-#' @param input Reference transcriptome used to build the CDF file. Must be one of Ensembl, UCSC or GTF.
-#' @param inputFile If input is GTF, inputFile should point to the GTF file to be used.
+#' @param input Reference transcriptome used to build the CDF file. Must be one of: "Ensembl", "UCSC" , "AffyGTF" or "CustomGTF".
+#' @param inputFile If input is "AffyGTF" or "CustomGTF", inputFile should point to the GTF file to be used.
 #' @param PSR Path to the Exon probes txt file
 #' @param Junc Path to the Junction probes txt file
 #' @param PathCDF Directory where the output will be saved
@@ -25,7 +25,7 @@
 #'
 #'   # Run the function
 #'
-#'    CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
+#'    CDFfromGTF(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
 #'
 #' @export
 #' @import Matrix
@@ -94,7 +94,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
       TranscriptFeatures <- convertToTxFeatures(TxDb)
       SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
       
-    }else if(input=="GTF")
+    }else if(input=="AffyGTF" | input=="CustomGTF")
     {
       if(is.null(inputFile))
       {
@@ -125,7 +125,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
       TranscriptFeatures <- convertToTxFeatures(TxDb)
       SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
       
-    }else if(input=="GTF")
+    }else if(input=="AffyGTF" | input=="CustomGTF")
     {
       if(is.null(inputFile))
       {
@@ -155,7 +155,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
       TranscriptFeatures <- convertToTxFeatures(TxDb)
       SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
       
-    }else if(input=="GTF")
+    }else if(input=="AffyGTF" | input=="CustomGTF")
     {
       if(is.null(inputFile))
       {
@@ -185,7 +185,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
       TranscriptFeatures <- convertToTxFeatures(TxDb)
       SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
       
-    }else if(input=="GTF")
+    }else if(input=="AffyGTF" | input=="CustomGTF")
     {
       if(is.null(inputFile))
       {
@@ -228,7 +228,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     Junctions <- PrepareProbes(Junctions, "Junction")
     
     
-    if (input == "Ensembl" | input == "UCSC") {
+    if (input == "Ensembl" | input == "UCSC" | input=="CustomGTF") {
         Junc <- makeGRangesFromDataFrame(Junctions)
         PSRs <- makeGRangesFromDataFrame(ProbeSets)
         

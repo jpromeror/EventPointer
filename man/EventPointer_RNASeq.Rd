@@ -32,4 +32,3 @@ Statistical analysis of all the alternative splicing events found in the given b
    Cmatrix<-t(t(c(0,1)))
    Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic='LogFC',PSI=TRUE)
 }
-

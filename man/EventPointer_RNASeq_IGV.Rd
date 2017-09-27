@@ -40,4 +40,3 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
    PathGTF<-tempdir()
    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 }
-

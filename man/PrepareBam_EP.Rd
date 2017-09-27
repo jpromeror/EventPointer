@@ -44,4 +44,3 @@ Prepares the information contained in .bam files to be analyzed by EventPointer
                             cores=1)
 }
 }
-

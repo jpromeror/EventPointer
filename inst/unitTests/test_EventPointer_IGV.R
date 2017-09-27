@@ -25,7 +25,7 @@ test_EventPointer_IGV <- function() {
  
   
   obs <- tryCatch(EventPointer_IGV(Events="Test",
-                                   input="GTF",
+                                   input="CustomGTF",
                                    inputFile=NULL,
                                    PSR="Test",
                                    Junc="Test",
@@ -36,7 +36,7 @@ test_EventPointer_IGV <- function() {
   checkIdentical("inputFile parameter is empty", obs)
   
   obs <- tryCatch(EventPointer_IGV(Events="Test",
-                                   input="GTF",
+                                   input="AffyGTF",
                                    inputFile=NULL,
                                    PSR="Test",
                                    Junc=NULL,

@@ -19,4 +19,3 @@ second ones are treated.
 \description{
 Preprocessed arrays data
 }
-
