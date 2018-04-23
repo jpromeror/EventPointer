@@ -468,7 +468,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     write.table(Flat, file = paste(PathCDF, "/", microarray, ".flat", sep = ""), 
         sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
     
-    setwd(PathCDF)
+    #setwd(PathCDF)
     
     flat2Cdf(file = paste(PathCDF, "/", microarray, ".flat", sep = ""), chipType = microarray, 
         rows = ROWS, cols = COLS)
