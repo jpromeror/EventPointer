@@ -207,7 +207,6 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
   }
   
     # Read Information for the probes in the array
-    
     cat("\nReading Information On Probes...")
     
     stopifnot(!is.null(PSR) & !is.null(Junc))
