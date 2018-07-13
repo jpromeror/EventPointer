@@ -742,11 +742,14 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
   Signal2 <- as.numeric(Signal2)
   SignalR <- as.numeric(SignalR)
   
+  cols <- length(Signal1)
+  
   A <- cbind(Signal1, Signal2) 
   b <- SignalR
   Salida <- nnls(A,b) # non negative least squares
   if (lambda == 0) {
-    Salida <- Salida$x
+    resultado <- nnls(A,b)
+    Salida <- resultado$x
     u <- Salida[1]
     v <- Salida[2]
     w <- 0
@@ -754,19 +757,26 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
     T1est <- Signal1 * u
     T2est <- Signal2 * v
     Relerror <- as.numeric(crossprod((A[,1:2])%*%c(u,v)-b)/crossprod(b))
-    return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror))
+    
+    residuals <- resultado$residuals[1:cols,,drop=F]
+    
+    return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror,Residuals = residuals))
   }
   # Add a new equation to make the values of u and v close to each other
   if(is.null(lambda)) 
-    {
-      lambda <- 1
-    }
-    
-  penalty <- sum(Salida$residuals)/(1e-4+abs(diff(Salida$x))*lambda*abs(log(Salida$x[1]+1e-3)-log(Salida$x[2]+1e-3))/sqrt(3))
+  {
+    lambda <- 0.1
+  }
   
-  A <- rbind(A,c(penalty,-penalty),c(penalty,0),c(0,penalty))
-  b <- c(SignalR,0,penalty,penalty)
-  Salida <- nnls(A,b)$x # non negative least squares
+  penalty <- lambda*((Salida$deviance)/(sum((Salida$x-1)^2)))
+  penalty <- sqrt(penalty)
+  
+  A <- rbind(A,c(penalty,0),c(0,penalty))
+  b <- c(SignalR,penalty,penalty)
+  
+  resultado <- nnls(A,b)
+  Salida <- resultado$x # non negative least squares
+  
   u <- Salida[1]
   v <- Salida[2]
   w <- 0 # No offset used in this model
@@ -775,7 +785,10 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
   T2est <- Signal2 * v
   Relerror <- as.numeric(crossprod(cbind(Signal1, Signal2)%*%c(u,v)-SignalR)/crossprod(SignalR))
   # if(Relerror==0){browser()}
-  return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror))
+  residuals <- resultado$residuals[1:cols,,drop=F]
+  residuals <- residuals/SignalR
+  
+  return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror,Residuals = residuals))
 }
 
 #' @rdname InternalFunctions
@@ -1173,7 +1186,7 @@ GetIGVPaths<-function(EventInfo,SG_Edges)
 }
 
 #' @rdname InternalFunctions
-getPSI <- function(ExFit) {
+getPSI <- function(ExFit,lambda = 0.1) {
   # Create matrix to fill with PSI values (1 per event and sample)
   PSI <- matrix(0, nrow = nrow(ExFit)/3, ncol = ncol(ExFit)-5)
   colnames(PSI)  <- colnames(ExFit[6:ncol(ExFit)])
@@ -1181,6 +1194,7 @@ getPSI <- function(ExFit) {
   
   NCols<-ncol(ExFit)
   ExFit2 <-  as.matrix(ExFit[,6:NCols])
+  Residuals <- PSI
   # Perform the operations for every detectable alternative splicing event
   for (n in seq_len(nrow(ExFit)/3)) {
     
@@ -1194,13 +1208,14 @@ getPSI <- function(ExFit) {
     SignalR <- ExFit2[3+3*(n-1),]
     
     # Function to estimate concentrations from the interrogated isoforms
-    Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda = 1)
+    Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda)
     
     # Compute the actual PSI value (T1/T1+T2)
     psi <- Output$T1est / (Output$T1est + Output$T2est)
     PSI[n,] <- psi
+    Residuals[n,] <- Output$Residuals
   }
-  return(PSI)
+  return(list(PSI = PSI, Residuals = Residuals))
 }
 
 #' @rdname InternalFunctions

@@ -119,7 +119,8 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
         # getPSI is the main function to caclulate PSI values the required input is the
         # dataframe with array summarized intensities (ExFit)
         
-        PSIs <- getPSI(ExFit)
+        PSIss <- getPSI(ExFit)
+        PSIs <- PSIss$PSI
         
         # The value that is returned to the user is Delta PSI = (Mean PSI Condition 1) -
         # (Mean PSI Condition 2) to calculate it, we use limma
