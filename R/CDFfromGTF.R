@@ -368,7 +368,11 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
             # Corresponds to the Edges, Adjacency matrix and Incidence Matrix of the SG that
             # is being analyzed
             
-            SG <- SG_Info(SG_Gene)
+            #SG <- SG_Info(SG_Gene)
+            
+            #SG <- SG_creation(SG_Gene)
+          
+            SG <- SG_creation_RNASeq(SG_Gene)
             
             # Using Ax=b with A the incidence matrix and b=0, we solve to obtain the null
             # space and obtain the flux through each edge if we relate the SG with an

@@ -1204,6 +1204,194 @@ SG_Info<-function(SG_Gene)
 }
 
 #' @rdname InternalFunctions
+SG_creation <-function(SG_Gene) 
+{
+  SG_Gene_SoloE <- SG_Gene[type(SG_Gene)=="E"]
+  Ts <- unique(unlist(txName(SG_Gene_SoloE)))
+  
+  # Build Adjacency Matrix
+  ncolAdj <- length(SG_Gene_SoloE) * 2 +2
+  Adj <-  matrix(0, ncol = ncolAdj, nrow = ncolAdj)
+  nombres <- rep(paste(1:(ncolAdj/2-1),".b",sep=""),each=2)
+  nombresa <- rep(paste(1:(ncolAdj/2-1),".a",sep=""),each=2)
+  nombres[seq(1,(ncolAdj-2),by = 2)] <- nombresa[seq(1,(ncolAdj-2),by = 2)]
+  rownames(Adj) <-  colnames(Adj) <- c("S", nombres,"E")
+  for(Trans in Ts) 
+  {
+    dummy <- sapply(txName(SG_Gene_SoloE)==Trans,any)
+    dummy2 <- rep(which(dummy)*2, each =2)
+    dummy2[seq(2,length(dummy2),by = 2)] <- dummy2[seq(2,length(dummy2),by = 2)] +1
+    dummy2 <- c(1,dummy2,ncolAdj)
+    Adj[cbind(dummy2[1:(length(dummy2)-1)],dummy2[2:length(dummy2)])] <- 1
+  }
+  
+  PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), end(ranges(SG_Gene_SoloE)))), 0)
+  
+  # Build incidence matrix
+  Inc <- matrix(0,nrow = ncol(Adj),ncol=sum(Adj>0) )
+  Inc[cbind(which(Adj>0, arr.ind=1)[,2],1:ncol(Inc))] <- 1
+  Inc[cbind(which(Adj>0, arr.ind=1)[,1],1:ncol(Inc))] <- -1
+  
+  rownames(Inc) <- rownames(Adj)
+  colnames(Inc) <- 1:ncol(Inc)
+  
+  NuevoOrden <- which(Inc[1,]==-1)
+  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
+  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),], 1, function(x){which(x==-1)})))
+  NuevoOrden <- c(NuevoOrden,  which(Inc[nrow(Inc),]==1))
+  
+  Inc <- Inc[,NuevoOrden]
+  
+  
+  Adjacency <- Matrix(Adj) 
+  
+  # Build edges data.frame
+  Edges <-  data.frame()
+  # From <- colnames(Adj)[which(Adj>0, arr.ind=1)[,1]]
+  From <- rownames(Inc)[apply(Inc,2,function(X){which(X==-1)})]
+  # To <- colnames(Adj)[which(Adj>0, arr.ind=1)[,2]]
+  To<-rownames(Inc)[apply(Inc,2,function(X){which(X==1)})]
+  Edges <- data.frame(From,To)
+  Edges$Chr <- as.vector(seqnames(SG_Gene)@values)
+  Edges$Start <- 0
+  Edges$End <- 0
+  Exons <- grep("a",Edges$From)
+  # Edges$Strand <- as.character(strand(SG_Gene_SoloE[Exons[1]]))
+  Edges$Strand <- strand(SG_Gene)@values
+  Edges$Type <- "J"
+  Virtual <- c(grep("S", Edges$From), grep("E", Edges$To))
+  Edges[Exons,"Type"] <- "E"
+  Edges[Virtual,"Type"] <- "V" # If J is required, comment this line.
+  Edges$Start <- PosAdj[match(Edges$From, colnames(Adj))]
+  Edges$End <- PosAdj[match(Edges$To, colnames(Adj))]
+  Edges$Chr <- max(Edges$Chr)
+  
+  # Put featuresID
+  matched <- match(Edges$End+1e6*Edges$Start, end(ranges(SG_Gene))+1e6*start(ranges(SG_Gene)))
+  IndexEdge <- which(!is.na(matched))
+  Edges$featureID <- 0
+  Edges$featureID[IndexEdge] <- featureID(SG_Gene[matched[IndexEdge]])
+  return(list(Edges = Edges, Adjacency = Adjacency, Incidence = Inc))
+}
+
+
+#' @rdname InternalFunctions
+SG_creation_RNASeq <-function(SG_Gene) 
+{
+  #which((start(SG_Gene)-end(SG_Gene))==0)
+  
+  SG_Gene <- SG_Gene[which((start(SG_Gene)-end(SG_Gene))!=0)]
+  SG_Gene_SoloE <- SG_Gene[type(SG_Gene)=="E"]
+  nodos <- sort(unique(c(start(SG_Gene_SoloE), end(SG_Gene_SoloE))))
+  ncolAdj <- length(nodos) +2
+  Adj <- matrix(0, nrow = length(nodos)+2, ncol = length(nodos)+2)
+  colnames(Adj) <- rownames(Adj) <- c("S",nodos,"E")
+  edges <- cbind(match(start(SG_Gene), colnames(Adj)), match(end(SG_Gene), colnames(Adj)))
+  
+  # subexones adyacentes
+  adyacentes1 <- which(diff(nodos)==1) 
+  edges <- rbind(edges, cbind(1+adyacentes1, adyacentes1+2))
+  Adj[edges] <- 1
+  diag(Adj) <- 0
+  
+  
+  # Include new start and end sites based on annotation
+  
+  if(!sum(sapply(txName(SG_Gene_SoloE),length))==0){
+    Ts <- unique(unlist(txName(SG_Gene_SoloE)))
+    Salida <- lapply(txName(SG_Gene_SoloE), match, Ts)
+    veces <- sapply(Salida,length); y <- rep(1:length(veces), veces)
+    x <- unlist(Salida)
+    Transcripts <- matrix(FALSE, nrow = max(x), ncol = max(y))
+    Transcripts[cbind(x,y)] <- TRUE
+    initial <- unique(max.col(Transcripts,ties.method = c("first")))
+    final <- unique(max.col(Transcripts,ties.method = c("last")))
+    colstarts <- match(start(SG_Gene_SoloE[initial]),colnames(Adj))
+    Adj[cbind(1,colstarts)] <- 1
+    rowends <- match(end(SG_Gene_SoloE[final]),rownames(Adj))
+    Adj[cbind(rowends,ncol(Adj))] <- 1
+  }
+  
+  
+  # Fill orphan and widows nodes
+  orphans <- which(colSums(Adj)==0)
+  orphans <- orphans[-1]
+  if(length(orphans)>0){
+    if(any(names(orphans)=="E")){
+      orphans<-orphans[-length(orphans)]
+    }
+    if(length(orphans)>0){
+      Adj[cbind(1,orphans)] <- 1
+    }
+  }
+  
+  widows <- which(rowSums(Adj)==0)
+  widows <- widows[-length(widows)]
+  if(length(widows)>0){
+    Adj[cbind(widows, ncol(Adj))] <- 1
+  }
+  diag(Adj) <- 0
+  
+  # Change the name of the rows and columns to 1.a 1.b 2.a 2.b,...
+  
+  nombres <- rep(paste(1:(ncolAdj/2-1),".b",sep=""),each=2)
+  nombresa <- rep(paste(1:(ncolAdj/2-1),".a",sep=""),each=2)
+  nombres[seq(1,(ncolAdj-2),by = 2)] <- nombresa[seq(1,(ncolAdj-2),by = 2)]
+  rownames(Adj) <-  colnames(Adj) <- c("S", nombres,"E")
+  
+  
+  
+  PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), end(ranges(SG_Gene_SoloE)))), 0)
+  
+  # Build incidence matrix
+  Inc <- matrix(0,nrow = ncol(Adj),ncol=sum(Adj>0) )
+  Inc[cbind(which(Adj>0, arr.ind=1)[,2],1:ncol(Inc))] <- 1
+  Inc[cbind(which(Adj>0, arr.ind=1)[,1],1:ncol(Inc))] <- -1
+  
+  rownames(Inc) <- rownames(Adj)
+  colnames(Inc) <- 1:ncol(Inc)
+  
+  NuevoOrden <- which(Inc[1,]==-1)
+  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
+  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),], 1, function(x){which(x==-1)})))
+  NuevoOrden <- c(NuevoOrden,  which(Inc[nrow(Inc),]==1))
+  
+  Inc <- Inc[,NuevoOrden]
+  
+  
+  Adjacency <- Matrix(Adj) 
+  
+  # Build edges data.frame
+  Edges <-  data.frame()
+  # From <- colnames(Adj)[which(Adj>0, arr.ind=1)[,1]]
+  From <- rownames(Inc)[apply(Inc,2,function(X){which(X==-1)})]
+  # To <- colnames(Adj)[which(Adj>0, arr.ind=1)[,2]]
+  To<-rownames(Inc)[apply(Inc,2,function(X){which(X==1)})]
+  Edges <- data.frame(From,To)
+  Edges$Chr <- as.vector(seqnames(SG_Gene)@values)
+  Edges$Start <- 0
+  Edges$End <- 0
+  Exons <- grep("a",Edges$From)
+  # Edges$Strand <- as.character(strand(SG_Gene_SoloE[Exons[1]]))
+  Edges$Strand <- strand(SG_Gene)@values
+  Edges$Type <- "J"
+  Virtual <- c(grep("S", Edges$From), grep("E", Edges$To))
+  Edges[Exons,"Type"] <- "E"
+  Edges[Virtual,"Type"] <- "V" # If J is required, comment this line.
+  Edges$Start <- PosAdj[match(Edges$From, colnames(Adj))]
+  Edges$End <- PosAdj[match(Edges$To, colnames(Adj))]
+  Edges$Chr <- max(Edges$Chr)
+  
+  # Put featuresID
+  matched <- match(Edges$End+1e6*Edges$Start, end(ranges(SG_Gene))+1e6*start(ranges(SG_Gene)))
+  IndexEdge <- which(!is.na(matched))
+  Edges$featureID <- 0
+  Edges$featureID[IndexEdge] <- featureID(SG_Gene[matched[IndexEdge]])
+  return(list(Edges = Edges, Adjacency = Adjacency, Incidence = Inc))
+}
+
+
+#' @rdname InternalFunctions
 ##############################################################################
 # function to create Event plots in IGV
 ##############################################################################
