@@ -395,7 +395,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
                 # There should be at least one event to continue the algorithm
                 
                 if (nrow(Events$triplets) > 0) {
-                  
+                  twopaths <- which(rowSums(Events$triplets != 0)==3)
                   # Transform events into triplets, related with edges to the corresponding paths.
                   # Also the edges are divided into Path 1, Path 2 and Reference
                   
@@ -414,7 +414,7 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
                     
                     # Classify the events into canonical categories using the adjacency matrix
                     
-                    Events <- ClassifyEvents(SG, Events)
+                    Events <- ClassifyEvents(SG, Events,twopaths)
                     
                     # Obtain the corresponding PSRs/JunctionProbes for each of the paths of every
                     # event
