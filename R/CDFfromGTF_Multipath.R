@@ -477,6 +477,6 @@ CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc,
   #setwd(PathCDF)
   
   flat2Cdf(file = paste(PathCDF, "/", microarray, ".flat", sep = ""), chipType = microarray, 
-           rows = ROWS, cols = COLS)
+           rows = ROWS, cols = COLS,Directory=PathCDF)
   
 }

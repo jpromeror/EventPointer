@@ -843,7 +843,8 @@ findTriplets2 <- function(Incidence, paths =2, randSol) {
   Groups<-clusters(g) # This approach looks to use too heavy weapons to solve the problem...
   
   if (Groups$no==2) {
-    return(list(groups=Groups$membership,multipaths=0))
+    multipaths <- matrix(NA,nrow=0,ncol=1)
+    return(list(groups=Groups$membership,multipaths=multipaths))
   }
   
   # TODO: Build the triplets using only the unique fluxes
@@ -1765,8 +1766,8 @@ SG_creation_RNASeq <-function(SG_Gene)
   colnames(Inc) <- 1:ncol(Inc)
   
   NuevoOrden <- which(Inc[1,]==-1)
-  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
-  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),], 1, function(x){which(x==-1)})))
+  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),,drop=F], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
+  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),,drop=F], 1, function(x){which(x==-1)})))
   NuevoOrden <- c(NuevoOrden,  which(Inc[nrow(Inc),]==1))
   
   Inc <- Inc[,NuevoOrden]
@@ -2018,7 +2019,7 @@ WriteGTF_RNASeq <- function(PATH,Data,Paths){
 #cols:
 ####################################################################
 flat2Cdf<-function(file,chipType,tags=NULL,rows=2560,cols=2560,verbose=10,xynames=c("X","Y"),
-                   gcol=5,ucol=6,splitn=4,col.class=c("integer","character")[c(1,1,1,2,2,2)],...) {
+                   gcol=5,ucol=6,splitn=4,col.class=c("integer","character")[c(1,1,1,2,2,2)],Directory=getwd(),...) {
   split.quick<- 
     function(r,ucol,splitn=3,verbose=TRUE) {
       rn3<-substr(r[,ucol],1,splitn)
@@ -2064,7 +2065,7 @@ flat2Cdf<-function(file,chipType,tags=NULL,rows=2560,cols=2560,verbose=10,xyname
   names(l)<-names(gxys)
   if(!is.null(tags) && tags!="") filename<-paste(chipType,tags,sep=",")
   else filename<-chipType
-  filename<-paste(filename,"cdf",sep=".")
+  filename<-paste0(Directory,"/",filename,".cdf")
   hdr<-list(probesets=length(l),qcprobesets=0,reference="",chiptype=chipType,filename=filename,
             nqcunits=0,nunits=length(l),rows=rows,cols=cols,refseq="",nrows=rows,ncols=cols)
   writeCdf(hdr$filename, cdfheader=hdr, cdf=l, cdfqc=NULL, overwrite=TRUE, verbose=verbose)
