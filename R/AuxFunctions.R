@@ -210,6 +210,7 @@ annotateEvents<-function(Events,PSR_Gene,Junc_Gene,Gxx)
   return(list(Events=Result,Flat=Flat))
 }
 
+
 #' @rdname InternalFunctions
 annotateEventsMultipath<-function(Events,PSR_Gene,Junc_Gene,Gxx,paths)
 {
@@ -544,6 +545,158 @@ AnnotateEvents_RNASeq<-function(Events)
   
 }
 
+#' @rdname InternalFunctions
+AnnotateEvents_RNASeq_MultiPath <- function(Events,paths)
+{
+  Result<-vector("list",length=length(Events))
+  for(ii in seq_along(Events))
+  {
+    
+    
+    GeneName<-as.vector(Events[[ii]]$GeneName)
+    GeneID<-as.vector(Events[[ii]]$Gene)
+    EventNumber<-ii
+    EventID<-paste(GeneID,"_",EventNumber,sep="")
+    EventType<-Events[[ii]]$Type
+    Chrom<-as.vector(Events[[ii]]$P1[1,"Chr"])
+    
+    EventNumP<-Events[[ii]]$NumP
+    command<- "Positions<-rbind(Events[[ii]]$P1,"
+    for (kk in 2:EventNumP){
+      if(kk == EventNumP){
+        command<-paste0(command,"Events[[ii]]$P",kk,")[,4:5]")
+      }else{
+        command<-paste0(command,"Events[[ii]]$P",kk,",")
+      }
+    }
+    eval(parse(text = command))
+    # Positions<-rbind(Events[[ii]]$P1,Events[[ii]]$P2)[,4:5]
+    Start<-as.numeric(Positions[,1])
+    End<-as.numeric(Positions[,2])
+    Start<-Start[which(Start!=0)]
+    End<-End[which(End!=0)]
+    
+    # browser()
+    minGPos<-min(Start)
+    maxGPos<-max(End)
+    GPos<-paste(Chrom,":",minGPos,"-",maxGPos,sep="")
+    
+    # CP1s<-which(Events[[ii]]$P1[,1]=="S")
+    # CP1e<-which(Events[[ii]]$P1[,2]=="E")
+    # 
+    # if(length(CP1s)>0|length(CP1e)>0)
+    # {
+    #   CC<-c(CP1s,CP1e)
+    #   Events[[ii]]$P1<-Events[[ii]]$P1[-CC,]
+    # }
+    # 
+    # PS1<-as.numeric(gsub(".[ab]","",Events[[ii]]$P1[,1]))
+    # PE1<-as.numeric(gsub(".[ab]","",Events[[ii]]$P1[,2]))
+    # Path1<-as.matrix(cbind(PS1,PE1))
+    # Path1<-Path1[order(Path1[,1],Path1[,2]),,drop=FALSE]
+    
+    for (kk in 1:EventNumP){
+      command <- paste0("CP",kk,"s<-which(Events[[ii]]$P",kk,"[,1]=='S')")
+      eval(parse(text = command))
+      command <- paste0("CP",kk,"e<-which(Events[[ii]]$P",kk,"[,2]=='E')")
+      eval(parse(text = command))
+      a<-paste0("a<-length(CP",kk,"s)>0|length(CP",kk,"e)>0")
+      eval(parse(text = a))
+      if(a){
+        command <- paste0("CC<-c(CP",kk,"s,CP",kk,"e)")
+        eval(parse(text = command))
+        command <- paste0("Events[[ii]]$P",kk,"<-Events[[ii]]$P",kk,"[-CC,]")
+        eval(parse(text = command))
+      }
+      command <- paste0("PS",kk,"<-as.numeric(gsub('.[ab]','',Events[[ii]]$P",kk,"[,1]))")
+      eval(parse(text = command))
+      command <- paste0("PE",kk,"<-as.numeric(gsub('.[ab]','',Events[[ii]]$P",kk,"[,2]))")
+      eval(parse(text = command))
+      command <- paste0("Path",kk,"<-as.matrix(cbind(PS",kk,",PE",kk,"))")
+      eval(parse(text = command))
+      command <- paste0("Path",kk,"<-Path",kk,"[order(Path",kk,"[,1],Path",kk,"[,2]),,drop=FALSE]")
+      eval(parse(text = command))
+    }
+    
+    
+    
+    
+    
+    
+    # CP2s<-which(Events[[ii]]$P2[,1]=="S")
+    # CP2e<-which(Events[[ii]]$P2[,2]=="E")
+    # 
+    # if(length(CP2s)>0|length(CP2e)>0)
+    # {
+    #   CC<-c(CP2s,CP2e)
+    #   Events[[ii]]$P2<-Events[[ii]]$P2[-CC,]
+    # }
+    # 
+    # PS2<-as.numeric(gsub(".[ab]","",Events[[ii]]$P2[,1]))
+    # PE2<-as.numeric(gsub(".[ab]","",Events[[ii]]$P2[,2]))
+    # Path2<-as.matrix(cbind(PS2,PE2))
+    # Path2<-Path2[order(Path2[,1],Path2[,2]),,drop=FALSE]
+    
+    CPRs<-which(Events[[ii]]$Ref[,1]=="S")
+    CPRe<-which(Events[[ii]]$Ref[,2]=="E")
+    
+    if(length(CPRs)>0|length(CPRe)>0)
+    {
+      CC<-c(CPRs,CPRe)
+      Events[[ii]]$Ref<-Events[[ii]]$Ref[-CC,]
+    }
+    
+    PSR<-as.numeric(gsub(".[ab]","",Events[[ii]]$Ref[,1]))
+    PER<-as.numeric(gsub(".[ab]","",Events[[ii]]$Ref[,2]))
+    PathR<-as.matrix(cbind(PSR,PER))
+    PathR<-PathR[order(PathR[,1],PathR[,2]),,drop=FALSE]
+    
+    
+    #Path1<-paste(Path1[,1],"-",Path1[,2],sep="",collapse=",")
+    #Path2<-paste(Path2[,1],"-",Path2[,2],sep="",collapse=",")
+    NEv<-"NEv<-data.frame(EventID,GeneName,EventNumber,EventType,GPos,EventNumP,"
+    for (kk in 1:paths){
+      if (kk <= EventNumP){
+        command <- paste0("Path",kk,"<-paste(Path",kk,"[,1],'-',Path",kk,"[,2],sep='',collapse=',')")
+        eval(parse(text = command))
+        #command <- paste0("ProbesP",kk,"<-paste(Events[[ii]]$Probes_P",kk,",collapse=',')")
+        #eval(parse(text = command))
+      }else{
+        command <- paste0("Path",kk,"<-'-'")
+        eval(parse(text = command))
+        #command <- paste0("ProbesP",kk,"<-'-'")
+        #eval(parse(text = command))
+      }
+      NEv <- paste0(NEv,"Path",kk,",")
+    }
+    
+    PathR<-paste(PathR[,1],"-",PathR[,2],sep="",collapse=",")
+    NEv <- paste0(NEv,"PathR,stringsAsFactors = FALSE)")
+    eval(parse(text = NEv))
+    rownames(NEv)<-NULL
+    #NEv<-data.frame(EventID,GeneName,EventNumber,EventType,GPos,Path1,Path2,PathR,stringsAsFactors = FALSE)
+    Result[[ii]]<-NEv
+    
+    
+  }
+  
+  Result<-do.call(rbind,Result)
+  command<- "colnames(Result)<-c('EventID','Gene','Event Number','Event Type','Genomic Position','Num of Paths','Path 1',"
+  
+  for (kk in 2:(paths+1)){
+    if (kk == (paths+1)){
+      command <- paste0(command,"'Path Ref')")
+    }else{
+      command <- paste0(command,"'Path ",kk,"',")
+    }
+  }
+  eval(parse(text = command))
+  return(Result)
+  
+  
+}
+
+
 
 #' @rdname InternalFunctions
 ClassifyEvents<-function(SG,Events,twopaths)
@@ -792,6 +945,70 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
 }
 
 #' @rdname InternalFunctions
+estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1 ) {
+  
+  # require(nnls)
+  l <- dim(datos)[1]
+  cols <- dim(datos)[2]
+  Signal<-list()
+  A<-c()
+  for(k in 1:(l-1)){
+    Signal[[k]]<-as.numeric(datos[k,])
+    A<-cbind(A,Signal[[k]])
+  }
+  Signal[[l]]<-as.numeric(datos[l,])
+  b<-Signal[[l]]
+  Salida <- nnls(A,b)
+  u<-c()
+  Tset <- matrix(0,ncol = cols,nrow = (l-1))
+  if(lambda == 0){
+    resultado<-nnls(A,b)
+    Salida <- resultado$x
+    for (k in 1:(l-1)){
+      u<-c(u,Salida[k])
+      Tset[k,] <- Signal[[k]]*u[k]
+    }
+    w <- 0
+    offset <- w / (1-sum(u))
+    Relerror <- as.numeric(crossprod((A[,1:(l-1)])%*%u - b)/crossprod(b))
+    residuals <- resultado$residuals[1:cols,,drop=F]
+    return(list(Tset=Tset, offset = offset, Relerror = Relerror,Residuals = residuals))
+  }
+  if(is.null(lambda)) 
+  {
+    lambda <- 0.1
+  }
+  
+  
+  penalty <- lambda*((Salida$deviance)/(sum((Salida$x-1)^2)))
+  penalty <- sqrt(penalty)
+  
+  
+  penal <- diag(penalty,nrow=(l-1))
+  A <- rbind(A,penal)
+  b <- c(b,rep(penalty,(l-1)))
+  resultado<-nnls(A,b)
+  Salida <- resultado$x
+  
+  for (k in 1:(l-1)){
+    u<-c(u,Salida[k])
+    Tset[k,] <- Signal[[k]]*u[k]
+  }
+  w <- 0
+  offset <- w / (1-sum(u))
+  
+  Relerror <- as.numeric(crossprod((A[1:cols,1:(l-1)])%*%u - b[1:cols])/crossprod(b[1:cols]))
+  
+  residuals <- resultado$residuals[1:cols,,drop=F]
+  
+  
+  return(list(Tset=Tset, offset = offset, Relerror = Relerror,Residuals = residuals))
+  
+}
+
+
+
+#' @rdname InternalFunctions
 findTriplets<-function(randSol,tol=1e-8)
 {
   
@@ -957,6 +1174,58 @@ getPathFPKMs <- function(x, readsC, widthinit) {
   x$FPKM<-reads
   return(x)
 }
+
+#' @rdname InternalFunctions
+GetCountsMP <- function(Events,sg_txiki, type = "counts") {
+  readsC <- counts(sg_txiki)
+  readsF <- FPKM(sg_txiki)
+  countsEvents <- lapply(Events, getPathCountsMP,readsC)
+  countsEvents <-lapply(countsEvents, getPathFPKMsMP,readsF)
+  return(countsEvents)
+}
+
+getPathCountsMP <- function(x, readsC, widthinit) {
+  command<- "reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),"
+  for (i in 2:(x$NumP+1)){
+    if (i == (x$NumP+1)){
+      command <- paste0(command,"colSums(readsC[x$Ref$featureID,,drop = FALSE]))")
+    }else{
+      command <- paste0(command,"colSums(readsC[x$P",i,"$featureID,,drop = FALSE]),")
+      
+    }
+  }
+  eval(parse(text = command))
+  # reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),
+  #                colSums(readsC[x$P2$featureID,,drop = FALSE]),
+  #                colSums(readsC[x$Ref$featureID,,drop = FALSE]))
+  
+  rownames(reads) <- c(paste("P",1:x$NumP,sep=""),"Ref")
+  x$Counts<-reads
+  return(x)
+}
+
+getPathFPKMsMP <- function(x, readsC, widthinit) {
+  command<- "reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),"
+  for (i in 2:(x$NumP+1)){
+    if (i == (x$NumP+1)){
+      command <- paste0(command,"colSums(readsC[x$Ref$featureID,,drop = FALSE]))")
+    }else{
+      command <- paste0(command,"colSums(readsC[x$P",i,"$featureID,,drop = FALSE]),")
+      
+    }
+  }
+  eval(parse(text = command))
+  # reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),
+  #                colSums(readsC[x$P2$featureID,,drop = FALSE]),
+  #                colSums(readsC[x$Ref$featureID,,drop = FALSE]))
+  
+  rownames(reads) <- c(paste("P",1:x$NumP,sep=""),"Ref")
+  x$FPKM<-reads
+  return(x)
+}
+
+
+
 
 #' @rdname InternalFunctions
 
@@ -1219,8 +1488,59 @@ getPSI <- function(ExFit,lambda = 0.1) {
   return(list(PSI = PSI, Residuals = Residuals))
 }
 
+getPSImultipath <- function(ExFit,lambda = 0.1) {
+  
+  #EventNames <- rownames(ExFit) 
+  EventNames<-ExFit$unitName
+  
+  EventNames <- sapply(strsplit(EventNames,"_"),function(x) { 
+    a<-paste(x[1],x[2],sep="")
+    return(a)
+  })
+  EventNames <- as.matrix(table(EventNames))
+  numrows <- sum(EventNames-1) #for each path we calculate the PSI (PSI1, PSI2,..., PSIn)
+  
+  PSI <- matrix(0,nrow = numrows, ncol = ncol(ExFit)-5) 
+  colnames(PSI)  <- colnames(ExFit)[6:ncol(ExFit)] 
+  rownames(PSI)  <- rep(rownames(EventNames),EventNames[1:nrow(EventNames)]-1)
+  
+  Residuals <- matrix(0,ncol=ncol(PSI),nrow=length(rownames(EventNames)))
+  rownames(Residuals) <- rownames(EventNames)
+  
+  NCols<-ncol(ExFit)
+  ExFit2 <-  as.matrix(ExFit[,6:NCols])
+  
+  s <- rbind(1,EventNames)
+  s <- cumsum(s)
+  s <- s[-length(s)]
+  e <- as.numeric(s+EventNames-1)
+  
+  sp <- rbind(1,(EventNames-1))
+  sp <- cumsum(sp)
+  sp <- sp[-length(sp)]
+  ep <- as.numeric(sp+EventNames-2)
+  
+  for (n in 1:length(e)){
+    datos <- ExFit2[s[n]:e[n],]
+    Output <- estimateAbsoluteConcmultipath(datos,lambda)
+    Tset <- Output$Tset
+    TR <- apply(Tset,2,sum)
+    
+    datospsi <- apply(Tset,1,function(X){
+      return(X/TR)
+    })
+    datospsi<-t(datospsi)
+    PSI[sp[n]:ep[n],]<-datospsi
+    Relerror <- Output$Relerror
+    Residuals[n,] <- Output$Residuals
+  }
+  result <- list(PSI=PSI,Residuals=Residuals)
+  return(result)
+}
+
+
 #' @rdname InternalFunctions
-getPSI_RNASeq<-function(Result)
+getPSI_RNASeq<-function(Result,lambda=0.1)
 {
   CountMatrix<-vector("list",length=length(Result))
   Vec<-c()
@@ -1265,19 +1585,129 @@ getPSI_RNASeq<-function(Result)
   colnames(PSI)  <- colnames(CountMatrix)
   rownames(PSI)  <- Vec[seq(1,length(Vec),by = 3)]
   
+  Residuals <- PSI
+  
   for (n in seq_len(nrow(CountMatrix)/3)) 
   {
     Signal1 <- CountMatrix[1+3*(n-1),]
     Signal2 <- CountMatrix[2+3*(n-1),]
     SignalR <- CountMatrix[3+3*(n-1),]
-    Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda = 1)
+    Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda)
     psi <- Output$T1est / (Output$T1est + Output$T2est)
     PSI[n,] <- psi
+    Residuals[n,] <- Output$Residuals
   }
   
-  return(PSI)
+  return(list(PSI=PSI,Residuals=Residuals))
   
 }
+
+#' @rdname InternalFunctions
+getPSI_RNASeq_MultiPath<-function(Result,lambda=0.1)
+{
+  
+  CountMatrix<-vector("list",length=length(Result))
+  Vec<-c()
+  indices <-c()
+  # seq_along(Result)
+  for(jj in seq_along(Result))
+  {
+    #jj<-1
+    # print(jj)
+    A<-Result[[jj]]
+    
+    if(!is.null(A))
+    {
+      Evs_Counts<-lapply(A,function(X){Res<-X$FPKM;return(Res)})
+      nump <- sapply(A,function(X){Res<-X$NumP;return(Res)})
+      nump <- nump +1
+      indices <- c(indices,nump)
+      names(Evs_Counts)<-1:length(Evs_Counts)
+      Ids<-paste(A[[1]]$Gene,"_",names(Evs_Counts),sep="")
+      Ids<-rep(Ids,nump)
+      Vec<-c(Vec,Ids)
+      Evs_Counts<-do.call(rbind,Evs_Counts)
+      
+      if(!any(is.na(Evs_Counts)))
+      {
+        CountMatrix[[jj]]<-Evs_Counts
+      }else{
+        
+        CountMatrix[[jj]]<-NULL
+      }
+      
+    }else{
+      
+    }
+  }
+  
+  # Ids<-rep(c("_P1","_P2","_Ref"),length(Vec)/3)
+  #
+  Ids <- vector(mode="character",length=length(Vec))
+  #indices<-table(Vec)
+  maxp <- max(indices)
+  EventNames<-indices
+  Ids[cumsum(indices)]<-"_Ref"
+  indices<-c(1,indices)
+  indices<-indices[-length(indices)]
+  Ids[cumsum(indices)]<-"_P1"
+  Ids[1+cumsum(indices)]<-"_P2"
+  if(maxp>3){
+    for(kk in 2:(maxp-2)){
+      Ids[kk+cumsum(indices)[which(Ids[kk+cumsum(indices)]=="")]] <- paste0("_P",kk+1)
+    }
+  }
+  #
+  
+  CountMatrix<-do.call(rbind,CountMatrix)
+  rownames(CountMatrix)<-paste(Vec,Ids,sep="")
+  
+  names(EventNames)<-NULL
+  
+  
+  #PSI <- matrix(0, nrow = nrow(CountMatrix)/3, ncol = ncol(CountMatrix))
+  numrows <- sum(EventNames-1) #for each path we calculate the PSI (PSI1, PSI2,..., PSIn)
+  PSI <- matrix(0,nrow = numrows, ncol = ncol(CountMatrix)) 
+  
+  colnames(PSI)  <- colnames(CountMatrix)
+  #rownames(PSI)  <- Vec[seq(1,length(Vec),by = 3)]
+  rownames(PSI) <- rownames(CountMatrix)[-cumsum(EventNames)]
+  
+  namesrowres<-Vec[cumsum(EventNames)]
+  Residuals <- matrix(0,nrow=length(namesrowres),ncol=ncol(PSI))
+  rownames(Residuals)<-namesrowres
+  
+  s <- c(1,EventNames)
+  s <- cumsum(s)
+  s <- s[-length(s)]
+  e <- as.numeric(s+EventNames-1)
+  
+  sp <- c(1,(EventNames-1))
+  sp <- cumsum(sp)
+  sp <- sp[-length(sp)]
+  ep <- as.numeric(sp+EventNames-2)
+  
+  for (n in 1:length(e)){
+    datos <- CountMatrix[s[n]:e[n],,drop=F]
+    Output <- estimateAbsoluteConcmultipath(datos,lambda)
+    Tset <- Output$Tset
+    TR <- apply(Tset,2,sum)
+    
+    datospsi <- apply(Tset,1,function(X){
+      return(X/TR)
+    })
+    datospsi<-t(datospsi)
+    PSI[sp[n]:ep[n],]<-datospsi
+    Relerror <- Output$Relerror
+    
+    Residuals[n,]<-Output$Residuals
+  }
+  result <- list(PSI=PSI,Residuals=Residuals)
+  return(result)
+  
+  
+}
+
 
 #' @rdname InternalFunctions
 getRandomFlow <- function(Incidence, ncol = 1)
@@ -2081,3 +2511,24 @@ uniquefast <- function(X){
   return(X)
 }
 
+#' @rdname InternalFunctions
+filterimagine <- function(Info,paths){
+  l<-dim(Info)[1]
+  tofilter<-vector(length = l)
+  for (ii in 1:l){
+    command <- paste0("p <- c(Info$`Path 1`[",ii,"],")
+    for(kk in 2:(Info$`Num of Paths`[ii]+1)){
+      if(kk==(Info$`Num of Paths`[ii]+1)){
+        command <- paste0(command,"Info$`Path Ref`[",ii,"])")
+      }else{
+        command <- paste0(command,"Info$`Path ",kk,"`[",ii,"],")
+      }
+    }
+    eval(parse(text=command))
+    p<-any(p=="-")
+    tofilter[ii]<-p
+  }
+  
+  return(which(tofilter==T))
+  
+}

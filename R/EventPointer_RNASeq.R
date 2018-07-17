@@ -77,7 +77,8 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
         Msg <- paste("\t** Calculating PSI", sep = "")
         cat(paste(Msg, "...", sep = ""))
         
-        PSIs <- getPSI_RNASeq(Events)
+        PSIss <- getPSI_RNASeq(Events)
+        PSIs<-PSIss$PSI
         
         DPSIs <- vector("list", length = ncol(Contrast))
         

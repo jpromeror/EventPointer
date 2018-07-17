@@ -8,6 +8,7 @@
 #' @param Junc Path to the Junction probes txt file
 #' @param PathCDF Directory where the output will be saved
 #' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
+#' @param paths Maximum number of paths of the events to find.
 #'
 #' @return The function displays a progress bar to show the user the progress of the function. However, there is no value returned in R as
 #' the function creates three files that are used later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
@@ -25,7 +26,7 @@
 #'
 #'   # Run the function
 #'
-#'    CDFfromGTF(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
+#'    CDFfromGTF_Multipath(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray,paths=3)
 #'
 #' @export
 #' @import Matrix

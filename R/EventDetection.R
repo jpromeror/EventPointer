@@ -106,7 +106,7 @@ EventDetection <- function(Input, cores, Path) {
                 # There should be al least one event to continue the algorithm
                 
                 if (nrow(Events$triplets) > 0) {
-                  
+                  twopaths <- which(rowSums(Events$triplets != 0)==3)
                   # Transform triplets, related with edges to the corresponding edges. Also the
                   # edges are divided into Path 1, Path 2 and Reference
                   
@@ -118,7 +118,7 @@ EventDetection <- function(Input, cores, Path) {
                     
                     # Classify the events into canonical categories using the adjacency matrix
                     
-                    Events <- ClassifyEvents(SG, Events)
+                    Events <- ClassifyEvents(SG, Events,twopaths)
                     
                     # A simple piece of code to get the number of counts for the three paths in every
                     # event within a gene
