@@ -696,6 +696,102 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events,paths)
   
 }
 
+#' @rdname InternalFunctions
+AnnotateEvents_KLL <- function (Events,Gxx,GenI){
+  {
+    #
+    #Gxx <- GeneName
+    #
+    GeneName<-Gxx
+    GeneID<-GenI
+    Chrom<-gsub("chr","",as.vector(Events[[1]]$P1[1,"Chr"]))
+    Result<-vector("list")
+    #Flat<-vector("list")
+    mm<-0
+    
+    for(ii in seq_along(Events))
+    {
+      if (!any(c(identical(unique(Events[[ii]]$P1$Type),"V"),identical(unique(Events[[ii]]$P2$Type),"V"),identical(unique(Events[[ii]]$Ref$Type),"V"))==T))
+      {
+        mm<-mm+1
+        
+        EventNumber<-ii
+        
+        EventType<-Events[[ii]]$Type
+        
+        Positions<-rbind(Events[[ii]]$P1,Events[[ii]]$P2)[,4:5]
+        Start<-as.numeric(Positions[,1])
+        End<-as.numeric(Positions[,2])
+        Start<-Start[which(Start!=0)]
+        End<-End[which(End!=0)]
+        
+        # browser()
+        minGPos<-min(Start)
+        maxGPos<-max(End)
+        GPos<-paste(Chrom,":",minGPos,"-",maxGPos,sep="")
+        
+        CP1s<-which(Events[[ii]]$P1[,1]=="S")
+        CP1e<-which(Events[[ii]]$P1[,2]=="E")
+        
+        if(length(CP1s)>0|length(CP1e)>0)
+        {
+          CC<-c(CP1s,CP1e)
+          Events[[ii]]$P1<-Events[[ii]]$P1[-CC,]
+        }
+        
+        PS1<-as.numeric(gsub(".[ab]","",Events[[ii]]$P1[,1]))
+        PE1<-as.numeric(gsub(".[ab]","",Events[[ii]]$P1[,2]))
+        Path1<-as.matrix(cbind(PS1,PE1))
+        Path1<-Path1[order(Path1[,1],Path1[,2]),,drop=FALSE]
+        
+        CP2s<-which(Events[[ii]]$P2[,1]=="S")
+        CP2e<-which(Events[[ii]]$P2[,2]=="E")
+        
+        if(length(CP2s)>0|length(CP2e)>0)
+        {
+          CC<-c(CP2s,CP2e)
+          Events[[ii]]$P2<-Events[[ii]]$P2[-CC,]
+        }
+        
+        PS2<-as.numeric(gsub(".[ab]","",Events[[ii]]$P2[,1]))
+        PE2<-as.numeric(gsub(".[ab]","",Events[[ii]]$P2[,2]))
+        Path2<-as.matrix(cbind(PS2,PE2))
+        Path2<-Path2[order(Path2[,1],Path2[,2]),,drop=FALSE]
+        
+        CPRs<-which(Events[[ii]]$Ref[,1]=="S")
+        CPRe<-which(Events[[ii]]$Ref[,2]=="E")
+        
+        if(length(CPRs)>0|length(CPRe)>0)
+        {
+          CC<-c(CPRs,CPRe)
+          Events[[ii]]$Ref<-Events[[ii]]$Ref[-CC,]
+        }
+        
+        PSR<-as.numeric(gsub(".[ab]","",Events[[ii]]$Ref[,1]))
+        PER<-as.numeric(gsub(".[ab]","",Events[[ii]]$Ref[,2]))
+        PathR<-as.matrix(cbind(PSR,PER))
+        PathR<-PathR[order(PathR[,1],PathR[,2]),,drop=FALSE]
+        
+        
+        Path1<-paste(Path1[,1],"-",Path1[,2],sep="",collapse=",")
+        Path2<-paste(Path2[,1],"-",Path2[,2],sep="",collapse=",")
+        PathR<-paste(PathR[,1],"-",PathR[,2],sep="",collapse=",")
+        
+        
+        NEv<-data.frame(GeneName,GeneID,EventNumber,EventType,GPos,Path1,Path2,PathR,stringsAsFactors = FALSE)
+        Result[[mm]]<-NEv
+        
+        
+      }
+      
+    }
+    
+    Result<-do.call(rbind,Result)
+    
+    return(Result)
+  }
+  
+}
 
 
 #' @rdname InternalFunctions
@@ -1709,6 +1805,7 @@ getPSI_RNASeq_MultiPath<-function(Result,lambda=0.1)
 }
 
 
+
 #' @rdname InternalFunctions
 getRandomFlow <- function(Incidence, ncol = 1)
 {
@@ -2532,3 +2629,504 @@ filterimagine <- function(Info,paths){
   return(which(tofilter==T))
   
 }
+
+
+
+#' @rdname InternalFunctions
+transfromedge <- function(SG,SG_Gene){
+  # La salida es un data.frame que tiene el numero del edge, su start y end y a los transcritos a los que pertenece
+  
+  
+  A <- SG$Edges # lo que viene de SG_Creation
+  
+  SG_Gene_SoloE <- SG_Gene[type(SG_Gene)=="E"]
+  B <- SG_Gene_SoloE # El correspondiente a un Gen
+  
+  nn<- length(txName(B))
+  aa <- c()
+  for (i in 1:nn){
+    aa <- c(aa,txName(B)[[i]])
+  }
+  aa <- unique(aa)
+  
+  edge <- 1:dim(A)[1]
+  transcripts <- vector(mode="character",length = length(edge))
+  
+  iixe <-which(A$Type=="E")
+  
+  matrixexons <- matrix(0,nrow=length(aa),ncol=length(iixe))
+  colnames(matrixexons)<-iixe
+  rownames(matrixexons)<-aa
+  
+  for (ii in iixe){
+    s <- A$Start[ii]
+    e <- A$End[ii]
+    ix <- which(start(B)==s & end(B)==e)
+    trans <- txName(B)[[ix]]
+    n <- length(trans)
+    if (n == 0){
+      transcripts[ii]<-"no mapeado en la referencia"
+    }else if (n==1){
+      matrixexons[trans,as.character(ii)]<-1
+      transcripts[ii]<-trans
+    }else {
+      matrixexons[trans,as.character(ii)]<-1
+      tt <-trans
+      trans <- trans[1]
+      for (kk in 2:n){
+        trans <- paste(trans,tt[kk],sep="|")
+      }
+      transcripts[ii] <- trans
+    }
+    
+  }
+  
+  
+  iix <-which(A$Type=="V")
+  transcripts[iix] <- ""
+  
+  
+  
+  #matrixexons
+  iix <-which(A$Type=="J")
+  for(ii in iix){
+    s <- as.character(A$From[ii])
+    e <- as.character(A$To[ii])
+    
+    # ex1 <- as.character(iixe[which(A$To[iixe]==s)])
+    # ex2 <- as.character(iixe[which(A$From[iixe]==e)])
+    
+    ex1 <- which(A$To[iixe]==s)
+    ex2 <- which(A$From[iixe]==e)
+    
+    
+    trans <- rownames(matrixexons)[which(rowSums(matrixexons[,ex1:ex2])==2 & matrixexons[,ex1]==1 & matrixexons[,ex2]==1)]
+    
+    n <- length(trans)
+    if (n == 0){
+      transcripts[ii]<-"no mapeado en la referencia"
+    }else if (n==1){
+      
+      transcripts[ii]<-trans
+    }else {
+      
+      tt <-trans
+      trans <- trans[1]
+      for (kk in 2:n){
+        trans <- paste(trans,tt[kk],sep="|")
+      }
+      transcripts[ii] <- trans
+    }
+    
+    
+    
+    
+  }
+  
+  From <- A$From
+  To <- A$To
+  Start <- A$Start
+  End <- A$End
+  D <- data.frame(edge=edge,From=From,To=To,Start=Start, End = End,transcripts = transcripts)
+  return(D)
+  
+}
+
+#' @rdname InternalFunctions
+sacartranscritos <- function(edgetr,events){
+  
+  
+  p1 <- events$Path1
+  p2 <- events$Path2
+  pref <- events$PathR
+  
+  
+  p1<-sapply(strsplit(p1,","),function(X){
+    n<-length(X)
+    trans <- ""
+    for (i in 1:n){
+      ss <- strsplit(X[i],"-")[[1]][1]
+      ee <- strsplit(X[i],"-")[[1]][2]
+      if (ss == ee){
+        ss <- paste0(ss,".a")
+        ee <- paste0(ee,".b")
+      }else{
+        ss <- paste0(ss,".b")
+        ee <- paste0(ee,".a")
+      }
+      if (i==1){
+        trans<-paste0(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)])
+      }else{
+        trans<-paste(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)],sep = "|")
+      }
+      
+    }
+    trans <- sapply(strsplit(trans,"\\|"),function(X){
+      tt<-unique(X)
+      if(length(tt)==1){
+        return(tt)
+      }else{
+        tran <- tt[1]
+        for (j in 2:length(tt)){
+          tran <- paste(tran,tt[j],sep="|")
+        }
+        return(tran)
+      }
+    })
+    
+    return(trans)
+  })
+  
+  p2<-sapply(strsplit(p2,","),function(X){
+    n<-length(X)
+    trans <- ""
+    for (i in 1:n){
+      ss <- strsplit(X[i],"-")[[1]][1]
+      ee <- strsplit(X[i],"-")[[1]][2]
+      if (ss == ee){
+        ss <- paste0(ss,".a")
+        ee <- paste0(ee,".b")
+      }else{
+        ss <- paste0(ss,".b")
+        ee <- paste0(ee,".a")
+      }
+      if (i==1){
+        trans<-paste0(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)])
+      }else{
+        trans<-paste(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)],sep = "|")
+      }
+      
+    }
+    
+    trans <- sapply(strsplit(trans,"\\|"),function(X){
+      tt<-unique(X)
+      if(length(tt)==1){
+        return(tt)
+      }else{
+        tran <- tt[1]
+        for (j in 2:length(tt)){
+          tran <- paste(tran,tt[j],sep="|")
+        }
+        return(tran)
+      }
+    })
+    
+    return(trans)
+  })
+  
+  pref<-sapply(strsplit(pref,","),function(X){
+    n<-length(X)
+    trans <- ""
+    for (i in 1:n){
+      ss <- strsplit(X[i],"-")[[1]][1]
+      ee <- strsplit(X[i],"-")[[1]][2]
+      if (ss == ee){
+        ss <- paste0(ss,".a")
+        ee <- paste0(ee,".b")
+      }else{
+        ss <- paste0(ss,".b")
+        ee <- paste0(ee,".a")
+      }
+      if (i==1){
+        trans<-paste0(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)])
+      }else{
+        trans<-paste(trans,edgetr$transcripts[ which(edgetr$From == ss & edgetr$To == ee)],sep = "|")
+      }
+      
+    }
+    
+    trans <- sapply(strsplit(trans,"\\|"),function(X){
+      tt<-unique(X)
+      if(length(tt)==1){
+        return(tt)
+      }else{
+        tran <- tt[1]
+        for (j in 2:length(tt)){
+          tran <- paste(tran,tt[j],sep="|")
+        }
+        return(tran)
+      }
+    })
+    
+    
+    return(trans)
+  })
+  
+  
+  return(data.frame(p1=p1,p2=p2,ref=pref))
+  
+}
+
+#' @rdname InternalFunctions
+comprobaciontranscritos2 <- function(Result){
+  Events <- Result[,c("tran_P1","tran_P2","tran_Ref")]
+  
+  comprobacion <- apply(Events,1,function(X){
+    #condicion 0: los transcritos de un path no pueden ser unicamente "no mapeado en la referencia" (hay q eliminarlos)
+    p1 <- unlist(strsplit(as.character(X[1]),"\\|"))
+    p2 <- unlist(strsplit(as.character(X[2]),"\\|"))
+    p3 <- unlist(strsplit(as.character(X[3]),"\\|"))
+    
+    iix1 <- which(p1=="no mapeado en la referencia")
+    if(length(iix1)>0){
+      p1<-p1[-iix1]
+    }
+    
+    iix2 <- which(p2=="no mapeado en la referencia")
+    if(length(iix2)>0){
+      p2<-p2[-iix2]
+    }
+    
+    iix3 <- which(p3=="no mapeado en la referencia")
+    if(length(iix3)>0){
+      p3<-p3[-iix3]
+    }
+    
+    if(length(p1)>0 & length(p2)>0 & length(p3)>0){
+      
+      
+      #condicion 1: los que estan en p1 no pueden estar en p2
+      
+      cond1 <- (any(p1%in%p2==T) | any(p2%in%p1==T)) #Falso si se cumple la condicion (True si no se cumple)
+      
+      #condicion 2: la suma de los que estan en p1 y p2 tienen q ser los mismos que los q estan en p3 
+      
+      #p1p2 <- paste(X[1],X[2],sep="|")
+      #p1p2 <- sapply(strsplit(p1p2,"\\|"),function(XX) return(XX))
+      
+      #p3<-as.character(X[3])
+      #p3 <- sapply(strsplit(p3,"\\|"),function(XX) return(XX))
+      
+      p1p2 <- c(p1,p2)
+      
+      cond2 <- (any(p1p2%in%p3==FALSE) | any(p3%in%p1p2==FALSE)) #Falso si se cumple la condicon (True si no se cumple)
+      
+      return(!(cond1 | cond2))
+      
+      
+    }else{
+      return(FALSE)
+    }
+    
+    
+    
+  })
+  
+  
+}
+
+
+
+
+#The functios of the correction of SGSeq:
+#' @rdname InternalFunctions
+convertToSGFeatures2 <- function (x, coerce = FALSE, merge = FALSE) 
+{
+  if (!is(x, "TxFeatures")) {
+    stop("x must be a TxFeatures object")
+  }
+  if (length(x) == 0) {
+    return(SGFeatures())
+  }
+  if (coerce) {
+    features <- granges(x)
+    mcols(features)$type <- as.character(type(x))
+    splice5p <- mcols(features)$type %in% c("I", "L")
+    splice3p <- mcols(features)$type %in% c("I", "F")
+    splice5p[mcols(features)$type == "J"] <- NA
+    splice3p[mcols(features)$type == "J"] <- NA
+    mcols(features)$type[mcols(features)$type != "J"] <- "E"
+    mcols(features)$splice5p <- splice5p
+    mcols(features)$splice3p <- splice3p
+    mcols(features)$txName <- txName(x)
+    mcols(features)$geneName <- geneName(x)
+  }
+  else {
+    features <- processFeatures2(x, merge = FALSE)
+  }
+  features <- SGSeq:::addFeatureID(features)
+  features <- SGSeq:::addGeneID(features)
+  features <- SGSeq:::SGFeatures(features)
+  if (!coerce) {
+    features <- annotate2(features, x)
+  }
+  return(features)
+}
+#' @rdname InternalFunctions
+processFeatures2 <- function (features, coerce =F, merge = F) 
+{
+  junctions <- granges(features)[type(features) == "J"]
+  junctions_D <- flank(junctions, -1, TRUE)
+  junctions_A <- flank(junctions, -1, FALSE)
+  mcols(junctions)$type <- rep("J", length(junctions))
+  if (is(features, "TxFeatures")) {
+    exons <- features[type(features) %in% c("I", "F", "L", 
+                                            "U")]
+    exons_D <- flank(features[type(features) %in% c("I", 
+                                                    "F")], -1, FALSE)
+    exons_A <- flank(features[type(features) %in% c("I", 
+                                                    "L")], -1, TRUE)
+  }
+  else if (is(features, "SGFeatures")) {
+    exons <- features[type(features) == "E"]
+    exons_D <- flank(features[splice3p(features)], -1, FALSE)
+    exons_A <- flank(features[splice5p(features)], -1, TRUE)
+  }
+  exons <- granges(exons)
+  exons_D <- granges(exons_D)
+  exons_A <- granges(exons_A)
+  D <- unique(c(junctions_D, exons_D))
+  mcols(D)$type <- rep("D", length(D))
+  A <- unique(c(junctions_A, exons_A))
+  mcols(A)$type <- rep("A", length(A))
+  splicesites <- c(D, A)
+  other <- c(junctions, splicesites)
+  exons <- disjoin(exons)
+  exons_start <- flank(exons, -1, TRUE)
+  exons_end <- flank(exons, -1, FALSE)
+  i_q <- which(!exons_end %over% splicesites)
+  i_s <- which(!exons_start %over% splicesites)
+  ol <- findOverlaps(suppressWarnings(flank(exons[i_q], 1, 
+                                            FALSE)), exons_start[i_s])
+  if ((length(ol) > 0)) {
+    qH <- i_q[queryHits(ol)]
+    sH <- i_s[subjectHits(ol)]
+    i_to_be_merged <- union(qH, sH)
+    d <- data.frame(from = qH, to = sH)
+    v <- data.frame(name = i_to_be_merged)
+    g <- graph.data.frame(d = d, directed = TRUE, vertices = v)
+    k <- clusters(g)$membership
+    exons_to_be_merged <- split(exons[i_to_be_merged], k)
+    exons_merged <- unlist(reduce(exons_to_be_merged))
+    if (length(exons_to_be_merged) != length(exons_merged)) {
+      stop("cannot merge non-adjacent exons")
+    }
+    if (merge) exons <- c(exons[-i_to_be_merged], exons_merged)
+  }
+  exons_start <- flank(exons, -1, TRUE)
+  exons_end <- flank(exons, -1, FALSE)
+  splice5p <- rep(FALSE, length(exons))
+  i_spliced <- unique(queryHits(findOverlaps(exons_start, 
+                                             A)))
+  i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 
+                                                                     1, TRUE)), exons)))
+  splice5p[setdiff(i_spliced, i_adjacent)] <- TRUE
+  splice3p <- rep(FALSE, length(exons))
+  i_spliced <- unique(queryHits(findOverlaps(exons_end, D)))
+  i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 
+                                                                     1, FALSE)), exons)))
+  splice3p[setdiff(i_spliced, i_adjacent)] <- TRUE
+  mcols(exons)$type <- rep("E", length(exons))
+  mcols(exons)$splice5p <- splice5p
+  mcols(exons)$splice3p <- splice3p
+  mcols(other)$splice5p <- rep(NA, length(other))
+  mcols(other)$splice3p <- rep(NA, length(other))
+  features <- setNames(c(exons, other), NULL)
+  features <- sort(features)
+  return(features)
+}
+#' @rdname InternalFunctions
+annotate2 <- function (query, subject) 
+{
+  #
+  #query <- features
+  #subject <- a
+  #
+  if (!is(subject, "TxFeatures")) {
+    stop("subject must be a TxFeatures object")
+  }
+  if (is(query, "SGFeatures")) {
+    query <- annotateFeatures2(query, subject)
+  }
+  else if (is(query, "SGVariants")) {
+    query <- updateObject(query, verbose = TRUE)
+    query_class <- class(query)
+    query_mcols <- mcols(query)
+    query_unlisted <- unlist(query, use.names = FALSE)
+    extended <- addDummySpliceSites(query_unlisted)
+    extended <- annotate(extended, subject)
+    i <- match(featureID(query_unlisted), featureID(extended))
+    query_unlisted <- extended[i]
+    query <- relist(query_unlisted, query)
+    mcols(query) <- query_mcols
+    query <- new(query_class, query)
+    query <- annotatePaths(query)
+  }
+  else if (is(query, "Counts")) {
+    rd <- rowRanges(query)
+    rd <- annotate(rd, subject)
+    rowRanges(query) <- rd
+  }
+  return(query)
+}
+#' @rdname InternalFunctions
+annotateFeatures2 <- function (query, subject) 
+{
+  #
+  #query <- features
+  #subject <- a
+  #
+  i <- which(type(subject) %in% c("F", "L"))
+  if (length(i) > 0) {
+    subject <- c(subject[-i], mergeExonsTerminal2(subject[i], 
+                                                  1))
+  }
+  if (is(query, "TxFeatures")) {
+    hits <- matchTxFeatures(query, subject)
+  }
+  else if (is(query, "SGFeatures")) {
+    hits <- SGSeq:::matchSGFeatures(query, subject)
+  }
+  qH <- queryHits(hits)
+  sH <- subjectHits(hits)
+  for (option in c("tx", "gene")) {
+    q_id <- factor(slot(query, "featureID"))
+    s_ann <- slot(subject, paste0(option, "Name"))
+    id_ann <- SGSeq:::splitCharacterList(s_ann[sH], q_id[qH])
+    q_ann <- setNames(id_ann[match(q_id, names(id_ann))], 
+                      NULL)
+    slot(query, paste0(option, "Name")) <- q_ann
+  }
+  if (is(query, "SGFeatures")) {
+    query2 <- SGSeq:::propagateAnnotation(query)
+  }
+  return(query)
+}
+#' @rdname InternalFunctions
+mergeExonsTerminal2 <- function (features, min_n_sample = 1) 
+{
+  #
+  #features <- subject[i]
+  #min_n_sample <- 1
+  #
+  index <- which(type(features) %in% c("F", "L"))
+  if (length(index) > 0) {
+    features <- features[index]
+    splicesite <- SGSeq:::feature2name(features, collapse_terminal = F) #here is where is merged the starts and ends.
+    # collapse_terminal = TRUE y ahora es FALSE
+    splicesite_n <- table(splicesite)
+    i <- which(splicesite %in% names(which(splicesite_n >= 
+                                             min_n_sample)))
+    features <- features[i]
+    splicesite <- splicesite[i]
+    splicesite <- factor(splicesite)
+    splicesite_i <- split(seq_along(features), splicesite)
+    splicesite_w <- split(width(features), splicesite)
+    splicesite_i <- mapply(function(i, w) {
+      i[which.max(w)]
+    }, i = splicesite_i, w = splicesite_w, SIMPLIFY = TRUE)
+    exons <- features[splicesite_i]
+    for (ann in c("txName", "geneName")) {
+      exons_ann <- SGSeq:::splitCharacterList(slot(features, ann), 
+                                              splicesite)
+      slot(exons, ann) <- setNames(exons_ann, NULL)
+    }
+  }
+  else {
+    si <- seqinfo(features)
+    exons <- TxFeatures()
+    seqinfo(exons) <- si
+  }
+  return(exons)
+}
+
