@@ -14,9 +14,9 @@
 ![**Figure 1.** EventPointer pipeline ](https://github.com/jpromeror/EventPointer/blob/master/vignettes/Figure1.png)
 
 # Installation
-EventPointer can be installed from Bioconductor using the following lines:
+EventPointer can be installed from Bioconductor using the BiocManager package:
 
 ```{r, eval=FALSE}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite("EventPointer")
+library(BiocManager)
+BiocManager::install("EventPointer")
 ```
