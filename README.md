@@ -17,6 +17,7 @@
 EventPointer can be installed from Bioconductor using the following lines:
 
 ```{r, eval=FALSE}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite("EventPointer")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("EventPointer")
 ```
