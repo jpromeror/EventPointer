@@ -1,0 +1,9 @@
+{
+	"n_targets": 13,
+	"n_bootstraps": 20,
+	"n_processed": 8782257,
+	"kallisto_version": "0.43.1",
+	"index_version": 10,
+	"start_time": "Thu Jul 19 12:05:00 2018",
+	"call": "kallisto quant -t 32 -b 20 -i /mnt/beegfs/jferrer.7/GenomeIndex/GenCode24/onlych22/gencode.v24.2genes.idx -o /mnt/beegfs/jferrer.7/GenomeIndex/GenCode24/onlych22/muestras/output/ERR315326 /mnt/beegfs/jferrer.7/GenomeIndex/GenCode24/onlych22/muestras/ERR315326_1.fastq.gz /mnt/beegfs/jferrer.7/GenomeIndex/GenCode24/onlych22/muestras/ERR315326_2.fastq.gz"
+}

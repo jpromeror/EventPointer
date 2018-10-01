@@ -60,8 +60,8 @@ EventDetection <- function(Input, cores, Path) {
     
     # registerDoMC(cores=cores)
     registerDoParallel(cores = cores)
-    
-    Result <- foreach(jj = seq_along(genes)) %dopar% # for(jj in 1:length(genes))
+    # for(jj in 1:length(genes))
+    Result <- foreach(jj = seq_along(genes)) %dopar% 
     {
         setTxtProgressBar(pb, jj)
          # print(jj)

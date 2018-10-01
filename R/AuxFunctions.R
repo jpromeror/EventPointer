@@ -795,8 +795,8 @@ AnnotateEvents_KLL <- function (Events,Gxx,GenI){
 
 
 #' @rdname InternalFunctions
-ClassifyEvents<-function(SG,Events,twopaths)
-{
+ClassifyEvents <- function (SG,Events,twopaths){
+  
   Events<-lapply(seq_along(Events),function(XX){
     if (XX %in% twopaths){
       # Keep the components of Path 1 and Path 2
@@ -810,6 +810,7 @@ ClassifyEvents<-function(SG,Events,twopaths)
       {
         Events[[XX]]$Type<-"Alternative First Exon"
         # next
+        return(Events[[XX]])
       }
       
       # If there is an edge that enters the End node, we have an
@@ -819,6 +820,7 @@ ClassifyEvents<-function(SG,Events,twopaths)
       {
         Events[[XX]]$Type<-"Alternative Last Exon"
         # next
+        return(Events[[XX]])
       }
       
       # Create a Mini Adjacency Graph using only the elements
@@ -850,58 +852,43 @@ ClassifyEvents<-function(SG,Events,twopaths)
       
       if(dim(MiniSGA)[1]==3 & dim(MiniSGA)[2]==3)
       {
-        # Get the nodes from Path 1 and order them in increasing order,
-        # as the elements are character (11 > 21), we must sort them
-        # numerically and then add again the .a and .b values
-        P1<-c(Events[[XX]]$P1[,"From"],Events[[XX]]$P1[,"To"])
-        P1<-unique(gsub("[.ab]","",P1))
-        P1<-matrix(sort(c(paste(P1,".a",sep=""),paste(P1,".b",sep=""))),ncol=2,byrow=TRUE)
         
-        # match the P1 matrix rows in the SG$Edges matrix to get te information from the edges
-        iix<-which(outer(SG$Edges[,"From"],P1[,1],"==") & outer(SG$Edges[,"To"],P1[,2],"=="),arr.ind=TRUE)[,1]
+        #Get the nodes in order: of path 1 (path 1 is the largest and the important one)
+        MisExons <- data.frame(From=Events[[XX]]$P1$From,To=Events[[XX]]$P1$To)
+        Info2 <- merge(MisExons,SG$Edges)
+        Info2$dist <- Info2$End-Info2$Start
         
-        # Keep the edges
-        P1<-SG$Edges[iix,]
-        P1<-P1[rownames(P1)[order(as.numeric(rownames(P1)))],]
+        MisExons <- unique(as.numeric(gsub("[.ab]","",c(as.vector(MisExons$From),as.vector(MisExons$To)))))
         
-        # Conditions to indicate type of event
-        Cond<-(as.numeric(P1[c(2:3),"Start"])-1)-(as.numeric(P1[c(1:2),"End"]))
-        Cond2<-diff(as.numeric(rownames(P1)))
+        misDiff <- diff(sort(MisExons))
+        # if the misDiff == 1 1 -> we have contiguous nodes. This is required for group 1 events.
         
-        if(any(Cond2>1) | any(is.na(Cond)))
-        {
-          Events[[XX]]$Type<-"Complex Event"
-          # next
-          
-        }else{
-          
-          if(Cond[1]>0 & Cond[2]>0)
-          {
+        AA <- Info2$dist[Info2$Type=="J"] 
+        l_A <- length(AA)
+        #The different among the group one relies on the length of the edges.
+        
+        if (l_A == 2 & max(misDiff)==1){
+          if (AA[1] > 1 & AA[2] > 1){ # skip a exon.
+            
             Events[[XX]]$Type<-"Cassette Exon"
-            # next
+            return(Events[[XX]])
           }
           
-          if(Cond[1]==0 & Cond[2]==0)
-          {
-            Events[[XX]]$Type<-"Retained Intron"
-            # next
-          }
-          
-          if(Cond[1]>0 & Cond[2]==0)
-          {
-            Events[[XX]]$Type<-"Alternative 5' Splice Site"
-            # next
-          }
-          
-          if(Cond[1]==0 & Cond[2]>0)
-          {
+          if (AA[1] > 1 & AA[2] == 1){ #altern 3'
             Events[[XX]]$Type<-"Alternative 3' Splice Site"
-            # next
+            return(Events[[XX]])
           }
           
+          if (AA[1] == 1 & AA[2] > 1){ #altern 5'
+            Events[[XX]]$Type<-"Alternative 5' Splice Site"
+            return(Events[[XX]])
+          }
+          
+          if (AA[1] == 1 & AA[2] == 1){ #Retained Intron
+            Events[[XX]]$Type<-"Retained Intron"
+            return(Events[[XX]])
+          }
         }
-        
-        
       }
       
       # The case of Mutually Exclusive Exons
@@ -919,34 +906,48 @@ ClassifyEvents<-function(SG,Events,twopaths)
       #
       #              * Element Must be Zero
       
-      Names<-c(rownames(MiniSGA),colnames(MiniSGA))
       
-      if(dim(MiniSGA)[1]==5 & dim(MiniSGA)[2]==5 &  !any(Names== "S" | Names=="E"))
+      if(dim(MiniSGA)[1]==5 & dim(MiniSGA)[2]==5)
       {
-        # Get Row and Column Names from MiniSGA and join them in a vector
-        
-        
-        # Substitute remove .a./b from the Names Vector and keep unique values
-        Names<-unique(gsub("[.ab]","",Names))
-        
-        # Transform from character to numeric
-        Names<-as.numeric(Names)
-        
-        # The position 3,3 from the MiniSGA must be 0 and the elements must be
-        # next to the other to be a mutually exclusive case.
-        if(MiniSGA[3,3]==0 & all(diff(Names)==1))
-        {
-          Events[[XX]]$Type<-"Mutually Exclusive Exons"
-          # next
+        if (MiniSGA[3,3]==0){
+          # path 1
+          MisExons_1 <- data.frame(From=Events[[XX]]$P1$From,To=Events[[XX]]$P1$To)
+          Info1 <- merge(MisExons_1,SG$Edges)
+          Info1$dist <- Info1$End-Info1$Start
+          AA_1 <- Info1$dist[Info1$Type=="J"]
+          l_1 <- length(AA_1)
+          
+          MisExons_1 <- unique(as.numeric(gsub("[.ab]","",c(as.vector(MisExons_1$From),as.vector(MisExons_1$To)))))
+          
+          
+          # path 2
+          MisExons_2 <- data.frame(From=Events[[XX]]$P2$From,To=Events[[XX]]$P2$To)
+          Info2 <- merge(MisExons_2,SG$Edges)
+          Info2$dist <- Info2$End-Info2$Start
+          AA_2 <- Info2$dist[Info2$Type=="J"]
+          l_2 <- length(AA_2)
+          
+          MisExons_2 <- unique(as.numeric(gsub("[.ab]","",c(as.vector(MisExons_2$From),as.vector(MisExons_2$To)))))
+          
+          misDiff <- diff(sort(unique(c(MisExons_1,MisExons_2))))
+          
+          if (l_2 == 2 & l_1 == 2 & max(misDiff)==1){
+            if(!any(c(AA_1,AA_2)==1)){
+              Events[[XX]]$Type<-"Mutually Exclusive Exons"
+              return(Events[[XX]])
+            }
+          }
         }
       }
       
       if(is.null(Events[[XX]]$Type))
       {
         Events[[XX]]$Type<-"Complex Event"
+        return(Events[[XX]])
       }
     }else{
       Events[[XX]]$Type<-"Multipath"
+      return(Events[[XX]])
     }
     
     
@@ -958,21 +959,38 @@ ClassifyEvents<-function(SG,Events,twopaths)
   
   if(SG$Edges[1,"Strand"]=="-")
   {
-    
     Types<-sapply(seq_along(Events),function(x){Events[[x]]$Type})
     
-    Types[which(Types=="Alternative 5' Splice Site")]<-"Alternative 3' Splice Site"
-    Types[which(Types=="Alternative 3' Splice Site")]<-"Alternative 5' Splice Site"
-    Types[which(Types=="Alternative First Exon")]<-"Alternative Last Exon"
-    Types[which(Types=="Alternative Last Exon")]<-"Alternative First Exon"
-    
-    Events<-lapply(seq_along(Events),function(x){Events[[x]]$Type<-Types[x];return(Events[[x]])})
+    if(any(Types=="Alternative 5' Splice Site" | Types=="Alternative 3' Splice Site" | Types=="Alternative First Exon" | Types=="Alternative Last Exon"))
+      
+      Events<-lapply(seq_along(Events),function(XX){
+        
+        if (Events[[XX]]$Type=="Alternative 5' Splice Site"){
+          Events[[XX]]$Type<-"Alternative 3' Splice Site"
+          return(Events[[XX]])
+        }
+        if (Events[[XX]]$Type=="Alternative 3' Splice Site"){
+          Events[[XX]]$Type<-"Alternative 5' Splice Site"
+          return(Events[[XX]])
+        }
+        if (Events[[XX]]$Type=="Alternative First Exon"){
+          Events[[XX]]$Type<-"Alternative Last Exon"
+          return(Events[[XX]])
+        }
+        if (Events[[XX]]$Type=="Alternative Last Exon"){
+          Events[[XX]]$Type<-"Alternative First Exon"
+          return(Events[[XX]])
+        }
+        
+        return(Events[[XX]])})
     
   }
   
   
   
   return(Events)
+  
+  
 }
 
 
@@ -3129,4 +3147,115 @@ mergeExonsTerminal2 <- function (features, min_n_sample = 1)
   }
   return(exons)
 }
+
+##############################################################################
+# function for the bootstrap statistic
+##############################################################################
+
+
+
+
+#' @rdname InternalFunctions
+get_beta <- function(combboots,incrPSI_original,ncontrastes){
+  
+  newcombboots <- rep(list(matrix(NA, dim(combboots[[1]])[1], dim(combboots[[1]])[2])), ncontrastes)
+  
+  newcombboots <- lapply(combboots,function(X){ 
+    return((1+X)/2)   #Make values between 0-1
+  })
+  
+  #Data for beta distribution
+  rmedia <- sapply(newcombboots, rowMeans)
+  rvar <- sapply(newcombboots, rowVars)+1e-5
+  alpha <- ((1-rmedia)*(rmedia^2)/rvar)-rmedia
+  beta <- alpha*(1-rmedia)/rmedia
+  
+  #Example of plots of an event (any event) ----
+  # n<-391 #Index of event
+  # hist(newcombboots[[1]][n,],seq(0,1,by = 0.01),freq = F,main = paste("Histogram of increase in PSI"), xlab = expression(paste("Increase in PSI"))) #Histogram
+  # x <- seq(0,1, by =.001)
+  # lines(x,dbeta(x,alpha[n],beta[n]),type ="l", lwd = 1, col ="orange") #Density function with calculated alpha and beta
+  #lines(density(newcombboots[[1]][n,]), type ="l", lwd = 1, col ="purple") #Empirical density function
+  
+  #Obtain p-values for all events ----
+  deltaPSI <- t(incrPSI_original)
+  pvalues <- matrix(NA,nrow=dim(deltaPSI)[1],ncol=dim(deltaPSI)[2])
+  
+  pvalues<- pbeta(deltaPSI,alpha,beta)
+  positionMa<-which(pvalues>0.5)
+  pvalues[positionMa]<-pbeta(deltaPSI[positionMa],alpha[positionMa] ,beta[positionMa], lower.tail = F)
+  pvalues <- pvalues *2
+  
+  
+  deltaPSI<-(deltaPSI*2)-1
+  result <- list(deltaPSI=deltaPSI,pvalues=pvalues)
+  
+  return(result)
+}
+
+#' @rdname InternalFunctions
+get_table <- function(PSI_arrayP,nevents,totchunk,chunk,nsamples,incrPSI_original,V,nboot,nbootin,ncontrastes){
+  
+  #Obtain the part of the incrPSI_original needed for the minichunk and its length
+  indexincr <- match(rownames(PSI_arrayP),colnames(incrPSI_original))
+  incrPSI_originalChunk <- incrPSI_original[,indexincr,drop=F]
+  l<-length(indexincr) #Length of the minichunk
+  
+  combboots <- rep(list(matrix(NA, l, nboot * nbootin)), ncontrastes) #Intialize matrix for the increase in PSI
+  
+  I <- as.integer(rep(1:l, nsamples))
+  J <- as.integer(rep(1:nsamples, each = l))
+  CTEind <- I + (J-1L) * l - 1L * nsamples*l #Constant needed for function get_YB
+  output <- matrix(NA, l, ncontrastes)
+  gc()
+  for (boot in 1:nboot) {
+    Yb <- get_YB(PSI_arrayP,l,nsamples,I,J,CTEind) #Obtain the combination of bootstraps, the matrix contains the values of PSI
+    
+    for (boot2 in 1:nbootin) {
+      Yb1 <- Yb[,sample(ncol(Yb), replace = T)] #Samples the Yb (mixes data)
+      output <- tcrossprod(V, Yb1) #Obtain the increase in PSI
+      for (boot3 in 1: ncontrastes) {
+        combboots[[boot3]][,boot2 + nbootin * (boot-1)] <- output[boot3,] #Fills matrix of increase in PSI
+      }
+    }
+  }
+  
+  #Obtain p-values and table of the minichunks
+  table <- get_beta(combboots,incrPSI_originalChunk,ncontrastes)
+  #matplot(t(PSI_original[order(pvalues)[1:30],]), type="b") #Plot of events with small p-value
+  
+  
+  return(table)
+}
+
+#' @rdname InternalFunctions
+get_YB <- function(PSI_arrayS,l,nsamples,I,J,CTEind){
+  K <- rep(sample(dim(PSI_arrayS)[3],nsamples, replace=T) , l)
+  
+  #Formula to obtain the index of the PSI_arrayS
+  IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[1:2])
+  
+  Yb <- PSI_arrayS[IndiceIJK]
+  attr(Yb, "dim") <- c(l, nsamples)
+  return(Yb)
+}
+
+#' @rdname InternalFunctions
+getInfo <- function (table,ncontrast){
+  
+  if(class(table$LocalFDR)=="list"){
+    data <- data.frame(deltaPSI=table$deltaPSI[,ncontrast],Pvalues=table$Pvalues[,ncontrast],LocalFDR=table$LocalFDR[[ncontrast]]$lfdr2)  
+  }else{
+    data <- data.frame(deltaPSI=table$deltaPSI[,ncontrast],Pvalues=table$Pvalues[,ncontrast],LocalFDR=table$LocalFDR$lfdr2)
+  }
+  
+  return(data)
+  
+}
+
+
+
+
+
+
 

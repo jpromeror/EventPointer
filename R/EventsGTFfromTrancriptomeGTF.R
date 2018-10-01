@@ -6,6 +6,21 @@
 #' @param Transcriptome the name of the transcriptome
 #' @param Pathtxt Directory to save the .txt of the events founded
 #'
+#' @return a list containing four elements: three sparce matrices that relate which isoforms build up the paths 
+#' (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: 
+#' only appear the name of the transcript.  
+#'
+#' @examples 
+#'    PathFiles<-system.file("extdata",package="EventPointer")
+#'    inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
+#'    Transcriptome <- "Gencode24_2genes"
+#'    Pathtxt <- tempdir()
+#'    PathGTF <- tempdir()
+#'    
+#'    # Run the function 
+#'    
+#'    EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,Transcriptome = Transcriptome,Pathtxt=Pathtxt,PathGTF=PathGTF)
+#'
 #'
 #' @export
 #' @import Matrix
@@ -33,7 +48,7 @@
 #' @importFrom S4Vectors queryHits subjectHits
 
 
-EventGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, Pathtxt=NULL, PathGTF=NULL){
+EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, Pathtxt=NULL, PathGTF=NULL){
   
   if(is.null(inputFile)){
     stop('not inputFile')

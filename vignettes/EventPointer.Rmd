@@ -129,7 +129,7 @@ The following code chunks show examples on how to run the function using part of
    JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
    Directory<-tempdir()
    array<-"HTA-2_0"
-
+   
 # Run the function
 
    CDFfromGTF(input="AffyGTF",inputFile=DONSON_GTF,
@@ -241,9 +241,9 @@ The columns of the `data.frame` are:
 
 ## IGV visualization
 
-EventPointer creates two different GTF files to visualize the alternative splicing events. Figure 5 displays the cassette exon for the COPS7A gene (4th ranked event in Table 1). In the IGV visualization, the reference path is shown in gray color, the path 1 in red and path 2 in green. Below the transcripts, the different probes that are measuring each of the paths are represented in the same colors.
+EventPointer creates two different GTF files to visualize the alternative splicing events. Figure 4 displays the cassette exon for the COPS7A gene (4th ranked event in Table 1). In the IGV visualization, the reference path is shown in gray color, the path 1 in red and path 2 in green. Below the transcripts, the different probes that are measuring each of the paths are represented in the same colors.
 
-![**Figure 5.** EventPointer visualization using IGV ](Figure5.png)
+![**Figure 4.** EventPointer visualization using IGV ](Figure5.png)
 
 To create the GTF files, the algorithm uses the EventPointer_IGV functions with the following parameters:
 
@@ -263,7 +263,7 @@ Once the process is completed two GTF files are generated in the specified direc
 1. paths.gtf : GTF file representing the alternative splicing events.
 2. probes.gtf : GTF file representing the probes that measure each event and each path.
 
-![**Figure 6.** GTF files generated with EventPointer_IGV](Figure6.png)
+![**Figure 5.** GTF files generated with EventPointer_IGV](Figure6.png)
 
 
 ```{r Arrays_IGV, eval=TRUE, collapse=TRUE}
@@ -290,7 +290,13 @@ The [EventPointer paper](http://bmcgenomics.biomedcentral.com/articles/10.1186/s
 As we have updated the algorithm, we are currently working on the implementation of this feature in the newer version. As soon as it is implemented, it will be uploaded along with the vignette to show its use.
 
 # RNA-Seq analysis
-## Overview of RNA-Seq
+
+EventPointer has two pipelines for RNA-Seq analysis: Analysis from BAM files and analysis from a transcriptome reference. These two pipelines are described in section *4.1* and *4.2*.
+
+## Analysis from BAM files
+
+
+### Overview of RNA-Seq
 *EventPointer* is also able to identify alternative splicing events from RNA-Seq data. The only required files are the corresponding .BAM files from the experiment. 
 
 Each time an experiment is analyzed with EventPointer, the complete process needs to be executed which may cause long waiting times to get the results. To avoid this issue, we have divided every step of the algorithm in different functions so as the user can reuse previous result and thus reduce computational time.
@@ -304,7 +310,7 @@ For the examples in this part of the vignette, we will use .bam files depicted i
 2. All files to be analyzed should have the corresponding index files **(.bai)** in the same directory as the BAM files. Create the index before running EventPointer.
 
 
-## BAM Preparation
+### BAM Preparation
 
 The first step to analyze alternative splicing events in RNA-Seq data, is the creation of the splicing graphs. This step relies entirely on SGSeq R package.
 
@@ -339,7 +345,7 @@ The function PrepareBam_EP transforms all the information found in the bam files
 
 The output of PrepareBam_EP function is a SGFeaturesCounts object, for more information check [SGSeq Vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html). Briefly the SGFeaturesCounts contains a GRanges object with all the required elements to create the different splicing graphs found in the given samples. It also contains the number of counts associated with each element of the splicing graph.
 
-## Event Detection
+### Event Detection
 
 After running PrepareBam_EP, we have all the elements to analyze each of the splicing graphs. The next step is to identify and classify all the events, that are present in the BAM files. 
 
@@ -354,6 +360,7 @@ For this purpose, the function EventDetection is used.
    data(SG_RNASeq)
    TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
+   
 ```
 
 This function retireves a list with all the events found for all the genes present in the experiment. It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
@@ -366,7 +373,7 @@ Events[[i]][[j]]
 
 The list will have as many $i$ values as genes and $j$ values as many events detected for the $i_{th}$ gene. In other words, the command above will display the $j_{th}$ event detected for the $i_{th}$ gene.
 
-## Statistical Analysis
+### Statistical Analysis
 
 The statistical analysis of the alternative splicing events is done in exactly the same way as for junction arrays. With the Design and Contrast matrices,
 the algorithm gives the statistical significance and $\Delta \Psi$.
@@ -398,10 +405,10 @@ kable(Events[1:5,],digits=5,row.names=TRUE,align="c",caption = "Table 2: EventPo
 ```
 
 
-## IGV visualization
-EventPointer creates one GTF file that can be loaded into IGV to visualize the alternative splicing events. Figure 8 displays an example result showed in IGV (5th ranked event in Table 2). Also, in the figure a reference transcriptome is displayed (blue track), and it can be seen that the displayed event corresponds to a novel event discovered with sequencing data and that it will not be detected using junction arrays.
+### IGV visualization
+EventPointer creates one GTF file that can be loaded into IGV to visualize the alternative splicing events. Figure 6 displays an example result showed in IGV (5th ranked event in Table 2). Also, in the figure a reference transcriptome is displayed (blue track), and it can be seen that the displayed event corresponds to a novel event discovered with sequencing data and that it will not be detected using junction arrays.
 
-![**Figure 8.** EventPointer visualization using IGV ](Figure8.png)
+![**Figure 6.** EventPointer visualization using IGV ](Figure8.png)
 
 To create the GTF files, the algorithm uses the following code.
 
@@ -426,15 +433,236 @@ Once the process is completed the GTF file is generated in the specified directo
    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
 ```
 
+
+
+## Event From Transcriptome Reference
+
+The idea of this pipeline is to apply a statistical analysis to the alternative splicing by using quantification data obtained from *kallisto*. For this purpose we have to follow the pipeline described in figure 7.
+
+
+![**Figure 7.** Analysis of RNA-Seq data with kallisto output ](Esquema_bis.png)
+
+
+### Event Detection
+
+We use *EventGTFfromTrancriptomeGTF* to identify and classify alternative splicing events of a given reference transcriptome. The required parameters are:
+
+* **inputFile** = inputFile should point to the GTF file to be used.
+* **Transcriptome** = the name of the transcriptome.
+* **Pathtxt** = Directory to save the .txt file of the events found.
+* **PathGTF** = Directory to save the .GTF file of the events found.
+
+
+Following code shows how to apply *EventGTFfromTrancriptomeGTF* function using the Gencode 24 transcriptome (GRCH 38) as reference annotation. In this example we do not use the full reference but only two genes (ENSG00000185252.17 and ENSG00000254709.7). 
+
+```{r GTFfGTF, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+
+# Set input variables
+PathFiles<-system.file("extdata",package="EventPointer")
+inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
+Transcriptome <- "Gencode24_2genes"
+Pathtxt <- tempdir()
+PathGTF <- tempdir()
+
+# Run the function
+EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,
+                                           Transcriptome = Transcriptome,
+                                           Pathtxt=Pathtxt,
+                                           PathGTF=PathGTF)
+
+```
+
+
+This function takes a couple of hours to complete (depending on the computer), and creates the following files:
+
+* **EventsFound_<Transcriptome>.txt** A .txt file with the information of the events.
+* **paths_RNASeq.gtf** A .GTF file with the information of the events required to be visualized in IGV.
+
+This function also returns a list containing four elements: three sparce matrices that relate which isoforms build up the paths (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: only appear the name of the transcript.
+
+```{r GTFfGTFnames, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+names(EventXtrans)
+
+```
+
+
+### Quantification 
+
+
+Given the output of *EventGTFfromTrancriptomeGTF* we can quantify the expression of the alternative splicing events in our experiment as long as the quantification ot the experiment was done in *Kallisto* using the reference annotation used in *EventGTFfromTrancriptomeGTF*.
+
+The function *GetPSI_FromTranRef* obtains the values of $\Psi$ and needs the following parameters:
+
+* **PathsxTranscript** the outpu of EventGTFfromTrancriptomeGTF.
+* **Samples** A matrix containing the isoform quantification.
+* **Filter** Boolean variable to indicate if an expression filter is applied. Defaul T.
+* **Qn** Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).
+
+This function also needs that the reference annotation used in *Kallisto* and in the function *EventGTFfromTrancriptomeGTF* must be the same. Also in the variable *Samples* the type of annotation used must be equal to the one used in the variable *PathsxTranscript*.
+
+In this example we have applied *kallisto* to the samples ERR315326, ERR315400, ERR315407 and ERR315494 using the same reference used before. These samples have been download from *EMBL-EBI* dataset.
+
+```{r PSI_Statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+#first: load data from kallisto output
+
+PathFiles <- system.file("extdata",package="EventPointer")
+filesnames <- dir(paste0(PathFiles,"/output"))
+PathFiles <- dir(paste0(PathFiles,"/output"),full.names = T)
+dirtoload <- paste0(PathFiles,"/","abundance.tsv")
+RNASeq <- read.delim(dirtoload[1],sep = "\t", colClasses = c(NA,"NULL","NULL","NULL",NA))
+for (n in 2:length(dirtoload)){
+  RNASeq[,n+1] <- read.delim(dirtoload[n],sep = '\t', colClasses = c('NULL','NULL','NULL','NULL',NA))
+}
+rownames(RNASeq)<-RNASeq[,1]
+RNASeq<-RNASeq[,-1]
+colnames(RNASeq) <- filesnames
+
+#second: the annotation of the transcript names must be equal in RNASeq and PathsxTranscript
+
+rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),"\\|"),function(X) return(X[1]))
+RNASeq<-as.matrix(RNASeq) #must be a matrix variable
+
+#third: Obtain values of PSI
+PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = F)
+
+PSI <- PSIss$PSI
+Expression <- PSIss$ExpEvs
+
+```
+
+The output of the function is a list containing two elements: a matrix with the values of $\Psi$ and a list containing as many matrices as number of events. In each matrix is stored the expression of the different paths of an event along the samples.
+
+
+### Statistical Analysis
+
+The statistical analysis of the alternative splicing events is done in exactly the same way as for junction arrays and RNA-Seq data from BAM files.  
+
+The function *EventPointer_RNASeq_TranRef* perform this statistical analysis and requires the following parameters:
+
+* **Count_Matrix** The list containing the expression data taken from the ouput of *GetPSI_FromTranRef* 
+* **Statistic** The type of statistic to apply. Default = "LogFC" (can be "logFC, "Dif_LogFC","DRS")
+* **Design** The design matrix of the experiment.
+* **Contrast** The Contrast matrix of the experiment.
+
+```{r PSI_Statistic2, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+# Design and contrast matrix:
+
+Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
+Contrast <- matrix(c(0,1),nrow=2)
+
+# Statistical analysis:
+
+Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC",Design = Design, Contrast = Contrast)
+
+```
+
+The output of this function is a data.frame with the information of the names of the event, its p.values and the corresponding z.value. If there is more than one contrast, the function returns as many data.frames as number of contrast and all these data.frame are sotred in an unique list.
+
+```{r getInfo2, echo=FALSE}
+kable(Fit,digits=5,row.names=TRUE,align="c",caption = "Table 3: PSI_Statistic results")
+```
+
+
+
+# Multi-Path Events
+
+EventPointer can also identify Multi-Path events. The multi-path events are composed of more elements than a triplet where the concentration of the reference path should be equal to the sum of the concentration of the rest of paths. This is depicted in Figure 8.
+
+![**Figure 8.** Multi-Path alternative splicing events for EventPointer ](Figure10.png)
+
+EventPointer identify Multi-Path events and estimate the  percent spliced in value $\Psi$.
+
+## junctions arrays (CDF file for Multi-Path)
+
+The function *CDFfromGTF_Multipath* generates the CDF file used afterwards in the aroma.affymetrix preprocesing pipeline. This function is equivalent to the function *CDFfromGTF*.
+
+
+The required input for the function is described below:
+
+
+- **input** : Reference transcriptome. Available options are : "Ensembl","UCSC" , "AffyGTF" and "CustomGTF".
+- **inputFile**: If input is "AffyGTF" or "CustomGTF", inputFile should point to the GTF file to be used.
+- **PSR**: Path to the Exon probes txt file
+- **Junc**: Path to the Junction probes txt file
+- **PathCDF**: Directory where the output will be saved
+- **microarray**: Microarray used to create the CDF file. Must be one of: "HTA-2_0", "ClariomD", "RTA" or "MTA".
+- **paths**: Maximum number of paths of the events to find.
+
+The function *CDFfromGTF_Multipath* detects events with number of paths from 2 to variable *paths*. This function classifies the events with two paths as the *CDFfromGTF* function does and the events with more than two paths as *"Multi-Path"*.
+
+This function takes a couple of hours to complete (depending on the computer), and creates the same files as the function *CDFfromGTF*.
+
+The following code chunks show examples on how to run the function using part of the Affymetrix GTF and the example data included in the package. his data corresponds to the Affymetrix HTA 2.0 GTF representing only the DONSON gene and the probes that are mapped to it.
+
+Using Affymetrix GTF as reference transcriptome
+
+```{r CDFGTF_MP, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+# Set input variables
+   PathFiles<-system.file("extdata",package="EventPointer")
+   DONSON_GTF<-paste(PathFiles,"/DONSON.gtf",sep="")
+   PSRProbes<-paste(PathFiles,"/PSR_Probes.txt",sep="")
+   JunctionProbes<-paste(PathFiles,"/Junction_Probes.txt",sep="")
+   Directory<-tempdir()
+   array<-"HTA-2_0"
+
+# Run the function
+
+   CDFfromGTF_Multipath(input="AffyGTF",inputFile=DONSON_GTF,
+              PSR=PSRProbes,Junc=JunctionProbes,
+              PathCDF=Directory,microarray=array,paths=3)
+
+```
+
+
+
+##RNA-Seq (Event detection for Multi-Path)
+
+As for two-paths events, the only required files are the corresponding .BAM files from the experiment.
+After the *BAM Preparation* step explained in *section 4.2* we have all the elements needed to analyze each of the splicing graphs. To detect Multi-Path events, the function *EventDetectionMultipath* is used.
+
+
+This function requires the following parameters:
+
+- **Input** : Output of the PrepareBam_EP function
+- **cores**: Number of cores used for parallel processing
+- **Path**: Directory where to write the EventsFound.txt file
+- **paths**: Maximum number of paths of the events to find.
+
+The function *EventDetectionMultipath* detects events with number of paths from 2 to variable *paths*. This function classifies the events with two paths as the *EventDetection* function does and the events with more than two paths as *"Multi-Path"*.
+
+
+```{r EventDetection_MP, eval=TRUE}
+  # Run EventDetection function
+   data(SG_RNASeq)
+   TxtPath<-tempdir()
+   AllEvents_RNASeq<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
+```
+
+
+This function retireves a list with all the events found for all the genes present in the experiment. It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
+
+The list is organized in the following way:
+
+```{r ListofLists_MP, eval=FALSE}
+Events[[i]][[j]]
+```
+
+The list will have as many $i$ values as genes and $j$ values as many events detected for the $i_{th}$ gene. In other words, the command above will display the $j_{th}$ event detected for the $i_{th}$ gene.
+
 # Advanced Use
 
 ## Statistical Tests
 
 EventPointer provides three different statistical tests that can be used to determine the statistical significance to the alternative splicing events.
 
-In Table 3, the most relevatn coefficients from the statistical and events information point of view are shown
+In Table 5, the most relevatn coefficients from the statistical and events information point of view are shown
 
-![**Table 3.** Coefficients of the linear model used to detect alternative splicing ](Figure9.png)
+![**Table 5.** Coefficients of the linear model used to detect alternative splicing ](Figure9.png)
 
 There are a number of alternatives to detect AS using these coefficients. Either of $\beta_4$ , $\beta_5$ , $\beta_4$ + $\beta_5$ is theoretically able to detect AS events. Some of them are more sensitive than others depending on the relative concentrations of the isoforms. For example, if isoform 2 is much more highly expressed than isoform 1 in both conditions, $\beta_4$ will be more sensitive than $\beta_4$ + $\beta_5$ since in the latter case, the numerator and denominator of the logarithms of both terms are similar, and hence their logs are close to zero. 
 
@@ -469,21 +697,74 @@ paths, in an splicing event, to obtain the PSI values. With this values, a simpl
 linear model, using the provided design and contrast matrices, is solved and this
 increment is returned to the user in the data.frame (if PSI argument is TRUE).
 
-It is possible to obtain the estimated PSI values using the following commands:
+It is possible to obtain the estimated PSI values using the internal functions *getPSI*,*getPSImultipath* for junction arrays, *getPSI_RNASeq* or *getPSI_RNASeq_MultiPath* for RNA-Seq data (data from the pipeline described in section *4.2: statistical analysis from de BAM files*).
+
+These functions not only calculate the value of $\Psi$ but also the residuals of the simple linear model used to estimate the values of $\Psi$.
 
 ```{r PSI_ADV, eval=TRUE, collapse=TRUE}
 
-# Microarrays
+# Microarrays (two paths)
 data(ArraysData)
-PSI_Arrays<-EventPointer:::getPSI(ArraysData)
+PSI_Arrays_list<-EventPointer:::getPSI(ArraysData)
+PSI_Arrays <- PSI_Arrays_list$PSI
+Residuals_Arrays <- PSI_Arrays_list$Residuals
 
-# RNASeq
+# Microarrays (Multi-Path)
+data(ArrayDatamultipath)
+PSI_MP_Arrays_list <- EventPointer:::getPSImultipath(ArrayDatamultipath)
+PSI_multipath_Arrays <- PSI_MP_Arrays_list$PSI
+Residuals_multipath_Arrays <- PSI_MP_Arrays_list$Residuals
+
+# RNASeq (two paths)
 data(AllEvents_RNASeq)
-PSI_RNASeq<-EventPointer:::getPSI_RNASeq(AllEvents_RNASeq)
+PSI_RNASeq_list<-EventPointer:::getPSI_RNASeq(AllEvents_RNASeq)
+PSI_RNASeq <- PSI_RNASeq_list$PSI
+Residuals_RNASeq <- PSI_RNASeq_list$Residuals
+
+# RNASeq (Multi-Path)
+data(AllEvents_RNASeq_MP)
+PSI_MP_RNASeq_list <- EventPointer:::getPSI_RNASeq_MultiPath(AllEvents_RNASeq_MP)
+PSI_multipath_RNASeq <- PSI_MP_RNASeq_list$PSI
+Residuals_multipath_RNASeq <- PSI_MP_RNASeq_list$Residuals
+
 ```
 
 
+We can apply the function *PSI_Statistic* described in *section 4.2.2* to the values of $\Psi$ (only for two-paths events).
 
+```{r PSI_ADV2, eval=TRUE, collapse=TRUE}
+
+Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
+Cmatrix<-t(c(0,1))
+
+table <- PSI_Statistic(PSI = PSI_Arrays,Design = Dmatrix,Contrast = Cmatrix,nboot = 20)
+
+```
+
+
+The residual obtained in the linear model used to estimate the values of $\Psi$ must be independent from the Design matrix of the experiment. The data of the residuals that returns the internal functions *getPSI* or *getPSI_RNASeq* are useful to validate if this is true. The next code shows an example of how to perform a statistical analysis of the residuals.
+
+
+```{r PSI_ADV3, eval=TRUE, collapse=TRUE}
+
+Dmatrix<-matrix(c(1,1,1,1,0,0,1,1),nrow=4,ncol=2,byrow=FALSE)
+Cmatrix<-t(t(c(0,1)))
+
+Ress <- vector("list", length = ncol(Cmatrix))
+
+fitresiduals <- limma::lmFit(Residuals_Arrays,design = Dmatrix)
+fitresiduals2 <- limma::contrasts.fit(fitresiduals, Cmatrix)
+fitresiduals2 <- limma::eBayes(fitresiduals2)
+
+# repeated if there is more than one contrast
+for (jj in 1:ncol(Cmatrix)) {
+  TopPSI <- limma::topTable(fitresiduals2, coef = jj, number = Inf)[, 1, drop = FALSE]
+  colnames(TopPSI)<-"Residuals"
+  Ress[[jj]] <- TopPSI
+}
+
+
+```
 # References
 
 * Romero, Juan P., et al. "EventPointer: an effective identification of alternative splicing events using junction arrays." BMC genomics 17.1 (2016): 467. 
