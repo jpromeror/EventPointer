@@ -711,7 +711,7 @@ AnnotateEvents_KLL <- function (Events,Gxx,GenI){
     
     for(ii in seq_along(Events))
     {
-      if (!any(c(identical(unique(Events[[ii]]$P1$Type),"V"),identical(unique(Events[[ii]]$P2$Type),"V"),identical(unique(Events[[ii]]$Ref$Type),"V"))==T))
+      if (!any(c(identical(unique(Events[[ii]]$P1$Type),"V"),identical(unique(Events[[ii]]$P2$Type),"V"),identical(unique(Events[[ii]]$Ref$Type),"V"))==TRUE))
       {
         mm<-mm+1
         
@@ -1025,7 +1025,7 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
     T2est <- Signal2 * v
     Relerror <- as.numeric(crossprod((A[,1:2])%*%c(u,v)-b)/crossprod(b))
     
-    residuals <- resultado$residuals[1:cols,,drop=F]
+    residuals <- resultado$residuals[1:cols,,drop=FALSE]
     
     return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror,Residuals = residuals))
   }
@@ -1052,7 +1052,7 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda ) {
   T2est <- Signal2 * v
   Relerror <- as.numeric(crossprod(cbind(Signal1, Signal2)%*%c(u,v)-SignalR)/crossprod(SignalR))
   # if(Relerror==0){browser()}
-  residuals <- resultado$residuals[1:cols,,drop=F]
+  residuals <- resultado$residuals[1:cols,,drop=FALSE]
   residuals <- residuals/SignalR
   
   return(list(T1est = T1est, T2est=T2est, offset = offset, Relerror = Relerror,Residuals = residuals))
@@ -1085,7 +1085,7 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1 ) {
     w <- 0
     offset <- w / (1-sum(u))
     Relerror <- as.numeric(crossprod((A[,1:(l-1)])%*%u - b)/crossprod(b))
-    residuals <- resultado$residuals[1:cols,,drop=F]
+    residuals <- resultado$residuals[1:cols,,drop=FALSE]
     return(list(Tset=Tset, offset = offset, Relerror = Relerror,Residuals = residuals))
   }
   if(is.null(lambda)) 
@@ -1113,7 +1113,7 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1 ) {
   
   Relerror <- as.numeric(crossprod((A[1:cols,1:(l-1)])%*%u - b[1:cols])/crossprod(b[1:cols]))
   
-  residuals <- resultado$residuals[1:cols,,drop=F]
+  residuals <- resultado$residuals[1:cols,,drop=FALSE]
   
   
   return(list(Tset=Tset, offset = offset, Relerror = Relerror,Residuals = residuals))
@@ -1214,12 +1214,12 @@ findTriplets2 <- function(Incidence, paths =2, randSol) {
     TypeOne <- which((Ones==1) & Severalgood)
     if(length(TypeOne)>0){
       
-      P12 <- apply(BigDeltacsI[TypeOne,,drop=F], 1, FUN = function(x) {which(x == -1)}) 
-      PR <- apply(BigDeltacsI[TypeOne,,drop=F], 1, FUN = function(x) {which(x == 1)})
+      P12 <- apply(BigDeltacsI[TypeOne,,drop=FALSE], 1, FUN = function(x) {which(x == -1)}) 
+      PR <- apply(BigDeltacsI[TypeOne,,drop=FALSE], 1, FUN = function(x) {which(x == 1)})
       
       comb <- cbind(t(P12),PR)
       #comb <- matrix(Groups$membership[comb], ncol = ncol(comb))
-      #comb <- cbind(t(apply(comb[,1:ii,drop=F],1,function(x){x[order(x)]})),comb[,ii+1])
+      #comb <- cbind(t(apply(comb[,1:ii,drop=FALSE],1,function(x){x[order(x)]})),comb[,ii+1])
       #comb <- unique(comb)
       
       A<-matrix(0,nrow=dim(comb)[1],ncol=paths+2)
@@ -1233,12 +1233,12 @@ findTriplets2 <- function(Incidence, paths =2, randSol) {
     TypeMinusOne <- which((MinusOnes==1) & Severalgood)
     if(length(TypeMinusOne)>0){
       
-      P12 <- apply(BigDeltacsI[TypeMinusOne,,drop=F], 1, FUN = function(x) {which(x == 1)}) 
-      PR <- apply(BigDeltacsI[TypeMinusOne,,drop=F], 1, FUN = function(x) {which(x == -1)})
+      P12 <- apply(BigDeltacsI[TypeMinusOne,,drop=FALSE], 1, FUN = function(x) {which(x == 1)}) 
+      PR <- apply(BigDeltacsI[TypeMinusOne,,drop=FALSE], 1, FUN = function(x) {which(x == -1)})
       
       comb <- cbind(t(P12),PR)
       #comb <- matrix(Groups$membership[comb], ncol = ncol(comb))
-      #comb <- cbind(t(apply(comb[,1:ii,drop=F],1,function(x){x[order(x)]})),comb[,ii+1])
+      #comb <- cbind(t(apply(comb[,1:ii,drop=FALSE],1,function(x){x[order(x)]})),comb[,ii+1])
       #comb <- unique(comb)
       
       A<-matrix(0,nrow=dim(comb)[1],ncol=paths+2)
@@ -1802,7 +1802,7 @@ getPSI_RNASeq_MultiPath<-function(Result,lambda=0.1)
   ep <- as.numeric(sp+EventNames-2)
   
   for (n in 1:length(e)){
-    datos <- CountMatrix[s[n]:e[n],,drop=F]
+    datos <- CountMatrix[s[n]:e[n],,drop=FALSE]
     Output <- estimateAbsoluteConcmultipath(datos,lambda)
     Tset <- Output$Tset
     TR <- apply(Tset,2,sum)
@@ -2031,7 +2031,7 @@ SG_Info<-function(SG_Gene)
   Graph_Nodes <- SGSeq:::nodes(Graph)
   Graph_Edges<- SGSeq:::edges(Graph)
   #
-  #     Graph<-exonGraph(SG_Gene,tx_view=F)
+  #     Graph<-exonGraph(SG_Gene,tx_view=FALSE)
   #     Graph_Nodes <- nodes(Graph)
   #     Graph_Edges<- edges(Graph)
   
@@ -2311,8 +2311,8 @@ SG_creation_RNASeq <-function(SG_Gene)
   colnames(Inc) <- 1:ncol(Inc)
   
   NuevoOrden <- which(Inc[1,]==-1)
-  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),,drop=F], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
-  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),,drop=F], 1, function(x){which(x==-1)})))
+  NuevoOrden<-c(NuevoOrden,setdiff(unlist(apply(Inc[grep("b", rownames(Inc)),,drop=FALSE], 1, function(x){A<-which(x==-1)})),which(Inc[nrow(Inc),]==1)))
+  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)),,drop=FALSE], 1, function(x){which(x==-1)})))
   NuevoOrden <- c(NuevoOrden,  which(Inc[nrow(Inc),]==1))
   
   Inc <- Inc[,NuevoOrden]
@@ -2644,7 +2644,7 @@ filterimagine <- function(Info,paths){
     tofilter[ii]<-p
   }
   
-  return(which(tofilter==T))
+  return(which(tofilter==TRUE))
   
 }
 
@@ -2905,7 +2905,7 @@ comprobaciontranscritos2 <- function(Result){
       
       #condicion 1: los que estan en p1 no pueden estar en p2
       
-      cond1 <- (any(p1%in%p2==T) | any(p2%in%p1==T)) #Falso si se cumple la condicion (True si no se cumple)
+      cond1 <- (any(p1%in%p2==TRUE) | any(p2%in%p1==TRUE)) #Falso si se cumple la condicion (True si no se cumple)
       
       #condicion 2: la suma de los que estan en p1 y p2 tienen q ser los mismos que los q estan en p3 
       
@@ -2971,7 +2971,7 @@ convertToSGFeatures2 <- function (x, coerce = FALSE, merge = FALSE)
   return(features)
 }
 #' @rdname InternalFunctions
-processFeatures2 <- function (features, coerce =F, merge = F) 
+processFeatures2 <- function (features, coerce =FALSE, merge = FALSE) 
 {
   junctions <- granges(features)[type(features) == "J"]
   junctions_D <- flank(junctions, -1, TRUE)
@@ -3120,7 +3120,7 @@ mergeExonsTerminal2 <- function (features, min_n_sample = 1)
   index <- which(type(features) %in% c("F", "L"))
   if (length(index) > 0) {
     features <- features[index]
-    splicesite <- SGSeq:::feature2name(features, collapse_terminal = F) #here is where is merged the starts and ends.
+    splicesite <- SGSeq:::feature2name(features, collapse_terminal = FALSE) #here is where is merged the starts and ends.
     # collapse_terminal = TRUE y ahora es FALSE
     splicesite_n <- table(splicesite)
     i <- which(splicesite %in% names(which(splicesite_n >= 
@@ -3183,7 +3183,7 @@ get_beta <- function(combboots,incrPSI_original,ncontrastes){
   
   pvalues<- pbeta(deltaPSI,alpha,beta)
   positionMa<-which(pvalues>0.5)
-  pvalues[positionMa]<-pbeta(deltaPSI[positionMa],alpha[positionMa] ,beta[positionMa], lower.tail = F)
+  pvalues[positionMa]<-pbeta(deltaPSI[positionMa],alpha[positionMa] ,beta[positionMa], lower.tail = FALSE)
   pvalues <- pvalues *2
   
   
@@ -3198,7 +3198,7 @@ get_table <- function(PSI_arrayP,nevents,totchunk,chunk,nsamples,incrPSI_origina
   
   #Obtain the part of the incrPSI_original needed for the minichunk and its length
   indexincr <- match(rownames(PSI_arrayP),colnames(incrPSI_original))
-  incrPSI_originalChunk <- incrPSI_original[,indexincr,drop=F]
+  incrPSI_originalChunk <- incrPSI_original[,indexincr,drop=FALSE]
   l<-length(indexincr) #Length of the minichunk
   
   combboots <- rep(list(matrix(NA, l, nboot * nbootin)), ncontrastes) #Intialize matrix for the increase in PSI
@@ -3212,7 +3212,7 @@ get_table <- function(PSI_arrayP,nevents,totchunk,chunk,nsamples,incrPSI_origina
     Yb <- get_YB(PSI_arrayP,l,nsamples,I,J,CTEind) #Obtain the combination of bootstraps, the matrix contains the values of PSI
     
     for (boot2 in 1:nbootin) {
-      Yb1 <- Yb[,sample(ncol(Yb), replace = T)] #Samples the Yb (mixes data)
+      Yb1 <- Yb[,sample(ncol(Yb), replace = TRUE)] #Samples the Yb (mixes data)
       output <- tcrossprod(V, Yb1) #Obtain the increase in PSI
       for (boot3 in 1: ncontrastes) {
         combboots[[boot3]][,boot2 + nbootin * (boot-1)] <- output[boot3,] #Fills matrix of increase in PSI
@@ -3230,7 +3230,7 @@ get_table <- function(PSI_arrayP,nevents,totchunk,chunk,nsamples,incrPSI_origina
 
 #' @rdname InternalFunctions
 get_YB <- function(PSI_arrayS,l,nsamples,I,J,CTEind){
-  K <- rep(sample(dim(PSI_arrayS)[3],nsamples, replace=T) , l)
+  K <- rep(sample(dim(PSI_arrayS)[3],nsamples, replace=TRUE) , l)
   
   #Formula to obtain the index of the PSI_arrayS
   IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[1:2])

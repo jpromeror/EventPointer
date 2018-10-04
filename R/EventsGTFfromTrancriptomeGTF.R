@@ -35,17 +35,18 @@
 #' @importFrom GenomeInfoDb 'seqlevelsStyle<-' seqlevelsStyle seqnames
 #' @importFrom igraph graph_from_data_frame as_adj clusters graph_from_adjacency_matrix graph.data.frame
 #' @importFrom MASS Null ginv
-#' @importFrom stats dist qnorm quantile runif
+#' @importFrom stats dist qnorm quantile runif setNames
 #' @importFrom nnls nnls
 #' @importFrom limma lmFit contrasts.fit eBayes topTable voom
-#' @importFrom matrixStats rowMaxs
+#' @importFrom matrixStats rowMaxs 
 #' @importFrom RBGL connectedComp
-#' @importFrom methods as
+#' @importFrom methods as new slot 'slot<-' 
 #' @importFrom graph ftM2graphNEL
 #' @importFrom prodlim row.match
 #' @importFrom 'methods' is
-#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @importFrom GenomicRanges makeGRangesFromDataFrame granges
 #' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom IRanges relist disjoin %over% reduce 
 
 
 EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, Pathtxt=NULL, PathGTF=NULL){

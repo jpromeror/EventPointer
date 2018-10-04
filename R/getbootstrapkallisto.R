@@ -12,7 +12,7 @@
 #' @examples 
 #'    
 #'    PathFiles <- system.file("extdata",package="EventPointer")
-#'    PathFiles <- dir(paste0(PathFiles,"/output"),full.names = T)
+#'    PathFiles <- dir(paste0(PathFiles,"/output"),full.names = TRUE)
 #'    
 #'    #load the data
 #'    

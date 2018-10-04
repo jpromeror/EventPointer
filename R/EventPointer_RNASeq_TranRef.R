@@ -23,7 +23,7 @@
 #' # Statistical analysis:
 #' 
 #' # Expression is taken from the output of GetPSI_FromTranRef.
-#' # PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = F)
+#' # PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
 #' # PSI <- PSIss$PSI
 #' # Expression <- PSIss$ExpEvs
 #' 

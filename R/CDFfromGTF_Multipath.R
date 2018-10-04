@@ -41,10 +41,10 @@
 #' @importFrom GenomeInfoDb 'seqlevelsStyle<-' seqlevelsStyle seqnames
 #' @importFrom igraph graph_from_data_frame as_adj clusters graph_from_adjacency_matrix graph.data.frame
 #' @importFrom MASS Null ginv
-#' @importFrom stats dist qnorm quantile runif
+#' @importFrom stats dist qnorm quantile runif rnorm
 #' @importFrom nnls nnls
 #' @importFrom limma lmFit contrasts.fit eBayes topTable voom
-#' @importFrom matrixStats rowMaxs
+#' @importFrom matrixStats rowMaxs colCumsums
 #' @importFrom RBGL connectedComp
 #' @importFrom methods as
 #' @importFrom graph ftM2graphNEL

@@ -355,7 +355,7 @@ For this purpose, the function EventDetection is used.
 - **cores**: Number of cores used for parallel processing
 - **Path**: Directory where to write the EventsFound.txt file
 
-```{r EventDetection, eval=TRUE}
+```{r EventDetection, eval=FALSE}
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
@@ -510,7 +510,7 @@ In this example we have applied *kallisto* to the samples ERR315326, ERR315400, 
 
 PathFiles <- system.file("extdata",package="EventPointer")
 filesnames <- dir(paste0(PathFiles,"/output"))
-PathFiles <- dir(paste0(PathFiles,"/output"),full.names = T)
+PathFiles <- dir(paste0(PathFiles,"/output"),full.names = TRUE)
 dirtoload <- paste0(PathFiles,"/","abundance.tsv")
 RNASeq <- read.delim(dirtoload[1],sep = "\t", colClasses = c(NA,"NULL","NULL","NULL",NA))
 for (n in 2:length(dirtoload)){
@@ -526,7 +526,7 @@ rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),"\\|"),function(X) return(X
 RNASeq<-as.matrix(RNASeq) #must be a matrix variable
 
 #third: Obtain values of PSI
-PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = F)
+PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
 
 PSI <- PSIss$PSI
 Expression <- PSIss$ExpEvs

@@ -357,7 +357,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
                 
             }
             
-            # AA<-matrix(unlist(strsplit(rownames(Result),'[.]')),ncol=2,byrow=T)
+            # AA<-matrix(unlist(strsplit(rownames(Result),'[.]')),ncol=2,byrow=TRUE)
             # X<-nchar(AA[,1]) indxrm<-which(X>10) Result<-Result[-indxrm,]
             
             if (PSI) {

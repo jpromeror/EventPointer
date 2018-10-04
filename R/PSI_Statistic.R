@@ -20,6 +20,13 @@
 #'    table <- PSI_Statistic(PSI,Design = Design, Contrast = Contrast, nboot = 50)
 #' 
 #' @export
+#' @importFrom IRanges relist disjoin %over% reduce
+#' @importFrom stats pbeta predict
+#' @importFrom qvalue qvalue
+#' @importFrom cobs cobs
+#' @importFrom matrixStats rowVars
+
+
 
 
 
@@ -33,7 +40,7 @@ PSI_Statistic <- function(PSI,Design,Contrast,nboot){
   combboots <- rep(list(matrix(NA, l, nboot)), ncontrastes) #Intialize matrix for the increase in PSI
   
   for (boot2 in 1:nboot) {
-    PSI1 <- PSI[,sample(ncol(PSI), replace = T)] #Samples the Yb (mixes data)
+    PSI1 <- PSI[,sample(ncol(PSI), replace = TRUE)] #Samples the Yb (mixes data)
     output <- tcrossprod(V, PSI1) #Obtain the increase in PSI
     for (boot3 in 1: ncontrastes) {
       combboots[[boot3]][,boot2] <- output[boot3,] #Fills matrix of increase in PSI
@@ -47,9 +54,9 @@ PSI_Statistic <- function(PSI,Design,Contrast,nboot){
   #estimation of the lfdr. We need to remove the NaN
   if(nrow(Contrast)>1){
     LocalFDR <-apply(Pvalues,2,function(X){
-      result <- qvalue(X,trunc = F, monotone = F)
+      result <- qvalue(X,trunc = FALSE, monotone = FALSE)
       salida <- cobs(x=log(result$pvalues+eps),y=result$lfdr, constraint = "incr",
-                     pointwise = matrix(c(-1,0,1,1,min(log(result$pvalues+eps),na.rm = T),0),byrow = T,ncol = 3), lambda = 1,
+                     pointwise = matrix(c(-1,0,1,1,min(log(result$pvalues+eps),na.rm = TRUE),0),byrow = TRUE,ncol = 3), lambda = 1,
                      print.mesg = FALSE)
       iix <- which(is.na(X))
       if(length(iix)>0){
@@ -67,9 +74,9 @@ PSI_Statistic <- function(PSI,Design,Contrast,nboot){
       
     })
   }else{
-    LocalFDR <- qvalue(Pvalues,trunc = F, monotone = F)
+    LocalFDR <- qvalue(Pvalues,trunc = FALSE, monotone = FALSE)
     salida <- cobs(x=log(LocalFDR$pvalues+eps),y=LocalFDR$lfdr, constraint = "incr",
-                   pointwise = matrix(c(-1,0,1,1,min(log(LocalFDR$pvalues+eps),na.rm = T),0),byrow = T,ncol = 3),lambda = 1,
+                   pointwise = matrix(c(-1,0,1,1,min(log(LocalFDR$pvalues+eps),na.rm = TRUE),0),byrow = TRUE,ncol = 3),lambda = 1,
                    print.mesg = FALSE)
     iix <-which(is.na(Pvalues))
     if(length(iix)>0){

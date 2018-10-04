@@ -4,8 +4,8 @@
 \alias{EventPointer}
 \title{EventPointer}
 \usage{
-EventPointer(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn = 0.25,
-  Statistic = "LogFC", PSI = FALSE)
+EventPointer(Design, Contrast, ExFit, Eventstxt, Filter = TRUE,
+  Qn = 0.25, Statistic = "LogFC", PSI = FALSE)
 }
 \arguments{
 \item{Design}{The design matrix for the experiment.}

@@ -19,16 +19,17 @@
 #'    
 #'    #Obtain values of PSI
 #'    
-#'    PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = F)
+#'    PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
 #'    
 #'    PSI <- PSIss$PSI
 #'    Expression <- PSIss$ExpEvs
 #' 
 #' @export
+#' @importFrom matrixStats rowMins rowQuantiles
 
 
 
-GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=T,Qn=0.25){
+GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=TRUE,Qn=0.25){
   
   
   
@@ -43,11 +44,11 @@ GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=T,Qn=0.25){
   trannames_gtf <- PathsxTranscript$transcritnames
   
   
-  if(any(trannames_Samples%in%trannames_gtf==F)){
+  if(any(trannames_Samples%in%trannames_gtf==FALSE)){
     stop("\nTranscripts in the Sample that are not in the reference GTF\n")
   }
   
-  if(any(trannames_gtf%in%trannames_Samples==F)){
+  if(any(trannames_gtf%in%trannames_Samples==FALSE)){
     stop("\nTranscripts in the GTF that are not in the Sample\n")
   }
   

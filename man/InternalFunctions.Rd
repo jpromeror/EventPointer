@@ -3,15 +3,23 @@
 \name{InternalFunctions}
 \alias{InternalFunctions}
 \alias{annotateEvents}
+\alias{annotateEventsMultipath}
 \alias{AnnotateEvents_RNASeq}
+\alias{AnnotateEvents_RNASeq_MultiPath}
+\alias{AnnotateEvents_KLL}
 \alias{ClassifyEvents}
 \alias{estimateAbsoluteConc}
+\alias{estimateAbsoluteConcmultipath}
 \alias{findTriplets}
+\alias{findTriplets2}
 \alias{GetCounts}
+\alias{GetCountsMP}
 \alias{getEventPaths}
+\alias{getEventMultiPaths}
 \alias{GetIGVPaths}
 \alias{getPSI}
 \alias{getPSI_RNASeq}
+\alias{getPSI_RNASeq_MultiPath}
 \alias{getRandomFlow}
 \alias{IHsummarization}
 \alias{pdist2}
@@ -19,30 +27,62 @@
 \alias{PrepareProbes}
 \alias{PrepareOutput}
 \alias{SG_Info}
+\alias{SG_creation}
+\alias{SG_creation_RNASeq}
 \alias{WriteGTF}
 \alias{WriteGTF_RNASeq}
 \alias{flat2Cdf}
+\alias{uniquefast}
+\alias{filterimagine}
+\alias{transfromedge}
+\alias{sacartranscritos}
+\alias{comprobaciontranscritos2}
+\alias{convertToSGFeatures2}
+\alias{processFeatures2}
+\alias{annotate2}
+\alias{annotateFeatures2}
+\alias{mergeExonsTerminal2}
+\alias{get_beta}
+\alias{get_table}
+\alias{get_YB}
+\alias{getInfo}
 \title{EventPointer Internal Functions}
 \usage{
 annotateEvents(Events, PSR_Gene, Junc_Gene, Gxx)
 
+annotateEventsMultipath(Events, PSR_Gene, Junc_Gene, Gxx, paths)
+
 AnnotateEvents_RNASeq(Events)
 
-ClassifyEvents(SG, Events)
+AnnotateEvents_RNASeq_MultiPath(Events, paths)
+
+AnnotateEvents_KLL(Events, Gxx, GenI)
+
+ClassifyEvents(SG, Events, twopaths)
 
 estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda)
 
+estimateAbsoluteConcmultipath(datos, lambda = 0.1)
+
 findTriplets(randSol, tol = 1e-08)
+
+findTriplets2(Incidence, paths = 2, randSol)
 
 GetCounts(Events, sg_txiki, type = "counts")
 
+GetCountsMP(Events, sg_txiki, type = "counts")
+
 getEventPaths(Events, SG)
+
+getEventMultiPaths(Events, SG, twopaths, paths)
 
 GetIGVPaths(EventInfo, SG_Edges)
 
-getPSI(ExFit)
+getPSI(ExFit, lambda = 0.1)
 
-getPSI_RNASeq(Result)
+getPSI_RNASeq(Result, lambda = 0.1)
+
+getPSI_RNASeq_MultiPath(Result, lambda = 0.1)
 
 getRandomFlow(Incidence, ncol = 1)
 
@@ -58,13 +98,47 @@ PrepareOutput(Result, Final)
 
 SG_Info(SG_Gene)
 
+SG_creation(SG_Gene)
+
+SG_creation_RNASeq(SG_Gene)
+
 WriteGTF(PATH, Data, Probes, Paths)
 
 WriteGTF_RNASeq(PATH, Data, Paths)
 
 flat2Cdf(file, chipType, tags = NULL, rows = 2560, cols = 2560,
-  verbose = 10, xynames = c("X", "Y"), gcol = 5, ucol = 6, splitn = 4,
-  col.class = c("integer", "character")[c(1, 1, 1, 2, 2, 2)], ...)
+  verbose = 10, xynames = c("X", "Y"), gcol = 5, ucol = 6,
+  splitn = 4, col.class = c("integer", "character")[c(1, 1, 1, 2, 2,
+  2)], Directory = getwd(), ...)
+
+uniquefast(X)
+
+filterimagine(Info, paths)
+
+transfromedge(SG, SG_Gene)
+
+sacartranscritos(edgetr, events)
+
+comprobaciontranscritos2(Result)
+
+convertToSGFeatures2(x, coerce = FALSE, merge = FALSE)
+
+processFeatures2(features, coerce = FALSE, merge = FALSE)
+
+annotate2(query, subject)
+
+annotateFeatures2(query, subject)
+
+mergeExonsTerminal2(features, min_n_sample = 1)
+
+get_beta(combboots, incrPSI_original, ncontrastes)
+
+get_table(PSI_arrayP, nevents, totchunk, chunk, nsamples, incrPSI_original,
+  V, nboot, nbootin, ncontrastes)
+
+get_YB(PSI_arrayS, l, nsamples, I, J, CTEind)
+
+getInfo(table, ncontrast)
 }
 \value{
 Internal outputs
