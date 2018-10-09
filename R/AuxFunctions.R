@@ -1141,7 +1141,7 @@ findTriplets<-function(randSol,tol=1e-8)
   # All possible combination of two elements from the graph to create
   # all the posible sums to find the triplets of events
   Index <-combn(nrow(EdgG_Flux),2)
-  flowsum <- EdgG_Flux[Index[1,],] + EdgG_Flux[Index[2,],]  # All the possible sums
+  flowsum <- EdgG_Flux[Index[1,],,drop=FALSE] + EdgG_Flux[Index[2,],,drop=FALSE]  # All the possible sums
   
   # Calculate the distance between all the possible sums of every element of the graph
   # and the flow matrix. The Events will be those in which the distance is smaller than
