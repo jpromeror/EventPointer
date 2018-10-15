@@ -45,7 +45,7 @@
 #' @importFrom prodlim row.match
 #' @importFrom 'methods' is
 #' @importFrom GenomicRanges makeGRangesFromDataFrame granges
-#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom S4Vectors queryHits subjectHits split
 #' @importFrom IRanges relist disjoin %over% reduce 
 
 
