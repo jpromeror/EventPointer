@@ -9,7 +9,7 @@
 #'
 #'
 #' @return list with all the events found for all the genes present in the experiment.
-#' It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
+#' It also generates a file called EventsFound_RNASeq.txt with the information each event.
 #'
 #' @examples
 #'   # Run EventDetection function

@@ -856,7 +856,7 @@ ClassifyEvents <- function (SG,Events,twopaths){
         #Get the nodes in order: of path 1 (path 1 is the largest and the important one)
         MisExons <- data.frame(From=Events[[XX]]$P1$From,To=Events[[XX]]$P1$To)
         Info2 <- merge(MisExons,SG$Edges)
-        Info2$dist <- Info2$End-Info2$Start
+        Info2$dist <- as.numeric(as.vector(Info2$End))-as.numeric(as.vector(Info2$Start))
         
         MisExons <- unique(as.numeric(gsub("[.ab]","",c(as.vector(MisExons$From),as.vector(MisExons$To)))))
         
@@ -913,7 +913,7 @@ ClassifyEvents <- function (SG,Events,twopaths){
           # path 1
           MisExons_1 <- data.frame(From=Events[[XX]]$P1$From,To=Events[[XX]]$P1$To)
           Info1 <- merge(MisExons_1,SG$Edges)
-          Info1$dist <- Info1$End-Info1$Start
+          Info1$dist <- as.numeric(as.vector(Info1$End))-as.numeric(as.vactor(Info1$Start))
           AA_1 <- Info1$dist[Info1$Type=="J"]
           l_1 <- length(AA_1)
           
@@ -923,7 +923,7 @@ ClassifyEvents <- function (SG,Events,twopaths){
           # path 2
           MisExons_2 <- data.frame(From=Events[[XX]]$P2$From,To=Events[[XX]]$P2$To)
           Info2 <- merge(MisExons_2,SG$Edges)
-          Info2$dist <- Info2$End-Info2$Start
+          Info2$dist <- as.numeric(as.vector(Info2$End))-as.numeric(as.vector(Info2$Start))
           AA_2 <- Info2$dist[Info2$Type=="J"]
           l_2 <- length(AA_2)
           

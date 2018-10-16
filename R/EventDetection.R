@@ -8,7 +8,7 @@
 #'
 #'
 #' @return list with all the events found for all the genes present in the experiment.
-#' It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
+#' It also generates a file called EventsFound_RNASeq.txt with the information of each event.
 #'
 #' @examples
 #'   # Run EventDetection function
@@ -120,7 +120,8 @@ EventDetection <- function(Input, cores, Path) {
                     
                     Events <- ClassifyEvents(SG, Events,twopaths)
                     
-                    # A simple piece of code to get the number of counts for the three paths in every
+                    # A simple piece of code to get the number of counts for the three paths 
+                    # in every
                     # event within a gene
                     
                     Events <- GetCounts(Events, SG_Gene_Counts)

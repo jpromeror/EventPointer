@@ -8,9 +8,11 @@ CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
   microarray = NULL)
 }
 \arguments{
-\item{input}{Reference transcriptome used to build the CDF file. Must be one of: "Ensembl", "UCSC" , "AffyGTF" or "CustomGTF".}
+\item{input}{Reference transcriptome used to build the CDF file. Must be one of: "Ensembl",
+"UCSC" , "AffyGTF" or "CustomGTF".}
 
-\item{inputFile}{If input is "AffyGTF" or "CustomGTF", inputFile should point to the GTF file to be used.}
+\item{inputFile}{If input is "AffyGTF" or "CustomGTF", inputFile should point to the GTF
+file to be used.}
 
 \item{PSR}{Path to the Exon probes txt file}
 
@@ -18,13 +20,16 @@ CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
 
 \item{PathCDF}{Directory where the output will be saved}
 
-\item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA}
+\item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0,
+ClariomD, RTA or MTA}
 }
 \value{
-The function displays a progress bar to show the user the progress of the function. However, there is no value returned in R as
-the function creates three files that are used later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
-the information of all the alternative splcing events found. 2) .flat file : Used to build the corresponding CDF file. 3) .CDF file: Output
-required for the aroma.affymetrix preprocessing pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
+The function displays a progress bar to show the user the progress of the function.
+However, there is no value returned in R as the function creates three files that are used 
+later by other EventPointer functions.1) EventsFound.txt : Tab separated file with all the 
+information of all the alternative splcing events found. 2) .flat file : Used to build the
+corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing 
+pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
 recommended to have at least 1.5 GB of free space.
 }
 \description{
@@ -40,6 +45,7 @@ Generates the CDF file to be used under the aroma.affymetrix framework
 
   # Run the function
 
-   CDFfromGTF(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray)
+   CDFfromGTF(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,
+              PathCDF=Directory,microarray=microarray)
 
 }

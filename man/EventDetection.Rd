@@ -15,7 +15,7 @@ EventDetection(Input, cores, Path)
 }
 \value{
 list with all the events found for all the genes present in the experiment.
-It also generates a file called EventsFound_RNASeq.txt with the information for every detected event.
+It also generates a file called EventsFound_RNASeq.txt with the information of each event.
 }
 \description{
 Identification of all the alternative splicing events in the splicing graphs

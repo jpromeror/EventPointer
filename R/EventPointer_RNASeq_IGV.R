@@ -95,6 +95,8 @@ EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
         iixx <- match(rownames(Events)[jj], EventsInfo[, 1])
         
         EventPaths <- GetIGVPaths(EventsInfo[iixx, ], SG_Edges)
+		class(EventPaths[, 2]) <- "integer"
+        class(EventPaths[, 3]) <- "integer"
         WriteGTF_RNASeq(PathGTF, EventsInfo[iixx, ], EventPaths)
         
     }

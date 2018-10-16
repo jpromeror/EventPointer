@@ -39,7 +39,9 @@ Statistical analysis with the output of GetPSI_FromTranRef
 		# PSI <- PSIss$PSI
 		# Expression <- PSIss$ExpEvs
 
-		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC",Design = Design, Contrast = Contrast)
+		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,
+		                                   Statistic = "LogFC",Design = Design,
+		                                    Contrast = Contrast)
 
 
 }

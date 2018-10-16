@@ -2,18 +2,22 @@
 #'
 #' Generates the CDF file to be used under the aroma.affymetrix framework
 #'
-#' @param input Reference transcriptome used to build the CDF file. Must be one of Ensembl, UCSC or GTF.
+#' @param input Reference transcriptome used to build the CDF file. Must be one of Ensembl,
+#'              UCSC or GTF.
 #' @param inputFile If input is GTF, inputFile should point to the GTF file to be used.
 #' @param PSR Path to the Exon probes txt file
 #' @param Junc Path to the Junction probes txt file
 #' @param PathCDF Directory where the output will be saved
-#' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0, ClariomD, RTA or MTA
+#' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0,
+#'                  ClariomD, RTA or MTA
 #' @param paths Maximum number of paths of the events to find.
 #'
-#' @return The function displays a progress bar to show the user the progress of the function. However, there is no value returned in R as
-#' the function creates three files that are used later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
-#' the information of all the alternative splcing events found. 2) .flat file : Used to build the corresponding CDF file. 3) .CDF file: Output
-#' required for the aroma.affymetrix preprocessing pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
+#' @return The function displays a progress bar to show the user the progress of the function.
+#' However, there is no value returned in R as the function creates three files that are used 
+#' later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
+#' the information of all the alternative splcing events found. 2) .flat file : Used to build
+#' the corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing
+#' pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
 #' recommended to have at least 1.5 GB of free space.
 #'
 #' @examples
@@ -26,7 +30,8 @@
 #'
 #'   # Run the function
 #'
-#'    CDFfromGTF_Multipath(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray,paths=3)
+#'    CDFfromGTF_Multipath(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,
+#'                         PathCDF=Directory,microarray=microarray,paths=3)
 #'
 #' @export
 #' @import Matrix
@@ -39,7 +44,8 @@
 #' @importFrom utils read.delim txtProgressBar setTxtProgressBar combn write.table read.table
 #' @importFrom stringr str_count
 #' @importFrom GenomeInfoDb 'seqlevelsStyle<-' seqlevelsStyle seqnames
-#' @importFrom igraph graph_from_data_frame as_adj clusters graph_from_adjacency_matrix graph.data.frame
+#' @importFrom igraph graph_from_data_frame as_adj clusters graph_from_adjacency_matrix
+#' @importFrom igraph graph.data.frame
 #' @importFrom MASS Null ginv
 #' @importFrom stats dist qnorm quantile runif rnorm
 #' @importFrom nnls nnls
@@ -54,7 +60,8 @@
 #' @importFrom S4Vectors queryHits subjectHits
 
 
-CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, microarray = NULL,paths=2){
+CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
+                                 microarray = NULL,paths=2){
   
   # CDFfromGTF is the corresponding function to create a CDF file based on the GTF
   # file provided that contains the 'reference' trasncriptome to be used to
@@ -437,7 +444,8 @@ CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc,
   cat("\nCreating .flat ...")
   Result <- Filter(Negate(is.null), Result)
   Result <- do.call(rbind, Result)
-  colnames <- "colnames(Result) <- c('Affy Gene Id', 'Gene Name', 'Event Number', 'Event Type','Genomic Position','Num of Paths',"
+  colnames <- "colnames(Result) <- c('Affy Gene Id', 'Gene Name', 'Event Number', 'Event Type',
+                                      'Genomic Position','Num of Paths',"
   for(kk in 1:paths){
     colnames <- paste0(colnames,"'Path ",kk,"', ")
   }
@@ -468,8 +476,8 @@ CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc,
   
   cat("Done")
   
-  write.table(Result, file = paste(PathCDF, "/EventsFound_",microarray,".txt", sep = ""), sep = "\t", 
-              quote = FALSE, col.names = TRUE, row.names = FALSE)
+  write.table(Result, file = paste(PathCDF, "/EventsFound_",microarray,".txt", sep = ""),
+              sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
   
   write.table(Flat, file = paste(PathCDF, "/", microarray, ".flat", sep = ""), 
               sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)

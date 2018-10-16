@@ -33,7 +33,9 @@ Events .gtf from trancriptome .gtf
    
    # Run the function 
    
-   EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,Transcriptome = Transcriptome,Pathtxt=Pathtxt,PathGTF=PathGTF)
+   EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,
+                                               Transcriptome = Transcriptome,
+                                               Pathtxt=Pathtxt,PathGTF=PathGTF)
 
 
 }
