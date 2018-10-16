@@ -2964,7 +2964,7 @@ convertToSGFeatures2 <- function (x, coerce = FALSE, merge = FALSE)
   }
   features <- SGSeq:::addFeatureID(features)
   features <- SGSeq:::addGeneID(features)
-  features <- SGSeq:::SGFeatures(features)
+  features <- SGSeq::SGFeatures(features)
   if (!coerce) {
     features <- annotate2(features, x)
   }

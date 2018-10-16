@@ -20,6 +20,7 @@
 #'
 #'
 #' @export
+#' @importFrom sleuth read_kallisto_h5
 
 
 

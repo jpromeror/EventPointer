@@ -8,10 +8,10 @@
 #' @param Contrast The contrast matrix for the experiment.
 #' @param nboot The number of random analysis.
 #' 
-#' @return The output of these functions is a list containing: two data.frame (deltaPSI and Pvalues) with the values of the $\Delta\Psi$
+#' @return The output of these functions is a list containing: two data.frame (deltaPSI and Pvalues) with the values of the deltaPSI
 #'  and the p.values for each contrast, and a third element (LocalFDR) with the information of the local false discovery rate.
 #' 
-#' @example 
+#' @examples 
 #'    Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
 #'    Contrast <- matrix(c(0,1),nrow=1)
 #'    

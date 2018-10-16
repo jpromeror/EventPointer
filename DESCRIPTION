@@ -43,7 +43,8 @@ Imports:
     S4Vectors,
 	IRanges,
 	qvalue,
-	cobs
+	cobs,
+	sleuth
 Suggests:
     knitr,
     rmarkdown,

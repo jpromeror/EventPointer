@@ -26,7 +26,7 @@
 #'
 #'   # Run the function
 #'
-#'    CDFfromGTF_Multipath(input='GTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray,paths=3)
+#'    CDFfromGTF_Multipath(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,PathCDF=Directory,microarray=microarray,paths=3)
 #'
 #' @export
 #' @import Matrix

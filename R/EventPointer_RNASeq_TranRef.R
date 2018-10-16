@@ -1,7 +1,7 @@
 
-#' Estadistica de EventPointer. Con la expresión, no con el PSI
+#' Statistical analysis with the output of GetPSI_FromTranRef
 #' 
-#' @param Count_Matrix The list containing the expression data taken from the ouput of *GetPSI_FromTranRef*
+#' @param Count_Matrix The list containing the expression data taken from the ouput of GetPSI_FromTranRef
 #' @param Statistic The type of statistic to apply. Default = "LogFC" (can be "logFC, "Dif_LogFC","DRS")
 #' @param Design The design matrix of the experiment.
 #' @param Contrast The Contrast matrix of the experiment.
@@ -15,19 +15,19 @@
 #' 
 #' @examples 
 #' 
-#' # Design and contrast matrix:
+#'		# Design and contrast matrix:
 #' 
-#' Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
-#' Contrast <- matrix(c(0,1),nrow=2)
+#' 		Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
+#' 		Contrast <- matrix(c(0,1),nrow=2)
 #' 
-#' # Statistical analysis:
+#' 		# Statistical analysis:
 #' 
-#' # Expression is taken from the output of GetPSI_FromTranRef.
-#' # PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
-#' # PSI <- PSIss$PSI
-#' # Expression <- PSIss$ExpEvs
+#' 		# Expression is taken from the output of GetPSI_FromTranRef.
+#' 		# PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
+#' 		# PSI <- PSIss$PSI
+#' 		# Expression <- PSIss$ExpEvs
 #' 
-#' Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC",Design = Design, Contrast = Contrast)
+#' 		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC",Design = Design, Contrast = Contrast)
 #' 
 #' 
 #' @export
