@@ -26,7 +26,8 @@ a data.frame with the information of the names of the event,
 Statistical analysis with the output of GetPSI_FromTranRef
 }
 \examples{
-
+   data(EventXtrans)
+   data(PSIss)
 	# Design and contrast matrix:
 
 		Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
@@ -34,12 +35,8 @@ Statistical analysis with the output of GetPSI_FromTranRef
 
 		# Statistical analysis:
 
-		# Expression is taken from the output of GetPSI_FromTranRef.
-		# PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
-		# PSI <- PSIss$PSI
-		# Expression <- PSIss$ExpEvs
 
-		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,
+		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix =  PSIss$ExpEvs,
 		                                   Statistic = "LogFC",Design = Design,
 		                                    Contrast = Contrast)
 

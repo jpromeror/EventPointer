@@ -9,15 +9,16 @@ GetPSI_FromTranRef(PathsxTranscript, Samples, Filter = TRUE, Qn = 0.25)
 \arguments{
 \item{PathsxTranscript}{the outpu of EventGTFfromTrancriptomeGTF}
 
-\item{Samples}{the samples (in the rowname of the samples must be written only the name of the transcript)}
+\item{Samples}{the samples (in the rowname of the samples must be written 
+only the name of the transcript)}
 
 \item{Filter}{Boolean variable to indicate if an expression filter is applied. Defaul T}
 
 \item{Qn}{Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).}
 }
 \value{
-The output of the function is a list containing two elements: a matrix with the values of PSI 
-and a list containing as many matrices as number of events. 
+The output of the function is a list containing two elements: a matrix with the 
+values of PSI  and a list containing as many matrices as number of events. 
 In each matrix is stored the expression of the different paths of an event along the samples.
 }
 \description{
@@ -25,6 +26,19 @@ Get the values of PSI.A filer expresion is applied if
 the user select the option of filter.
 }
 \examples{
+   data(EventXtrans)
+   PathFiles <- system.file("extdata",package="EventPointer")
+   filesnames <- dir(paste0(PathFiles,"/output"))
+   PathFiles <- dir(paste0(PathFiles,"/output"),full.names = TRUE)
+   dirtoload <- paste0(PathFiles,"/","abundance.tsv")
+   RNASeq <- read.delim(dirtoload[1],sep = "\\t", colClasses = c(NA,"NULL","NULL","NULL",NA))
+   for (n in 2:length(dirtoload)){
+     RNASeq[,n+1] <- read.delim(dirtoload[n],sep = '\\t',
+                                colClasses = c('NULL','NULL','NULL','NULL',NA))
+   }
+   rownames(RNASeq)<-RNASeq[,1]
+   RNASeq<-RNASeq[,-1]
+   colnames(RNASeq) <- filesnames
    rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),"\\\\|"),function(X) return(X[1]))
    RNASeq<-as.matrix(RNASeq) #must be a matrix variable
    
