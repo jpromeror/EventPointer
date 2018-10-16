@@ -12,12 +12,13 @@
 #'  and the p.values for each contrast, and a third element (LocalFDR) with the information of the local false discovery rate.
 #' 
 #' @examples 
+#'    data(PSIss)
 #'    Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
 #'    Contrast <- matrix(c(0,1),nrow=1)
 #'    
 #'    # Statistical analysis:
 #'    
-#'    table <- PSI_Statistic(PSI,Design = Design, Contrast = Contrast, nboot = 50)
+#'    table <- PSI_Statistic(PSIss$PSI,Design = Design, Contrast = Contrast, nboot = 50)
 #' 
 #' @export
 #' @importFrom IRanges relist disjoin %over% reduce
