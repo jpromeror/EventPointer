@@ -45,7 +45,15 @@
 
 GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=TRUE,Qn=0.25){
   
+  if(is.null(PathsxTranscript))
+  {
+    stop("PathsxTranscript field is empty")
+  }
   
+  if(is.null(Samples))
+  {
+    stop("Samples field is empty")
+  }
   
   
   Path1 <- PathsxTranscript$ExTP1

@@ -15,7 +15,7 @@
 #'   # Run EventDetection function
 #'    data(SG_RNASeq)
 #'    TxtPath<-tempdir()
-#'    AllEvents_RNASeq<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
+#'    AllEvents_RNASeq_MP<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
 #'
 #' @export
 EventDetectionMultipath <- function(Input, cores, Path, paths=2) {

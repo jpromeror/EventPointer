@@ -355,7 +355,7 @@ For this purpose, the function EventDetection is used.
 - **cores**: Number of cores used for parallel processing
 - **Path**: Directory where to write the EventsFound.txt file
 
-```{r EventDetection, eval=FALSE}
+```{r EventDetection, eval=TRUE}
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
@@ -640,7 +640,7 @@ The function *EventDetectionMultipath* detects events with number of paths from 
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
-   AllEvents_RNASeq<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
+   AllEvents_RNASeq_MP<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
 ```
 
 

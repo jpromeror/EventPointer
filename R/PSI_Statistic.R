@@ -33,6 +33,21 @@
 
 
 PSI_Statistic <- function(PSI,Design,Contrast,nboot){
+  
+  if(is.null(PSI)){
+    stop("PSI field is empty")
+  }
+  
+  if(class(Design)!="matrix" | class(Contrast)!="matrix")
+  {
+    stop("Wrong Design and/or Contrast matrices")
+    
+  }
+  
+  if(is.null(nboot)){
+    stop("nboot field is empty")
+  }
+  
   eps <- 10 * .Machine$double.eps
   V <- Contrast%*%(solve(crossprod(Design))%*%t(Design))
   incrPSI_original <- (tcrossprod(V,PSI)+1)/2

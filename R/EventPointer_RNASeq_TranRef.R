@@ -36,6 +36,32 @@
 
 EventPointer_RNASeq_TranRef <- function(Count_Matrix,Statistic="LogFC",Design,Contrast){
   
+  if(class(Count_Matrix)!="list"){
+    stop("Wrong Count_Matrix input: must be a list")
+  }
+  
+  if (Statistic == "LogFC") {
+    stt <- "Logarithm of the fold change of both isoforms"
+    
+  } else if (Statistic == "Dif_LogFC") {
+    stt <- "Relative concentrations of both isoforms"
+    
+  } else if (Statistic == "DRS") {
+    stt <- "Difference of the logarithm of the fold change of both isoforms"
+    
+  }else{
+    
+    stop("Wrong statistical test given")
+  }
+  
+  if(class(Design)!="matrix" | class(Contrast)!="matrix")
+  {
+    stop("Wrong Design and/or Contrast matrices")
+    
+  }
+  
+  
+  
   if (Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS") {
     
     AuxM <- matrix(c(1, 0, 0, 1, 1, 0, 1, 1, 1), nrow = 3, byrow = TRUE)
@@ -43,7 +69,6 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,Statistic="LogFC",Design,Co
     D <- kronecker(Design, AuxM)
     
     Count_Matrix <- sapply(Count_Matrix,function(X)return(t(X[,c(3,1,2)])))
-    
     
     
     # Limma Pipeline

@@ -26,6 +26,10 @@
 
 getbootstrapkallisto <- function(pathValues=NA,nb=0){
   
+  if(is.na(pathValues)){
+    stop("not pathValues")
+  }
+  
   datafinal <- vector(mode="list",length = length(pathValues))
   
   for (jj in 1:length(datafinal)){
