@@ -110,7 +110,7 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, 
   # 1:numberofgenes
   
   
-  for (jj in 1:numberofgenes) {
+  for (jj in seq_len(numberofgenes)) {
     
     #cat(jj,'\n')
     setTxtProgressBar(pb, jj)
@@ -264,7 +264,7 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, 
   pb <- txtProgressBar(min = 0, max = nrow(Result2), style = 3)
   
   # 1:nrow(Result2)
-  for (jj in 1:nrow(Result2)){
+  for (jj in seq_len(nrow(Result2))){
     
     setTxtProgressBar(pb, jj)
     
@@ -304,7 +304,7 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, 
   #TrNames <- unique(unlist(ListaNombres)) # TrNames includes all the possible transcripts.
   #In transcritnames is sotored the names of all the Isoforms 
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(1:length(ListaNombres), nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
   ExTP1 <- sparseMatrix(i, j, x = 1, dims = c(max(i),length(transcritnames)))
   rownames(ExTP1)<-rnames
@@ -315,7 +315,7 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, 
   #TrNames <- unique(unlist(ListaNombres)) # TrNames includes all the possible transcripts.
   #In transcritnames is sotored the names of all the Isoforms 
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(1:length(ListaNombres), nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
   ExTP2 <- sparseMatrix(i, j, x = 1, dims = c(max(i),length(transcritnames)))
   rownames(ExTP2)<-rnames
@@ -326,7 +326,7 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,Transcriptome = NULL, 
   #TrNames <- unique(unlist(ListaNombres)) # TrNames includes all the possible transcripts.
   #In transcritnames is sotored the names of all the Isoforms 
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(1:length(ListaNombres), nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
   ExTPRef <- sparseMatrix(i, j, x = 1, dims = c(max(i),length(transcritnames)))
   rownames(ExTPRef)<-rnames

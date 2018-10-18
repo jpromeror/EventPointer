@@ -122,7 +122,7 @@ GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=TRUE,Qn=0.25){
     colnames(matsamples)<-c("P1","P2","PRef")
     rownames(matsamples)<-colnames(ConcentrationPath1)
     
-    for (i in 1:dim(ConcentrationPath1)[1]){
+    for (i in seq_len(dim(ConcentrationPath1)[1])){
       matsamples[,1]<-ConcentrationPath1[i,]
       matsamples[,2]<-ConcentrationPath2[i,]
       matsamples[,3]<-ConcentrationPathRef[i,]
@@ -143,7 +143,7 @@ GetPSI_FromTranRef <- function(PathsxTranscript,Samples,Filter=TRUE,Qn=0.25){
     colnames(matsamples)<-c("P1","P2","PRef")
     rownames(matsamples)<-colnames(ConcentrationPath1)
     
-    for (i in 1:dim(ConcentrationPath1)[1]){
+    for (i in seq_len(dim(ConcentrationPath1)[1])){
       matsamples[,1]<-ConcentrationPath1[i,]
       matsamples[,2]<-ConcentrationPath2[i,]
       matsamples[,3]<-ConcentrationPathRef[i,]

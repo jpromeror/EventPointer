@@ -41,7 +41,7 @@ getbootstrapkallisto <- function(pathValues=NA,nb){
   
   datafinal <- vector(mode="list",length = length(pathValues))
   
-  for (jj in 1:length(datafinal)){
+  for (jj in seq_len(length(datafinal))){
     
     name <- unlist(strsplit(pathValues[jj],"/"))
     name <- name[length(name)]

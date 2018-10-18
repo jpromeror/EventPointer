@@ -79,7 +79,7 @@ EventDetection <- function(Input, cores, Path) {
     
     
     if (nrow(as.data.frame(SG_Gene)) != 1) {
-      featureID(SG_Gene) <- 1:nrow(as.data.frame(SG_Gene))
+      featureID(SG_Gene) <- seq_len(nrow(as.data.frame(SG_Gene)))
       
       SG_Gene_Counts <- SgFC[geneID(SgFC) == Gene]
       
@@ -164,7 +164,7 @@ EventDetection <- function(Input, cores, Path) {
   Events <- vector("list", length = length(Result))
   TxtInfo <- vector("list", length = length(Result))
   
-  for (jj in 1:length(Result)) {
+  for (jj in seq_len(length(Result))) {
     Events[[jj]] <- Result[[jj]]$Events
     TxtInfo[[jj]] <- Result[[jj]]$Info
   }

@@ -326,10 +326,10 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     PS_rle <- rle(ProbeSets[, "Gene"])
     
     indexE_Junc <- cumsum(Junc_rle$lengths)
-    indexS_Junc <- c(1, indexE_Junc[1:(length(indexE_Junc) - 1)] + 1)
+    indexS_Junc <- c(1, indexE_Junc[seq_len((length(indexE_Junc) - 1))] + 1)
     
     indexE_PS <- cumsum(PS_rle$lengths)
-    indexS_PS <- c(1, indexE_PS[1:(length(indexE_PS) - 1)] + 1)
+    indexS_PS <- c(1, indexE_PS[seq_len((length(indexE_PS) - 1))] + 1)
     
     cat("Done")
     

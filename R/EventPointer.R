@@ -135,7 +135,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
         fit2 <- eBayes(fit2)
         
         # repeated if there is more than one contrast
-        for (jj in 1:ncol(Contrast)) {
+        for (jj in seq_len(ncol(Contrast))) {
             TopPSI <- topTable(fit2, coef = jj, number = Inf)[, 1, drop = FALSE]
             DPSIs[[jj]] <- TopPSI
         }
@@ -228,7 +228,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
         
         
         II <- lapply(seq(1, nrow(A), 3), function(x) rep(x + 0:2, ncol(A)))
-        JJ <- rep(rep(1:ncol(A), each = 3), length(unique(ExFit[, 1])))
+        JJ <- rep(rep(seq_len(ncol(A)), each = 3), length(unique(ExFit[, 1])))
         B <- A[cbind(unlist(II), JJ)]
         Ymat <- t(matrix(B, nrow = length(unique(ExFit[, 1])), byrow = TRUE))
         colnames(Ymat) <- unique(ExFit[, 1])
@@ -247,7 +247,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
         
         FinalResult <- vector("list", length = ncol(Contrast))
         
-        for (mm in 1:ncol(Contrast)) {
+        for (mm in seq_len(ncol(Contrast))) {
             Cused <- Contrast[, mm, drop = FALSE]
             
             # The contrasts we are interested in are the ones related with each Path, and we
@@ -286,7 +286,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
                 
                 # One table is created by merging both, as both have the same column names, we
                 # rename the columns from one of the tables with letters to avoid problems.
-                colnames(T3) <- letters[1:ncol(T3)]
+                colnames(T3) <- letters[seq_len(ncol(T3))]
                 T34_345 <- cbind(T2, T3)
                 
                 # By taking both pvalues, one from each contrast, we perform an Irwin Hall

@@ -328,10 +328,10 @@ CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc,
   PS_rle <- rle(ProbeSets[, "Gene"])
   
   indexE_Junc <- cumsum(Junc_rle$lengths)
-  indexS_Junc <- c(1, indexE_Junc[1:(length(indexE_Junc) - 1)] + 1)
+  indexS_Junc <- c(1, indexE_Junc[seq_len((length(indexE_Junc) - 1))] + 1)
   
   indexE_PS <- cumsum(PS_rle$lengths)
-  indexS_PS <- c(1, indexE_PS[1:(length(indexE_PS) - 1)] + 1)
+  indexS_PS <- c(1, indexE_PS[seq_len((length(indexE_PS) - 1))] + 1)
   
   cat("Done")
   
@@ -446,11 +446,11 @@ CDFfromGTF_Multipath <- function(input = "Ensembl", inputFile = NULL, PSR, Junc,
   Result <- do.call(rbind, Result)
   colnames <- "colnames(Result) <- c('Affy Gene Id', 'Gene Name', 'Event Number', 'Event Type',
                                       'Genomic Position','Num of Paths',"
-  for(kk in 1:paths){
+  for(kk in seq_len(paths)){
     colnames <- paste0(colnames,"'Path ",kk,"', ")
   }
   colnames <- paste0(colnames,"'Path Reference',")
-  for(kk in 1:paths){
+  for(kk in seq_len(paths)){
     colnames <- paste0(colnames,"'Probes P",kk,"', ")
   }
   colnames <- paste0(colnames,"'Probes Ref')")

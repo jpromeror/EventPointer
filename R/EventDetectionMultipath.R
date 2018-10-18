@@ -84,7 +84,7 @@ EventDetectionMultipath <- function(Input, cores, Path, paths=2) {
     
     
     if (nrow(as.data.frame(SG_Gene)) != 1) {
-      featureID(SG_Gene) <- 1:nrow(as.data.frame(SG_Gene))
+      featureID(SG_Gene) <- seq_len(nrow(as.data.frame(SG_Gene)))
       
       SG_Gene_Counts <- SgFC[geneID(SgFC) == Gene]
       
@@ -200,7 +200,7 @@ EventDetectionMultipath <- function(Input, cores, Path, paths=2) {
   Eventss <- vector("list", length = length(Result))
   Infoss <- vector("list", length = length(Result))
   
-  for (jj in 1:length(Result)) {
+  for (jj in seq_len(length(Result))) {
     Eventss[[jj]] <- Result[[jj]]$Events
     Infoss[[jj]] <- Result[[jj]]$Info
   }

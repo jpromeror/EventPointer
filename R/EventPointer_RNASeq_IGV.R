@@ -73,7 +73,7 @@ EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
     
     pb <- txtProgressBar(min = 0, max = nrow(Events), style = 3)
     
-    for (jj in 1:nrow(Events)) {
+    for (jj in seq_len(nrow(Events))) {
         setTxtProgressBar(pb, jj)
         
         ### 3 Hay que ajustar esta l?nea Gene<-unlist(strsplit(Events[jj,1],'_'))[1]

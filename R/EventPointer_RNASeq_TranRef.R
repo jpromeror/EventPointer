@@ -80,7 +80,7 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,Statistic="LogFC",Design,Co
     FinalResult <- vector("list", length = ncol(Contrast))
     names(FinalResult) <- colnames(Contrast)
     
-    for (mm in 1:ncol(Contrast)) {
+    for (mm in seq_len(ncol(Contrast))) {
       
       Cused <- Contrast[, mm, drop = FALSE]
       
@@ -116,7 +116,7 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,Statistic="LogFC",Design,Co
         ii3 <- match(EvsIds, rownames(T3))
         T3 <- T3[ii3, ]
         
-        colnames(T3) <- letters[1:ncol(T3)]
+        colnames(T3) <- letters[seq_len(ncol(T3))]
         T34_345 <- cbind(T2, T3)
         
         # Irwin Hall Pvalue Summarization

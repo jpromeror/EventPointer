@@ -86,7 +86,7 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
         fit2 <- contrasts.fit(fit, Contrast)
         fit2 <- eBayes(fit2)
         
-        for (jj in 1:ncol(Contrast)) {
+        for (jj in seq_len(ncol(Contrast))) {
             TopPSI <- topTable(fit2, coef = jj, number = Inf)[, 1, drop = FALSE]
             DPSIs[[jj]] <- TopPSI
         }
@@ -114,7 +114,7 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
         
         FinalResult <- vector("list", length = ncol(Contrast))
         
-        for (mm in 1:ncol(Contrast)) {
+        for (mm in seq_len(ncol(Contrast))) {
             
             Cused <- Contrast[, mm, drop = FALSE]
             
@@ -150,7 +150,7 @@ EventPointer_RNASeq <- function(Events, Design, Contrast, Statistic = "LogFC", P
                 ii3 <- match(EvsIds, rownames(T3))
                 T3 <- T3[ii3, ]
                 
-                colnames(T3) <- letters[1:ncol(T3)]
+                colnames(T3) <- letters[seq_len(ncol(T3))]
                 T34_345 <- cbind(T2, T3)
                 
                 # Irwin Hall Pvalue Summarization

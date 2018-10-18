@@ -55,10 +55,10 @@ PSI_Statistic <- function(PSI,Design,Contrast,nboot){
   l <- dim(PSI)[1]
   combboots <- rep(list(matrix(NA, l, nboot)), ncontrastes) #Intialize matrix for the increase in PSI
   
-  for (boot2 in 1:nboot) {
+  for (boot2 in seq_len(nboot)) {
     PSI1 <- PSI[,sample(ncol(PSI), replace = TRUE)] #Samples the Yb (mixes data)
     output <- tcrossprod(V, PSI1) #Obtain the increase in PSI
-    for (boot3 in 1: ncontrastes) {
+    for (boot3 in seq_len(ncontrastes)) {
       combboots[[boot3]][,boot2] <- output[boot3,] #Fills matrix of increase in PSI
     }
   }
