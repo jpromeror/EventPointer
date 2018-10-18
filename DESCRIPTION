@@ -44,7 +44,7 @@ Imports:
 	IRanges,
 	qvalue,
 	cobs,
-	sleuth
+	rhdf5
 Suggests:
     knitr,
     rmarkdown,

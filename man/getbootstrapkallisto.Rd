@@ -4,7 +4,7 @@
 \alias{getbootstrapkallisto}
 \title{Author: JF}
 \usage{
-getbootstrapkallisto(pathValues = NA, nb = 0)
+getbootstrapkallisto(pathValues = NA, nb)
 }
 \arguments{
 \item{pathValues}{A vector with the complete directory to the folder of the output of kallisto}
