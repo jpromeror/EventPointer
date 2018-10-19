@@ -144,6 +144,7 @@ getInfo(table, ncontrast)
 Internal outputs
 }
 \description{
-Internal functions used by EventPointer in the different steps of the algorithm
+Internal functions used by EventPointer in the different 
+steps of the algorithm
 }
 \keyword{internal}

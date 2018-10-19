@@ -9,8 +9,9 @@ graph features and counts}
 data(SG_RNASeq)
 }
 \value{
-SG_RNASeq object displays the predicted features found in the BAM files
-from the dataset published in Seshagiri et al. 2012 and used in the \code{SGSeq} R package vignette.
+SG_RNASeq object displays the predicted features found
+in the BAM files from the dataset published in Seshagiri et al.
+2012 and used in the \code{SGSeq} R package vignette.
 }
 \description{
 Splicing graph elements predicted from BAM files

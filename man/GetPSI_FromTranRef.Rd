@@ -27,11 +27,11 @@ the user select the option of filter.
 }
 \examples{
    data(EventXtrans)
-   PathFiles <- system.file("extdata",package="EventPointer")
-   filesnames <- dir(paste0(PathFiles,"/output"))
-   PathFiles <- dir(paste0(PathFiles,"/output"),full.names = TRUE)
-   dirtoload <- paste0(PathFiles,"/","abundance.tsv")
-   RNASeq <- read.delim(dirtoload[1],sep = "\\t", colClasses = c(NA,"NULL","NULL","NULL",NA))
+   PathFiles <- system.file('extdata',package='EventPointer')
+   filesnames <- dir(paste0(PathFiles,'/output'))
+   PathFiles <- dir(paste0(PathFiles,'/output'),full.names = TRUE)
+   dirtoload <- paste0(PathFiles,'/','abundance.tsv')
+   RNASeq <- read.delim(dirtoload[1],sep = '\\t', colClasses = c(NA,'NULL','NULL','NULL',NA))
    for (n in 2:length(dirtoload)){
      RNASeq[,n+1] <- read.delim(dirtoload[n],sep = '\\t',
                                 colClasses = c('NULL','NULL','NULL','NULL',NA))
@@ -39,7 +39,7 @@ the user select the option of filter.
    rownames(RNASeq)<-RNASeq[,1]
    RNASeq<-RNASeq[,-1]
    colnames(RNASeq) <- filesnames
-   rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),"\\\\|"),function(X) return(X[1]))
+   rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),'\\\\|'),function(X) return(X[1]))
    RNASeq<-as.matrix(RNASeq) #must be a matrix variable
    
    #Obtain values of PSI

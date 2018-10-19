@@ -45,14 +45,13 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
     options(warn = -1)
     
     # Perform statistical test depending on the selection of the user
-  
-  if(class(Design)!="matrix" | class(Contrast)!="matrix")
-  {
-    stop("Wrong Design and/or Contrast matrices")
     
-  }
+    if (class(Design) != "matrix" | class(Contrast) != "matrix") {
+        stop("Wrong Design and/or Contrast matrices")
+        
+    }
     
-    # stopifnot(Statistic == "LogFC" | Statistic == "Dif_LogFC" | Statistic == "DRS")
+    # stopifnot(Statistic == 'LogFC' | Statistic == 'Dif_LogFC' | Statistic == 'DRS')
     
     if (Statistic == "LogFC") {
         stt <- "Logarithm of the fold change of both isoforms"
@@ -63,8 +62,8 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
     } else if (Statistic == "DRS") {
         stt <- "Difference of the logarithm of the fold change of both isoforms"
         
-    }else{
-      
+    } else {
+        
         stop("Wrong statistical test given")
     }
     
@@ -144,7 +143,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
     }
     
     # Obtain the number of columns of the ExFit variable
-    Y<-ExFit
+    Y <- ExFit
     ncc <- ncol(ExFit)
     
     # Sanity check All the events and probesets must be ordered in the following way:
@@ -167,8 +166,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
         Msg <- paste("\t** Running Expression Filter", sep = "")
         cat(paste(Msg, "...", sep = ""))
         
-        # Y<-extractDataFrame(affy,addNames=TRUE)
-        #Y <- ExFit
+        # Y<-extractDataFrame(affy,addNames=TRUE) Y <- ExFit
         Y <- Y[, c(1, 2, 6:ncol(Y))]
         
         Maxs <- rowMaxs(as.matrix(Y[, 3:ncol(Y)]))
@@ -339,8 +337,7 @@ EventPointer <- function(Design, Contrast, ExFit, Eventstxt, Filter = TRUE, Qn =
                 
                 # Put all the information in one data frame
                 Result <- data.frame(EventsFound[, 1], EventsFound[, 2], EventsFound[, 
-                  3], EventsFound[, 4], EventsFound[, 5], T2[, 3], T2[, 4],
-                  stringsAsFactors = FALSE)
+                  3], EventsFound[, 4], EventsFound[, 5], T2[, 3], T2[, 4], stringsAsFactors = FALSE)
                 
                 colnames(Result) <- c("Affy Gene ID", "Gene name", "Event Number", 
                   "Event Type", "Genomic Position", "Splicing Z Value", "Splicing Pvalue")

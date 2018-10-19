@@ -8,10 +8,10 @@ CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
   microarray = NULL)
 }
 \arguments{
-\item{input}{Reference transcriptome used to build the CDF file. Must be one of: "Ensembl",
-"UCSC" , "AffyGTF" or "CustomGTF".}
+\item{input}{Reference transcriptome used to build the CDF file. Must be one of: 'Ensembl',
+'UCSC' , 'AffyGTF' or 'CustomGTF'.}
 
-\item{inputFile}{If input is "AffyGTF" or "CustomGTF", inputFile should point to the GTF
+\item{inputFile}{If input is 'AffyGTF' or 'CustomGTF', inputFile should point to the GTF
 file to be used.}
 
 \item{PSR}{Path to the Exon probes txt file}
@@ -41,7 +41,7 @@ Generates the CDF file to be used under the aroma.affymetrix framework
    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
    JunctionProbes<-paste(PathFiles,'/Junction_Probes.txt',sep='')
    Directory<-tempdir()
-   microarray<-"HTA-2_0"
+   microarray<-'HTA-2_0'
 
   # Run the function
 

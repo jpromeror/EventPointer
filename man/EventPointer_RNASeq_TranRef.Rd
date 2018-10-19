@@ -8,19 +8,21 @@ EventPointer_RNASeq_TranRef(Count_Matrix, Statistic = "LogFC", Design,
   Contrast)
 }
 \arguments{
-\item{Count_Matrix}{The list containing the expression data taken from the ouput of GetPSI_FromTranRef}
+\item{Count_Matrix}{The list containing the expression data taken from 
+the ouput of GetPSI_FromTranRef}
 
-\item{Statistic}{The type of statistic to apply. Default = "LogFC" (can be "logFC, "Dif_LogFC","DRS")}
+\item{Statistic}{The type of statistic to apply. 
+Default = 'LogFC' (can be 'logFC, 'Dif_LogFC','DRS')}
 
 \item{Design}{The design matrix of the experiment.}
 
 \item{Contrast}{The Contrast matrix of the experiment.}
 }
 \value{
-a data.frame with the information of the names of the event, 
-        its p.values and the corresponding z.value. If there is more than one contrast, 
-        the function returns as many data.frames as number of contrast and 
-        all these data.frame are sotred in an unique list.
+a data.frame with the information of the names of the event,
+its p.values and the corresponding z.value. If there is more than
+one contrast, the function returns as many data.frames as number
+of contrast and all these data.frame are sotred in an unique list.
 }
 \description{
 Statistical analysis with the output of GetPSI_FromTranRef
@@ -28,17 +30,17 @@ Statistical analysis with the output of GetPSI_FromTranRef
 \examples{
    data(EventXtrans)
    data(PSIss)
-	# Design and contrast matrix:
+   # Design and contrast matrix:
 
-		Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
-		Contrast <- matrix(c(0,1),nrow=2)
+   Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
+   Contrast <- matrix(c(0,1),nrow=2)
 
-		# Statistical analysis:
+   # Statistical analysis:
 
 
-		Fit <- EventPointer_RNASeq_TranRef(Count_Matrix =  PSIss$ExpEvs,
-		                                   Statistic = "LogFC",Design = Design,
-		                                    Contrast = Contrast)
+   Fit <- EventPointer_RNASeq_TranRef(Count_Matrix =  PSIss$ExpEvs,
+                                      Statistic = 'LogFC',Design = Design,
+                                      Contrast = Contrast)
 
 
 }

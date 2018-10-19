@@ -33,28 +33,24 @@
 
 EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
     
-    if(is.null(Events))
-    {
-      stop("Missing alternative splicing events")
+    if (is.null(Events)) {
+        stop("Missing alternative splicing events")
     }
-  
-    if(is.null(SG_RNASeq))
-    {
-      stop("Missing splicing graphs information")
+    
+    if (is.null(SG_RNASeq)) {
+        stop("Missing splicing graphs information")
     }
-  
-    if(is.null(EventsTxt) | class(EventsTxt)!="character" )
-    {
-      stop("Wrong or missing EventsTxt field")
+    
+    if (is.null(EventsTxt) | class(EventsTxt) != "character") {
+        stop("Wrong or missing EventsTxt field")
     }
-  
-    if(is.null(PathGTF) | class(PathGTF)!="character" )
-    {
-      stop("Wrong or missing PathGTF field")
+    
+    if (is.null(PathGTF) | class(PathGTF) != "character") {
+        stop("Wrong or missing PathGTF field")
     }
-  
-  
-  
+    
+    
+    
     SgF <- rowRanges(SG_RNASeq)
     
     ######################## iiP<-which(strand(SgF)@values=='+') iiN<-which(strand(SgF)@values=='-')
@@ -95,7 +91,7 @@ EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
         iixx <- match(rownames(Events)[jj], EventsInfo[, 1])
         
         EventPaths <- GetIGVPaths(EventsInfo[iixx, ], SG_Edges)
-		class(EventPaths[, 2]) <- "integer"
+        class(EventPaths[, 2]) <- "integer"
         class(EventPaths[, 3]) <- "integer"
         WriteGTF_RNASeq(PathGTF, EventsInfo[iixx, ], EventPaths)
         
