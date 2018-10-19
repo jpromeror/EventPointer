@@ -913,7 +913,7 @@ ClassifyEvents <- function (SG,Events,twopaths){
           # path 1
           MisExons_1 <- data.frame(From=Events[[XX]]$P1$From,To=Events[[XX]]$P1$To)
           Info1 <- merge(MisExons_1,SG$Edges)
-          Info1$dist <- as.numeric(as.vector(Info1$End))-as.numeric(as.vactor(Info1$Start))
+          Info1$dist <- as.numeric(as.vector(Info1$End))-as.numeric(as.vector(Info1$Start))
           AA_1 <- Info1$dist[Info1$Type=="J"]
           l_1 <- length(AA_1)
           

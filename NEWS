@@ -4,8 +4,17 @@
  * Dropbox URL updated with required files for all arrays
  * RNASeq pipeline stable
 
-  Version 1.2
+ Version 1.2
  ------------------
  * Minor bugs fixed
  * Any Custom GTF is now usable with EventPointer
  * EventsFound located in Dropbox URL now contains gene names.
+
+ Version 2.0
+ ------------------
+ * Bug Fixed (ClassifyEvents)
+ * Calculation the relative error associated with the calculation of PSI
+ * Events statistical analysis by using PSI and the associated relative error
+ * New pipeline for RNA-Seq based on data quantified using reference transcriptome
+ * Multi-path events detection
+ 
