@@ -17,6 +17,10 @@
 EventPointer can be installed from Bioconductor using the BiocManager package:
 
 ```{r, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+
 library(BiocManager)
+
 BiocManager::install("EventPointer")
 ```
