@@ -31,8 +31,8 @@
 #' @export
 
 
-EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
-    
+EventPointer_RNASeq_IGV <- function(Events, 
+    SG_RNASeq, EventsTxt, PathGTF) {
     if (is.null(Events)) {
         stop("Missing alternative splicing events")
     }
@@ -41,11 +41,13 @@ EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
         stop("Missing splicing graphs information")
     }
     
-    if (is.null(EventsTxt) | class(EventsTxt) != "character") {
+    if (is.null(EventsTxt) | class(EventsTxt) != 
+        "character") {
         stop("Wrong or missing EventsTxt field")
     }
     
-    if (is.null(PathGTF) | class(PathGTF) != "character") {
+    if (is.null(PathGTF) | class(PathGTF) != 
+        "character") {
         stop("Wrong or missing PathGTF field")
     }
     
@@ -53,48 +55,62 @@ EventPointer_RNASeq_IGV <- function(Events, SG_RNASeq, EventsTxt, PathGTF) {
     
     SgF <- rowRanges(SG_RNASeq)
     
-    ######################## iiP<-which(strand(SgF)@values=='+') iiN<-which(strand(SgF)@values=='-')
-    ######################## strand(SgF)@values[iiP]<-'-' strand(SgF)@values[iiN]<-'+'
+    ######################## iiP<-which(strand(SgF)@values=='+')
+    ######################## iiN<-which(strand(SgF)@values=='-')
+    ######################## strand(SgF)@values[iiP]<-'-'
+    ######################## strand(SgF)@values[iiN]<-'+'
     
-    # Create file to store gtf for patths (events)
-    FILE.paths <- paste(PathGTF, "/paths_RNASeq.gtf", sep = "")
-    cat(file = FILE.paths, paste("#track name=", shQuote("paths", type = "cmd"), 
-        " gffTags=", shQuote("on", type = "cmd"), sep = ""), "\n")
+    # Create file to store gtf for patths
+    # (events)
+    FILE.paths <- paste(PathGTF, "/paths_RNASeq.gtf", 
+        sep = "")
+    cat(file = FILE.paths, paste("#track name=", 
+        shQuote("paths", type = "cmd"), " gffTags=", 
+        shQuote("on", type = "cmd"), sep = ""), 
+        "\n")
     
     # Read EventsFound txt
-    EventsInfo <- read.delim(file = EventsTxt, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
-    # xx<-paste(EventsInfo[,1],'_',EventsInfo[,2],sep='') rownames(EventsInfo)<-xx
+    EventsInfo <- read.delim(file = EventsTxt, 
+        sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+    # xx<-paste(EventsInfo[,1],'_',EventsInfo[,2],sep='')
+    # rownames(EventsInfo)<-xx
     
     cat("\n Generating GTF Files...")
     
-    pb <- txtProgressBar(min = 0, max = nrow(Events), style = 3)
+    pb <- txtProgressBar(min = 0, max = nrow(Events), 
+        style = 3)
     
     for (jj in seq_len(nrow(Events))) {
         setTxtProgressBar(pb, jj)
         
-        ### 3 Hay que ajustar esta l?nea Gene<-unlist(strsplit(Events[jj,1],'_'))[1]
-        EventXX <- as.numeric(unlist(strsplit(rownames(Events)[jj], "_")))
+        ### 3 Hay que ajustar esta l?nea
+        ### Gene<-unlist(strsplit(Events[jj,1],'_'))[1]
+        EventXX <- as.numeric(unlist(strsplit(rownames(Events)[jj], 
+            "_")))
         Gene <- EventXX[1]
         EvNumb <- EventXX[2]
         # Gene<-EventsInfo[jj,1]
         
-        SG_Gene <- SgF[unlist(geneID(SgF)) == Gene]
+        SG_Gene <- SgF[unlist(geneID(SgF)) == 
+            Gene]
         
         SG_Edges <- SG_Info(SG_Gene)$Edges
         
-        if (unique(SG_Edges[, "Strand"]) == "") {
+        if (unique(SG_Edges[, "Strand"]) == 
+            "") {
             SG_Edges[, "Strand"] <- "-"
-            
         }
         
         # iixx<-match(Events[jj,1],rownames(EventsInfo))
-        iixx <- match(rownames(Events)[jj], EventsInfo[, 1])
+        iixx <- match(rownames(Events)[jj], 
+            EventsInfo[, 1])
         
-        EventPaths <- GetIGVPaths(EventsInfo[iixx, ], SG_Edges)
+        EventPaths <- GetIGVPaths(EventsInfo[iixx, 
+            ], SG_Edges)
         class(EventPaths[, 2]) <- "integer"
         class(EventPaths[, 3]) <- "integer"
-        WriteGTF_RNASeq(PathGTF, EventsInfo[iixx, ], EventPaths)
-        
+        WriteGTF_RNASeq(PathGTF, EventsInfo[iixx, 
+            ], EventPaths)
     }
     
     

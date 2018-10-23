@@ -1,21 +1,22 @@
 #' EventPointer Internal Functions
 #'
-#' Internal functions used by EventPointer in the different 
+#' Internal functions used by EventPointer in the different
 #' steps of the algorithm
 #'
 #' @keywords internal
 #' @name InternalFunctions
-#' @return Internal outputs 
-#' 
+#' @return Internal outputs
+#'
 #'
 NULL
 
 #' @rdname InternalFunctions
-annotateEvents <- function(Events, PSR_Gene, Junc_Gene, Gxx) {
-    
+annotateEvents <- function(Events, PSR_Gene, 
+    Junc_Gene, Gxx) {
     GeneName <- Gxx
     ENSGID <- Gxx
-    Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, "Chr"]))
+    Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, 
+        "Chr"]))
     Result <- vector("list")
     Flat <- vector("list")
     mm <- 0
@@ -31,192 +32,266 @@ annotateEvents <- function(Events, PSR_Gene, Junc_Gene, Gxx) {
         PSR_Ref <- c()
         Junc_Ref <- c()
         
-        ExonsP1 <- which(Events[[ii]]$P1[, "Type"] == "E")
-        JunctionsP1 <- which(Events[[ii]]$P1[, "Type"] == "J")
+        ExonsP1 <- which(Events[[ii]]$P1[, 
+            "Type"] == "E")
+        JunctionsP1 <- which(Events[[ii]]$P1[, 
+            "Type"] == "J")
         
         if (length(ExonsP1) > 0) {
-            EPP1 <- Events[[ii]]$P1[ExonsP1, ]
-            PSR_P1 <- sapply(seq_len(nrow(EPP1)), function(x) {
-                which(as.numeric(PSR_Gene[, "Start"]) >= as.numeric(EPP1[x, "Start"]) & 
-                as.numeric(PSR_Gene[, "Stop"]) <= as.numeric(EPP1[x, "End"]))
-            })
-            PSR_P1 <- PSR_Gene[unlist(PSR_P1), 1]
-            
+            EPP1 <- Events[[ii]]$P1[ExonsP1, 
+                ]
+            PSR_P1 <- sapply(seq_len(nrow(EPP1)), 
+                function(x) {
+                  which(as.numeric(PSR_Gene[, 
+                    "Start"]) >= as.numeric(EPP1[x, 
+                    "Start"]) & as.numeric(PSR_Gene[, 
+                    "Stop"]) <= as.numeric(EPP1[x, 
+                    "End"]))
+                })
+            PSR_P1 <- PSR_Gene[unlist(PSR_P1), 
+                1]
         }
         
         if (length(JunctionsP1) > 0) {
-            JPP1 <- Events[[ii]]$P1[JunctionsP1, ]
-            Junc_P1 <- sapply(seq_len(nrow(JPP1)), function(x) {
-                which(as.numeric(Junc_Gene[, "Start"]) == as.numeric(JPP1[x, "Start"]) & 
-                  as.numeric(Junc_Gene[, "Stop"]) == as.numeric(JPP1[x, "End"]))
-            })
-            Junc_P1 <- Junc_Gene[unlist(Junc_P1), 1]
+            JPP1 <- Events[[ii]]$P1[JunctionsP1, 
+                ]
+            Junc_P1 <- sapply(seq_len(nrow(JPP1)), 
+                function(x) {
+                  which(as.numeric(Junc_Gene[, 
+                    "Start"]) == as.numeric(JPP1[x, 
+                    "Start"]) & as.numeric(Junc_Gene[, 
+                    "Stop"]) == as.numeric(JPP1[x, 
+                    "End"]))
+                })
+            Junc_P1 <- Junc_Gene[unlist(Junc_P1), 
+                1]
         }
         
         
-        ExonsP2 <- which(Events[[ii]]$P2[, "Type"] == "E")
-        JunctionsP2 <- which(Events[[ii]]$P2[, "Type"] == "J")
+        ExonsP2 <- which(Events[[ii]]$P2[, 
+            "Type"] == "E")
+        JunctionsP2 <- which(Events[[ii]]$P2[, 
+            "Type"] == "J")
         
         if (length(ExonsP2) > 0) {
-            EPP2 <- Events[[ii]]$P2[ExonsP2, ]
-            PSR_P2 <- sapply(seq_len(nrow(EPP2)), function(x) {
-                which(as.numeric(PSR_Gene[, "Start"]) >= as.numeric(EPP2[x, "Start"]) & 
-                  as.numeric(PSR_Gene[, "Stop"]) <= as.numeric(EPP2[x, "End"]))
-            })
-            PSR_P2 <- PSR_Gene[unlist(PSR_P2), 1]
-            
+            EPP2 <- Events[[ii]]$P2[ExonsP2, 
+                ]
+            PSR_P2 <- sapply(seq_len(nrow(EPP2)), 
+                function(x) {
+                  which(as.numeric(PSR_Gene[, 
+                    "Start"]) >= as.numeric(EPP2[x, 
+                    "Start"]) & as.numeric(PSR_Gene[, 
+                    "Stop"]) <= as.numeric(EPP2[x, 
+                    "End"]))
+                })
+            PSR_P2 <- PSR_Gene[unlist(PSR_P2), 
+                1]
         }
         
         if (length(JunctionsP2) > 0) {
-            JPP2 <- Events[[ii]]$P2[JunctionsP2, ]
-            Junc_P2 <- sapply(seq_len(nrow(JPP2)), function(x) {
-                which(as.numeric(Junc_Gene[, "Start"]) == as.numeric(JPP2[x, "Start"]) & 
-                  as.numeric(Junc_Gene[, "Stop"]) == as.numeric(JPP2[x, "End"]))
-            })
-            Junc_P2 <- Junc_Gene[unlist(Junc_P2), 1]
+            JPP2 <- Events[[ii]]$P2[JunctionsP2, 
+                ]
+            Junc_P2 <- sapply(seq_len(nrow(JPP2)), 
+                function(x) {
+                  which(as.numeric(Junc_Gene[, 
+                    "Start"]) == as.numeric(JPP2[x, 
+                    "Start"]) & as.numeric(Junc_Gene[, 
+                    "Stop"]) == as.numeric(JPP2[x, 
+                    "End"]))
+                })
+            Junc_P2 <- Junc_Gene[unlist(Junc_P2), 
+                1]
         }
         
         
-        ExonsRef <- which(Events[[ii]]$Ref[, "Type"] == "E")
-        JunctionsRef <- which(Events[[ii]]$Ref[, "Type"] == "J")
+        ExonsRef <- which(Events[[ii]]$Ref[, 
+            "Type"] == "E")
+        JunctionsRef <- which(Events[[ii]]$Ref[, 
+            "Type"] == "J")
         
         if (length(ExonsRef) > 0) {
-            EPRef <- Events[[ii]]$Ref[ExonsRef, ]
-            PSR_Ref <- sapply(seq_len(nrow(EPRef)), function(x) {
-                which(as.numeric(PSR_Gene[, "Start"]) >= as.numeric(EPRef[x, "Start"]) & 
-                  as.numeric(PSR_Gene[, "Stop"]) <= as.numeric(EPRef[x, "End"]))
-            })
-            PSR_Ref <- PSR_Gene[unlist(PSR_Ref), 1]
-            
+            EPRef <- Events[[ii]]$Ref[ExonsRef, 
+                ]
+            PSR_Ref <- sapply(seq_len(nrow(EPRef)), 
+                function(x) {
+                  which(as.numeric(PSR_Gene[, 
+                    "Start"]) >= as.numeric(EPRef[x, 
+                    "Start"]) & as.numeric(PSR_Gene[, 
+                    "Stop"]) <= as.numeric(EPRef[x, 
+                    "End"]))
+                })
+            PSR_Ref <- PSR_Gene[unlist(PSR_Ref), 
+                1]
         }
         
         if (length(JunctionsRef) > 0) {
-            JPRef <- Events[[ii]]$Ref[JunctionsRef, ]
-            Junc_Ref <- sapply(seq_len(nrow(JPRef)), function(x) {
-                which(as.numeric(Junc_Gene[, "Start"]) == as.numeric(JPRef[x, "Start"]) & 
-                  as.numeric(Junc_Gene[, "Stop"]) == as.numeric(JPRef[x, "End"]))
-            })
-            Junc_Ref <- Junc_Gene[unlist(Junc_Ref), 1]
+            JPRef <- Events[[ii]]$Ref[JunctionsRef, 
+                ]
+            Junc_Ref <- sapply(seq_len(nrow(JPRef)), 
+                function(x) {
+                  which(as.numeric(Junc_Gene[, 
+                    "Start"]) == as.numeric(JPRef[x, 
+                    "Start"]) & as.numeric(Junc_Gene[, 
+                    "Stop"]) == as.numeric(JPRef[x, 
+                    "End"]))
+                })
+            Junc_Ref <- Junc_Gene[unlist(Junc_Ref), 
+                1]
         }
         
         
-        # PSR_P2<-sapply(1:nrow(Events[[ii]]$P2),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(Events[[ii]]$P2[x,'Start'])
-        # & as.numeric(PSR_Gene[,'Stop'])<=as.numeric(Events[[ii]]$P2[x,'End']))})
-        # PSR_P2<-PSR_Gene[unlist(PSR_P2),6]
-        # Junc_P2<-sapply(1:nrow(Events[[ii]]$P2),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(Events[[ii]]$P2[x,'Start'])
-        # & as.numeric(Junc_Gene[,'Stop'])==as.numeric(Events[[ii]]$P2[x,'End']))})
-        # Junc_P2<-Junc_Gene[unlist(Junc_P2),1]
-        # PSR_Ref<-sapply(1:nrow(Events[[ii]]$Ref),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(Events[[ii]]$Ref[x,'Start'])
-        # & as.numeric(PSR_Gene[,'Stop'])<=as.numeric(Events[[ii]]$Ref[x,'End']))})
-        # PSR_Ref<-PSR_Gene[unlist(PSR_Ref),6]
-        # Junc_Ref<-sapply(1:nrow(Events[[ii]]$Ref),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(Events[[ii]]$Ref[x,'Start'])
-        # & as.numeric(Junc_Gene[,'Stop'])==as.numeric(Events[[ii]]$Ref[x,'End']))})
-        # Junc_Ref<-Junc_Gene[unlist(Junc_Ref),1]
+        Events[[ii]]$Probes_P1 <- c(PSR_P1, 
+            Junc_P1)
+        Events[[ii]]$Probes_P2 <- c(PSR_P2, 
+            Junc_P2)
+        Events[[ii]]$Probes_Ref <- c(PSR_Ref, 
+            Junc_Ref)
         
-        
-        
-        
-        Events[[ii]]$Probes_P1 <- c(PSR_P1, Junc_P1)
-        Events[[ii]]$Probes_P2 <- c(PSR_P2, Junc_P2)
-        Events[[ii]]$Probes_Ref <- c(PSR_Ref, Junc_Ref)
-        
-        if (length(Events[[ii]]$Probes_P1) > 0 & length(Events[[ii]]$Probes_P2) > 
-            0 & length(Events[[ii]]$Probes_Ref) > 0) {
+        if (length(Events[[ii]]$Probes_P1) > 
+            0 & length(Events[[ii]]$Probes_P2) > 
+            0 & length(Events[[ii]]$Probes_Ref) > 
+            0) {
             mm <- mm + 1
             
             EventNumber <- ii
             
             EventType <- Events[[ii]]$Type
             
-            Positions <- rbind(Events[[ii]]$P1, Events[[ii]]$P2)[, 4:5]
-            Start <- as.numeric(Positions[, 1])
-            End <- as.numeric(Positions[, 2])
-            Start <- Start[which(Start != 0)]
+            Positions <- rbind(Events[[ii]]$P1, 
+                Events[[ii]]$P2)[, 4:5]
+            Start <- as.numeric(Positions[, 
+                1])
+            End <- as.numeric(Positions[, 
+                2])
+            Start <- Start[which(Start != 
+                0)]
             End <- End[which(End != 0)]
             
             # browser()
             minGPos <- min(Start)
             maxGPos <- max(End)
-            GPos <- paste(Chrom, ":", minGPos, "-", maxGPos, sep = "")
+            GPos <- paste(Chrom, ":", minGPos, 
+                "-", maxGPos, sep = "")
             
-            CP1s <- which(Events[[ii]]$P1[, 1] == "S")
-            CP1e <- which(Events[[ii]]$P1[, 2] == "E")
+            CP1s <- which(Events[[ii]]$P1[, 
+                1] == "S")
+            CP1e <- which(Events[[ii]]$P1[, 
+                2] == "E")
             
-            if (length(CP1s) > 0 | length(CP1e) > 0) {
+            if (length(CP1s) > 0 | length(CP1e) > 
+                0) {
                 CC <- c(CP1s, CP1e)
-                Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, ]
+                Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, 
+                  ]
             }
             
-            PS1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 1]))
-            PE1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 2]))
-            Path1 <- as.matrix(cbind(PS1, PE1))
-            Path1 <- Path1[order(Path1[, 1], Path1[, 2]), , drop = FALSE]
+            PS1 <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$P1[, 1]))
+            PE1 <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$P1[, 2]))
+            Path1 <- as.matrix(cbind(PS1, 
+                PE1))
+            Path1 <- Path1[order(Path1[, 
+                1], Path1[, 2]), , drop = FALSE]
             
-            CP2s <- which(Events[[ii]]$P2[, 1] == "S")
-            CP2e <- which(Events[[ii]]$P2[, 2] == "E")
+            CP2s <- which(Events[[ii]]$P2[, 
+                1] == "S")
+            CP2e <- which(Events[[ii]]$P2[, 
+                2] == "E")
             
-            if (length(CP2s) > 0 | length(CP2e) > 0) {
+            if (length(CP2s) > 0 | length(CP2e) > 
+                0) {
                 CC <- c(CP2s, CP2e)
-                Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, ]
+                Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, 
+                  ]
             }
             
-            PS2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 1]))
-            PE2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 2]))
-            Path2 <- as.matrix(cbind(PS2, PE2))
-            Path2 <- Path2[order(Path2[, 1], Path2[, 2]), , drop = FALSE]
+            PS2 <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$P2[, 1]))
+            PE2 <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$P2[, 2]))
+            Path2 <- as.matrix(cbind(PS2, 
+                PE2))
+            Path2 <- Path2[order(Path2[, 
+                1], Path2[, 2]), , drop = FALSE]
             
-            CPRs <- which(Events[[ii]]$Ref[, 1] == "S")
-            CPRe <- which(Events[[ii]]$Ref[, 2] == "E")
+            CPRs <- which(Events[[ii]]$Ref[, 
+                1] == "S")
+            CPRe <- which(Events[[ii]]$Ref[, 
+                2] == "E")
             
-            if (length(CPRs) > 0 | length(CPRe) > 0) {
+            if (length(CPRs) > 0 | length(CPRe) > 
+                0) {
                 CC <- c(CPRs, CPRe)
-                Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, ]
+                Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, 
+                  ]
             }
             
-            PSR <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 1]))
-            PER <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 2]))
-            PathR <- as.matrix(cbind(PSR, PER))
-            PathR <- PathR[order(PathR[, 1], PathR[, 2]), , drop = FALSE]
+            PSR <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$Ref[, 1]))
+            PER <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$Ref[, 2]))
+            PathR <- as.matrix(cbind(PSR, 
+                PER))
+            PathR <- PathR[order(PathR[, 
+                1], PathR[, 2]), , drop = FALSE]
             
             
-            Path1 <- paste(Path1[, 1], "-", Path1[, 2], sep = "", collapse = ",")
-            Path2 <- paste(Path2[, 1], "-", Path2[, 2], sep = "", collapse = ",")
-            PathR <- paste(PathR[, 1], "-", PathR[, 2], sep = "", collapse = ",")
+            Path1 <- paste(Path1[, 1], "-", 
+                Path1[, 2], sep = "", collapse = ",")
+            Path2 <- paste(Path2[, 1], "-", 
+                Path2[, 2], sep = "", collapse = ",")
+            PathR <- paste(PathR[, 1], "-", 
+                PathR[, 2], sep = "", collapse = ",")
             
-            ProbesP1 <- paste(Events[[ii]]$Probes_P1, collapse = ",")
-            ProbesP2 <- paste(Events[[ii]]$Probes_P2, collapse = ",")
-            ProbesR <- paste(Events[[ii]]$Probes_Ref, collapse = ",")
+            ProbesP1 <- paste(Events[[ii]]$Probes_P1, 
+                collapse = ",")
+            ProbesP2 <- paste(Events[[ii]]$Probes_P2, 
+                collapse = ",")
+            ProbesR <- paste(Events[[ii]]$Probes_Ref, 
+                collapse = ",")
             
-            NEv <- data.frame(GeneName, ENSGID, EventNumber, EventType, GPos, Path1, 
-                Path2, PathR, ProbesP1, ProbesP2, ProbesR, stringsAsFactors = FALSE)
+            NEv <- data.frame(GeneName, ENSGID, 
+                EventNumber, EventType, GPos, 
+                Path1, Path2, PathR, ProbesP1, 
+                ProbesP2, ProbesR, stringsAsFactors = FALSE)
             Result[[mm]] <- NEv
             
             
             Tprobes <- rbind(PSR_Gene, Junc_Gene)
-            ii.P1 <- match(Events[[ii]]$Probes_P1, Tprobes[, 1])
-            ii.P2 <- match(Events[[ii]]$Probes_P2, Tprobes[, 1])
-            ii.R <- match(Events[[ii]]$Probes_Ref, Tprobes[, 1])
+            ii.P1 <- match(Events[[ii]]$Probes_P1, 
+                Tprobes[, 1])
+            ii.P2 <- match(Events[[ii]]$Probes_P2, 
+                Tprobes[, 1])
+            ii.R <- match(Events[[ii]]$Probes_Ref, 
+                Tprobes[, 1])
             
             lP1 <- length(ii.P1)
             lP2 <- length(ii.P2)
             lRef <- length(ii.R)
             
-            xRef <- rep(paste(GeneName, "_", EventNumber, "_Ref", sep = ""), lRef)
-            xP1 <- rep(paste(GeneName, "_", EventNumber, "_P1", sep = ""), lP1)
-            xP2 <- rep(paste(GeneName, "_", EventNumber, "_P2", sep = ""), lP2)
-            xTot <- rep(paste(GeneName, "_", EventNumber, sep = ""), lP1 + lP2 + 
+            xRef <- rep(paste(GeneName, "_", 
+                EventNumber, "_Ref", sep = ""), 
                 lRef)
+            xP1 <- rep(paste(GeneName, "_", 
+                EventNumber, "_P1", sep = ""), 
+                lP1)
+            xP2 <- rep(paste(GeneName, "_", 
+                EventNumber, "_P2", sep = ""), 
+                lP2)
+            xTot <- rep(paste(GeneName, "_", 
+                EventNumber, sep = ""), lP1 + 
+                lP2 + lRef)
             
-            AllProbes <- c(Events[[ii]]$Probes_Ref, Events[[ii]]$Probes_P1, Events[[ii]]$Probes_P2)
-            flat_gene <- cbind(AllProbes, Tprobes[c(ii.R, ii.P1, ii.P2), c(2, 3, 
-                9)], c(xRef, xP1, xP2), xTot)
+            AllProbes <- c(Events[[ii]]$Probes_Ref, 
+                Events[[ii]]$Probes_P1, Events[[ii]]$Probes_P2)
+            flat_gene <- cbind(AllProbes, 
+                Tprobes[c(ii.R, ii.P1, ii.P2), 
+                  c(2, 3, 9)], c(xRef, xP1, 
+                  xP2), xTot)
             
             Flat[[mm]] <- flat_gene
-            
-            
-            
         }
-        
     }
     
     Result <- do.call(rbind, Result)
@@ -226,22 +301,26 @@ annotateEvents <- function(Events, PSR_Gene, Junc_Gene, Gxx) {
 
 
 #' @rdname InternalFunctions
-annotateEventsMultipath <- function(Events, PSR_Gene, Junc_Gene, Gxx, paths) {
+annotateEventsMultipath <- function(Events, 
+    PSR_Gene, Junc_Gene, Gxx, paths) {
     GeneName <- Gxx
     ENSGID <- Gxx
-    Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, "Chr"]))
+    Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, 
+        "Chr"]))
     Result <- vector("list")
     Flat <- vector("list")
     mm <- 0
     
     for (ii in seq_along(Events)) {
-        
         for (kk in seq_len(paths)) {
-            command <- paste0("Events[[ii]]$Probes_P", kk, "<-NULL")
+            command <- paste0("Events[[ii]]$Probes_P", 
+                kk, "<-NULL")
             eval(parse(text = command))
-            command <- paste0("PSR_P", kk, "<-c()")
+            command <- paste0("PSR_P", kk, 
+                "<-c()")
             eval(parse(text = command))
-            command <- paste0("Junc_P", kk, "<-c()")
+            command <- paste0("Junc_P", kk, 
+                "<-c()")
             eval(parse(text = command))
         }
         Events[[ii]]$Probes_Ref <- NULL
@@ -250,85 +329,121 @@ annotateEventsMultipath <- function(Events, PSR_Gene, Junc_Gene, Gxx, paths) {
         
         
         for (kk in seq_len(paths)) {
-            
-            command <- paste0("ExonsP", kk, "<-which(Events[[ii]]$P", kk, "[,'Type']=='E')")
+            command <- paste0("ExonsP", kk, 
+                "<-which(Events[[ii]]$P", 
+                kk, "[,'Type']=='E')")
             eval(parse(text = command))
             
-            command <- paste0("JunctionsP", kk, "<-which(Events[[ii]]$P", kk, "[,'Type']=='J')")
+            command <- paste0("JunctionsP", 
+                kk, "<-which(Events[[ii]]$P", 
+                kk, "[,'Type']=='J')")
             eval(parse(text = command))
             
             # ExonsP1,2,3 and JunctionP1,2,... etc
             
-            command <- paste0("a <- length(ExonsP", kk, ">0)")
+            command <- paste0("a <- length(ExonsP", 
+                kk, ">0)")
             eval(parse(text = command))
             if (a > 0) {
-                command <- paste0("EPP", kk, "<-Events[[ii]]$P", kk, "[ExonsP", kk, 
-                  ",]")
+                command <- paste0("EPP", 
+                  kk, "<-Events[[ii]]$P", 
+                  kk, "[ExonsP", kk, ",]")
                 eval(parse(text = command))
-                command <- paste0("PSR_P", kk, "<-sapply(1:nrow(EPP", kk, "),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(EPP", 
+                command <- paste0("PSR_P", 
+                  kk, "<-sapply(1:nrow(EPP", 
+                  kk, "),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(EPP", 
                   kk, "[x,'Start']) & as.numeric(PSR_Gene[,'Stop'])<=as.numeric(EPP", 
                   kk, "[x,'End']))})")
                 eval(parse(text = command))
-                command <- paste0("PSR_P", kk, "<-PSR_Gene[unlist(PSR_P", kk, "),1]")
+                command <- paste0("PSR_P", 
+                  kk, "<-PSR_Gene[unlist(PSR_P", 
+                  kk, "),1]")
                 eval(parse(text = command))
             }
             
-            command <- paste0("a <- length(JunctionsP", kk, ">0)")
+            command <- paste0("a <- length(JunctionsP", 
+                kk, ">0)")
             eval(parse(text = command))
             if (a > 0) {
-                command <- paste0("JPP", kk, "<-Events[[ii]]$P", kk, "[JunctionsP", 
-                  kk, ",]")
+                command <- paste0("JPP", 
+                  kk, "<-Events[[ii]]$P", 
+                  kk, "[JunctionsP", kk, 
+                  ",]")
                 eval(parse(text = command))
-                command <- paste0("Junc_P", kk, "<-sapply(1:nrow(JPP", kk, "),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(JPP", 
+                command <- paste0("Junc_P", 
+                  kk, "<-sapply(1:nrow(JPP", 
+                  kk, "),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(JPP", 
                   kk, "[x,'Start']) & as.numeric(Junc_Gene[,'Stop'])==as.numeric(JPP", 
                   kk, "[x,'End']))})")
                 eval(parse(text = command))
-                command <- paste0("Junc_P", kk, "<-Junc_Gene[unlist(Junc_P", kk, 
-                  "),1]")
+                command <- paste0("Junc_P", 
+                  kk, "<-Junc_Gene[unlist(Junc_P", 
+                  kk, "),1]")
                 eval(parse(text = command))
             }
         }
         
-        ExonsRef <- which(Events[[ii]]$Ref[, "Type"] == "E")
-        JunctionsRef <- which(Events[[ii]]$Ref[, "Type"] == "J")
+        ExonsRef <- which(Events[[ii]]$Ref[, 
+            "Type"] == "E")
+        JunctionsRef <- which(Events[[ii]]$Ref[, 
+            "Type"] == "J")
         
         if (length(ExonsRef) > 0) {
-            EPRef <- Events[[ii]]$Ref[ExonsRef, ]
-            PSR_Ref <- sapply(seq_len(nrow(EPRef)), function(x) {
-                which(as.numeric(PSR_Gene[, "Start"]) >= as.numeric(EPRef[x, "Start"]) & 
-                  as.numeric(PSR_Gene[, "Stop"]) <= as.numeric(EPRef[x, "End"]))
-            })
-            PSR_Ref <- PSR_Gene[unlist(PSR_Ref), 1]
-            
+            EPRef <- Events[[ii]]$Ref[ExonsRef, 
+                ]
+            PSR_Ref <- sapply(seq_len(nrow(EPRef)), 
+                function(x) {
+                  which(as.numeric(PSR_Gene[, 
+                    "Start"]) >= as.numeric(EPRef[x, 
+                    "Start"]) & as.numeric(PSR_Gene[, 
+                    "Stop"]) <= as.numeric(EPRef[x, 
+                    "End"]))
+                })
+            PSR_Ref <- PSR_Gene[unlist(PSR_Ref), 
+                1]
         }
         
         if (length(JunctionsRef) > 0) {
-            JPRef <- Events[[ii]]$Ref[JunctionsRef, ]
-            Junc_Ref <- sapply(seq_len(nrow(JPRef)), function(x) {
-                which(as.numeric(Junc_Gene[, "Start"]) == as.numeric(JPRef[x, "Start"]) & 
-                  as.numeric(Junc_Gene[, "Stop"]) == as.numeric(JPRef[x, "End"]))
-            })
-            Junc_Ref <- Junc_Gene[unlist(Junc_Ref), 1]
+            JPRef <- Events[[ii]]$Ref[JunctionsRef, 
+                ]
+            Junc_Ref <- sapply(seq_len(nrow(JPRef)), 
+                function(x) {
+                  which(as.numeric(Junc_Gene[, 
+                    "Start"]) == as.numeric(JPRef[x, 
+                    "Start"]) & as.numeric(Junc_Gene[, 
+                    "Stop"]) == as.numeric(JPRef[x, 
+                    "End"]))
+                })
+            Junc_Ref <- Junc_Gene[unlist(Junc_Ref), 
+                1]
         }
         
         
         for (kk in seq_len(paths)) {
-            command <- paste0("Events[[ii]]$Probes_P", kk, "<-c(PSR_P", kk, ",Junc_P", 
+            command <- paste0("Events[[ii]]$Probes_P", 
+                kk, "<-c(PSR_P", kk, ",Junc_P", 
                 kk, ")")
             eval(parse(text = command))
         }
-        Events[[ii]]$Probes_Ref <- c(PSR_Ref, Junc_Ref)
+        Events[[ii]]$Probes_Ref <- c(PSR_Ref, 
+            Junc_Ref)
         
         
-        # only the events in which all their events are able to be measured are shown. It
-        # is necesary to know the number of paths of each Event
-        for (kk in seq_len((Events[[ii]]$NumP + 1))) {
+        # only the events in which all their
+        # events are able to be measured are
+        # shown. It is necesary to know the
+        # number of paths of each Event
+        for (kk in seq_len((Events[[ii]]$NumP + 
+            1))) {
             if (kk == 1) {
-                a <- paste0("a <- length(Events[[ii]]$Probes_P", kk, ")>0 & ")
-            } else if (kk == (Events[[ii]]$NumP + 1)) {
+                a <- paste0("a <- length(Events[[ii]]$Probes_P", 
+                  kk, ")>0 & ")
+            } else if (kk == (Events[[ii]]$NumP + 
+                1)) {
                 a <- paste0(a, "length(Events[[ii]]$Probes_Ref)>0")
             } else {
-                a <- paste0(a, "length(Events[[ii]]$Probes_P", kk, ")>0 & ")
+                a <- paste0(a, "length(Events[[ii]]$Probes_P", 
+                  kk, ")>0 & ")
             }
         }
         eval(parse(text = a))
@@ -346,93 +461,131 @@ annotateEventsMultipath <- function(Events, PSR_Gene, Junc_Gene, Gxx, paths) {
             EventNumP <- Events[[ii]]$NumP
             for (kk in seq_len(EventNumP)) {
                 if (kk == 1) {
-                  Positions <- paste0("Positions <- rbind(Events[[ii]]$P", kk)
+                  Positions <- paste0("Positions <- rbind(Events[[ii]]$P", 
+                    kk)
                 } else if (kk == EventNumP) {
-                  Positions <- paste0(Positions, ",Events[[ii]]$P", kk, ")[,4:5]")
+                  Positions <- paste0(Positions, 
+                    ",Events[[ii]]$P", kk, 
+                    ")[,4:5]")
                 } else {
-                  Positions <- paste0(Positions, ",Events[[ii]]$P", kk)
+                  Positions <- paste0(Positions, 
+                    ",Events[[ii]]$P", kk)
                 }
             }
             eval(parse(text = Positions))
             # Positions<-rbind(Events[[ii]]$P1,Events[[ii]]$P2)[,4:5]
-            Start <- as.numeric(Positions[, 1])
-            End <- as.numeric(Positions[, 2])
-            Start <- Start[which(Start != 0)]
+            Start <- as.numeric(Positions[, 
+                1])
+            End <- as.numeric(Positions[, 
+                2])
+            Start <- Start[which(Start != 
+                0)]
             End <- End[which(End != 0)]
             
             # browser()
             minGPos <- min(Start)
             maxGPos <- max(End)
-            GPos <- paste(Chrom, ":", minGPos, "-", maxGPos, sep = "")
+            GPos <- paste(Chrom, ":", minGPos, 
+                "-", maxGPos, sep = "")
             
             for (kk in seq_len(EventNumP)) {
-                command <- paste0("CP", kk, "s<-which(Events[[ii]]$P", kk, "[,1]=='S')")
+                command <- paste0("CP", kk, 
+                  "s<-which(Events[[ii]]$P", 
+                  kk, "[,1]=='S')")
                 eval(parse(text = command))
-                command <- paste0("CP", kk, "e<-which(Events[[ii]]$P", kk, "[,2]=='E')")
+                command <- paste0("CP", kk, 
+                  "e<-which(Events[[ii]]$P", 
+                  kk, "[,2]=='E')")
                 eval(parse(text = command))
-                a <- paste0("a<-length(CP", kk, "s)>0|length(CP", kk, "e)>0")
+                a <- paste0("a<-length(CP", 
+                  kk, "s)>0|length(CP", kk, 
+                  "e)>0")
                 eval(parse(text = a))
                 if (a) {
-                  command <- paste0("CC<-c(CP", kk, "s,CP", kk, "e)")
+                  command <- paste0("CC<-c(CP", 
+                    kk, "s,CP", kk, "e)")
                   eval(parse(text = command))
-                  command <- paste0("Events[[ii]]$P", kk, "<-Events[[ii]]$P", kk, 
-                    "[-CC,]")
+                  command <- paste0("Events[[ii]]$P", 
+                    kk, "<-Events[[ii]]$P", 
+                    kk, "[-CC,]")
                   eval(parse(text = command))
                 }
-                command <- paste0("PS", kk, "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
+                command <- paste0("PS", kk, 
+                  "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
                   kk, "[,1]))")
                 eval(parse(text = command))
-                command <- paste0("PE", kk, "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
+                command <- paste0("PE", kk, 
+                  "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
                   kk, "[,2]))")
                 eval(parse(text = command))
-                command <- paste0("Path", kk, "<-as.matrix(cbind(PS", kk, ",PE", 
-                  kk, "))")
+                command <- paste0("Path", 
+                  kk, "<-as.matrix(cbind(PS", 
+                  kk, ",PE", kk, "))")
                 eval(parse(text = command))
-                command <- paste0("Path", kk, "<-Path", kk, "[order(Path", kk, "[,1],Path", 
-                  kk, "[,2]),,drop=FALSE]")
+                command <- paste0("Path", 
+                  kk, "<-Path", kk, "[order(Path", 
+                  kk, "[,1],Path", kk, "[,2]),,drop=FALSE]")
                 eval(parse(text = command))
             }
             
             
-            CPRs <- which(Events[[ii]]$Ref[, 1] == "S")
-            CPRe <- which(Events[[ii]]$Ref[, 2] == "E")
+            CPRs <- which(Events[[ii]]$Ref[, 
+                1] == "S")
+            CPRe <- which(Events[[ii]]$Ref[, 
+                2] == "E")
             
-            if (length(CPRs) > 0 | length(CPRe) > 0) {
+            if (length(CPRs) > 0 | length(CPRe) > 
+                0) {
                 CC <- c(CPRs, CPRe)
-                Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, ]
+                Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, 
+                  ]
             }
             
-            PSR <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 1]))
-            PER <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 2]))
-            PathR <- as.matrix(cbind(PSR, PER))
-            PathR <- PathR[order(PathR[, 1], PathR[, 2]), , drop = FALSE]
+            PSR <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$Ref[, 1]))
+            PER <- as.numeric(gsub(".[ab]", 
+                "", Events[[ii]]$Ref[, 2]))
+            PathR <- as.matrix(cbind(PSR, 
+                PER))
+            PathR <- PathR[order(PathR[, 
+                1], PathR[, 2]), , drop = FALSE]
             
-            PathR <- paste(PathR[, 1], "-", PathR[, 2], sep = "", collapse = ",")
-            ProbesR <- paste(Events[[ii]]$Probes_Ref, collapse = ",")
+            PathR <- paste(PathR[, 1], "-", 
+                PathR[, 2], sep = "", collapse = ",")
+            ProbesR <- paste(Events[[ii]]$Probes_Ref, 
+                collapse = ",")
             NEv <- "NEv<-data.frame(GeneName,ENSGID,EventNumber,EventType,GPos,EventNumP,"
             for (kk in seq_len(paths)) {
                 if (kk <= EventNumP) {
-                  command <- paste0("Path", kk, "<-paste(Path", kk, "[,1],'-',Path", 
-                    kk, "[,2],sep='',collapse=',')")
+                  command <- paste0("Path", 
+                    kk, "<-paste(Path", kk, 
+                    "[,1],'-',Path", kk, 
+                    "[,2],sep='',collapse=',')")
                   eval(parse(text = command))
-                  command <- paste0("ProbesP", kk, "<-paste(Events[[ii]]$Probes_P", 
+                  command <- paste0("ProbesP", 
+                    kk, "<-paste(Events[[ii]]$Probes_P", 
                     kk, ",collapse=',')")
                   eval(parse(text = command))
                 } else {
-                  command <- paste0("Path", kk, "<-'-'")
+                  command <- paste0("Path", 
+                    kk, "<-'-'")
                   eval(parse(text = command))
-                  command <- paste0("ProbesP", kk, "<-'-'")
+                  command <- paste0("ProbesP", 
+                    kk, "<-'-'")
                   eval(parse(text = command))
                 }
-                NEv <- paste0(NEv, "Path", kk, ",")
+                NEv <- paste0(NEv, "Path", 
+                  kk, ",")
             }
             NEv <- paste0(NEv, "PathR,")
             for (kk in seq_len(paths)) {
-                NEv <- paste0(NEv, "ProbesP", kk, ",")
+                NEv <- paste0(NEv, "ProbesP", 
+                  kk, ",")
             }
             NEv <- paste0(NEv, "ProbesR,stringsAsFactors = FALSE)")
             eval(parse(text = NEv))
-            # NEv<-data.frame(GeneName,ENSGID,EventNumber,EventType,GPos,Path1,Path2,PathR,ProbesP1,ProbesP2,ProbesR,stringsAsFactors
+            # NEv<-data.frame(GeneName,ENSGID,EventNumber,EventType,GPos,
+            # Path1,Path2,PathR,ProbesP1,ProbesP2,ProbesR,stringsAsFactors
             # = FALSE)
             Result[[mm]] <- NEv
             
@@ -442,50 +595,64 @@ annotateEventsMultipath <- function(Events, PSR_Gene, Junc_Gene, Gxx, paths) {
             AllProbes <- "AllProbes<-c(Events[[ii]]$Probes_Ref,"
             flat_gene <- "flat_gene<-cbind(AllProbes,Tprobes[c(ii.R,"
             for (kk in seq_len(EventNumP)) {
-                command <- paste0("ii.P", kk, "<-match(Events[[ii]]$Probes_P", kk, 
-                  ",Tprobes[,1])")
+                command <- paste0("ii.P", 
+                  kk, "<-match(Events[[ii]]$Probes_P", 
+                  kk, ",Tprobes[,1])")
                 eval(parse(text = command))
-                command <- paste0("lP", kk, "<-length(ii.P", kk, ")")
+                command <- paste0("lP", kk, 
+                  "<-length(ii.P", kk, ")")
                 eval(parse(text = command))
-                command <- paste0("xP", kk, "<-rep(paste(GeneName,'_',EventNumber,'_P", 
-                  kk, "',sep=''),lP", kk, ")")
+                command <- paste0("xP", kk, 
+                  "<-rep(paste(GeneName,'_',EventNumber,'_P", 
+                  kk, "',sep=''),lP", kk, 
+                  ")")
                 eval(parse(text = command))
-                xTot <- paste0(xTot, "lP", kk, "+")
+                xTot <- paste0(xTot, "lP", 
+                  kk, "+")
                 if (kk == EventNumP) {
-                  AllProbes <- paste0(AllProbes, "Events[[ii]]$Probes_P", kk, ")")
-                  flat_gene <- paste0(flat_gene, "ii.P", kk, "),c(2,3,9)],c(xRef,")
+                  AllProbes <- paste0(AllProbes, 
+                    "Events[[ii]]$Probes_P", 
+                    kk, ")")
+                  flat_gene <- paste0(flat_gene, 
+                    "ii.P", kk, "),c(2,3,9)],c(xRef,")
                   for (zz in seq_len(EventNumP)) {
                     if (zz == EventNumP) {
-                      flat_gene <- paste0(flat_gene, "xP", zz, "),xTot)")
+                      flat_gene <- paste0(flat_gene, 
+                        "xP", zz, "),xTot)")
                     } else {
-                      flat_gene <- paste0(flat_gene, "xP", zz, ",")
+                      flat_gene <- paste0(flat_gene, 
+                        "xP", zz, ",")
                     }
-                    
                   }
                 } else {
-                  AllProbes <- paste0(AllProbes, "Events[[ii]]$Probes_P", kk, ",")
-                  flat_gene <- paste0(flat_gene, "ii.P", kk, ",")
+                  AllProbes <- paste0(AllProbes, 
+                    "Events[[ii]]$Probes_P", 
+                    kk, ",")
+                  flat_gene <- paste0(flat_gene, 
+                    "ii.P", kk, ",")
                 }
             }
             xTot <- paste0(xTot, "lRef)")
             
-            ii.R <- match(Events[[ii]]$Probes_Ref, Tprobes[, 1])
+            ii.R <- match(Events[[ii]]$Probes_Ref, 
+                Tprobes[, 1])
             lRef <- length(ii.R)
-            xRef <- rep(paste(GeneName, "_", EventNumber, "_Ref", sep = ""), lRef)
+            xRef <- rep(paste(GeneName, "_", 
+                EventNumber, "_Ref", sep = ""), 
+                lRef)
             
             eval(parse(text = xTot))
             eval(parse(text = AllProbes))
             eval(parse(text = flat_gene))
-            # AllProbes<-c(Events[[ii]]$Probes_Ref,Events[[ii]]$Probes_P1,Events[[ii]]$Probes_P2)
-            # flat_gene<-cbind(AllProbes,Tprobes[c(ii.R,ii.P1,ii.P2),c(2,3,9)],c(xRef,xP1,xP2),xTot)
-            colnames(flat_gene) <- c("Probe_ID", "X", "Y", "Probe_Sequence", "Group_ID", 
-                "Unit_ID")
+            # AllProbes<-c(Events[[ii]]$Probes_Ref,Events[[ii]]$Probes_P1,
+            # Events[[ii]]$Probes_P2)
+            # flat_gene<-cbind(AllProbes,Tprobes[c(ii.R,ii.P1,ii.P2),c(2,3,9)],
+            # c(xRef,xP1,xP2),xTot)
+            colnames(flat_gene) <- c("Probe_ID", 
+                "X", "Y", "Probe_Sequence", 
+                "Group_ID", "Unit_ID")
             Flat[[mm]] <- flat_gene
-            
-            
-            
         }
-        
     }
     
     Result <- do.call(rbind, Result)
@@ -498,15 +665,16 @@ annotateEventsMultipath <- function(Events, PSR_Gene, Junc_Gene, Gxx, paths) {
 AnnotateEvents_RNASeq <- function(Events) {
     Result <- vector("list", length = length(Events))
     for (ii in seq_along(Events)) {
-        
-        
         GeneName <- as.vector(Events[[ii]]$GeneName)
         GeneID <- as.vector(Events[[ii]]$Gene)
         EventNumber <- ii
-        EventID <- paste(GeneID, "_", EventNumber, sep = "")
+        EventID <- paste(GeneID, "_", EventNumber, 
+            sep = "")
         EventType <- Events[[ii]]$Type
-        Chrom <- as.vector(Events[[ii]]$P1[1, "Chr"])
-        Positions <- rbind(Events[[ii]]$P1, Events[[ii]]$P2)[, 4:5]
+        Chrom <- as.vector(Events[[ii]]$P1[1, 
+            "Chr"])
+        Positions <- rbind(Events[[ii]]$P1, 
+            Events[[ii]]$P2)[, 4:5]
         Start <- as.numeric(Positions[, 1])
         End <- as.numeric(Positions[, 2])
         Start <- Start[which(Start != 0)]
@@ -515,87 +683,115 @@ AnnotateEvents_RNASeq <- function(Events) {
         # browser()
         minGPos <- min(Start)
         maxGPos <- max(End)
-        GPos <- paste(Chrom, ":", minGPos, "-", maxGPos, sep = "")
+        GPos <- paste(Chrom, ":", minGPos, 
+            "-", maxGPos, sep = "")
         
-        CP1s <- which(Events[[ii]]$P1[, 1] == "S")
-        CP1e <- which(Events[[ii]]$P1[, 2] == "E")
+        CP1s <- which(Events[[ii]]$P1[, 1] == 
+            "S")
+        CP1e <- which(Events[[ii]]$P1[, 2] == 
+            "E")
         
-        if (length(CP1s) > 0 | length(CP1e) > 0) {
+        if (length(CP1s) > 0 | length(CP1e) > 
+            0) {
             CC <- c(CP1s, CP1e)
-            Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, ]
+            Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, 
+                ]
         }
         
-        PS1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 1]))
-        PE1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 2]))
+        PS1 <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$P1[, 1]))
+        PE1 <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$P1[, 2]))
         Path1 <- as.matrix(cbind(PS1, PE1))
-        Path1 <- Path1[order(Path1[, 1], Path1[, 2]), , drop = FALSE]
+        Path1 <- Path1[order(Path1[, 1], 
+            Path1[, 2]), , drop = FALSE]
         
-        CP2s <- which(Events[[ii]]$P2[, 1] == "S")
-        CP2e <- which(Events[[ii]]$P2[, 2] == "E")
+        CP2s <- which(Events[[ii]]$P2[, 1] == 
+            "S")
+        CP2e <- which(Events[[ii]]$P2[, 2] == 
+            "E")
         
-        if (length(CP2s) > 0 | length(CP2e) > 0) {
+        if (length(CP2s) > 0 | length(CP2e) > 
+            0) {
             CC <- c(CP2s, CP2e)
-            Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, ]
+            Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, 
+                ]
         }
         
-        PS2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 1]))
-        PE2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 2]))
+        PS2 <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$P2[, 1]))
+        PE2 <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$P2[, 2]))
         Path2 <- as.matrix(cbind(PS2, PE2))
-        Path2 <- Path2[order(Path2[, 1], Path2[, 2]), , drop = FALSE]
+        Path2 <- Path2[order(Path2[, 1], 
+            Path2[, 2]), , drop = FALSE]
         
-        CPRs <- which(Events[[ii]]$Ref[, 1] == "S")
-        CPRe <- which(Events[[ii]]$Ref[, 2] == "E")
+        CPRs <- which(Events[[ii]]$Ref[, 
+            1] == "S")
+        CPRe <- which(Events[[ii]]$Ref[, 
+            2] == "E")
         
-        if (length(CPRs) > 0 | length(CPRe) > 0) {
+        if (length(CPRs) > 0 | length(CPRe) > 
+            0) {
             CC <- c(CPRs, CPRe)
-            Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, ]
+            Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, 
+                ]
         }
         
-        PSR <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 1]))
-        PER <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 2]))
+        PSR <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$Ref[, 1]))
+        PER <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$Ref[, 2]))
         PathR <- as.matrix(cbind(PSR, PER))
-        PathR <- PathR[order(PathR[, 1], PathR[, 2]), , drop = FALSE]
+        PathR <- PathR[order(PathR[, 1], 
+            PathR[, 2]), , drop = FALSE]
         
         
-        Path1 <- paste(Path1[, 1], "-", Path1[, 2], sep = "", collapse = ",")
-        Path2 <- paste(Path2[, 1], "-", Path2[, 2], sep = "", collapse = ",")
-        PathR <- paste(PathR[, 1], "-", PathR[, 2], sep = "", collapse = ",")
+        Path1 <- paste(Path1[, 1], "-", Path1[, 
+            2], sep = "", collapse = ",")
+        Path2 <- paste(Path2[, 1], "-", Path2[, 
+            2], sep = "", collapse = ",")
+        PathR <- paste(PathR[, 1], "-", PathR[, 
+            2], sep = "", collapse = ",")
         
-        NEv <- data.frame(EventID, GeneName, EventNumber, EventType, GPos, Path1, 
-            Path2, PathR, stringsAsFactors = FALSE)
+        NEv <- data.frame(EventID, GeneName, 
+            EventNumber, EventType, GPos, 
+            Path1, Path2, PathR, stringsAsFactors = FALSE)
         Result[[ii]] <- NEv
-        
     }
     
     Result <- do.call(rbind, Result)
-    colnames(Result) <- c("EventID", "Gene", "Event Number", "Event Type", "Genomic Position", 
+    colnames(Result) <- c("EventID", "Gene", 
+        "Event Number", "Event Type", "Genomic Position", 
         "Path 1", "Path 2", "Path Reference")
     
     return(Result)
-    
-    
 }
 
 #' @rdname InternalFunctions
-AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
+AnnotateEvents_RNASeq_MultiPath <- function(Events, 
+    paths) {
+    Positions <- NULL
     Result <- vector("list", length = length(Events))
     for (ii in seq_along(Events)) {
-        
-        
         GeneName <- as.vector(Events[[ii]]$GeneName)
         GeneID <- as.vector(Events[[ii]]$Gene)
         EventNumber <- ii
-        EventID <- paste(GeneID, "_", EventNumber, sep = "")
+        EventID <- paste(GeneID, "_", EventNumber, 
+            sep = "")
         EventType <- Events[[ii]]$Type
-        Chrom <- as.vector(Events[[ii]]$P1[1, "Chr"])
+        Chrom <- as.vector(Events[[ii]]$P1[1, 
+            "Chr"])
         
         EventNumP <- Events[[ii]]$NumP
         command <- "Positions<-rbind(Events[[ii]]$P1,"
         for (kk in 2:EventNumP) {
             if (kk == EventNumP) {
-                command <- paste0(command, "Events[[ii]]$P", kk, ")[,4:5]")
+                command <- paste0(command, 
+                  "Events[[ii]]$P", kk, ")[,4:5]")
             } else {
-                command <- paste0(command, "Events[[ii]]$P", kk, ",")
+                command <- paste0(command, 
+                  "Events[[ii]]$P", kk, ",")
             }
         }
         eval(parse(text = command))
@@ -608,27 +804,37 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
         # browser()
         minGPos <- min(Start)
         maxGPos <- max(End)
-        GPos <- paste(Chrom, ":", minGPos, "-", maxGPos, sep = "")
+        GPos <- paste(Chrom, ":", minGPos, 
+            "-", maxGPos, sep = "")
         
-        # CP1s<-which(Events[[ii]]$P1[,1]=='S') CP1e<-which(Events[[ii]]$P1[,2]=='E')
-        # if(length(CP1s)>0|length(CP1e)>0) { CC<-c(CP1s,CP1e)
-        # Events[[ii]]$P1<-Events[[ii]]$P1[-CC,] }
+        # CP1s<-which(Events[[ii]]$P1[,1]=='S')
+        # CP1e<-which(Events[[ii]]$P1[,2]=='E')
+        # if(length(CP1s)>0|length(CP1e)>0) {
+        # CC<-c(CP1s,CP1e)
+        # Events[[ii]]$P1<-Events[[ii]]$P1[-CC,]
+        # }
         # PS1<-as.numeric(gsub('.[ab]','',Events[[ii]]$P1[,1]))
         # PE1<-as.numeric(gsub('.[ab]','',Events[[ii]]$P1[,2]))
         # Path1<-as.matrix(cbind(PS1,PE1))
         # Path1<-Path1[order(Path1[,1],Path1[,2]),,drop=FALSE]
         
         for (kk in seq_len(EventNumP)) {
-            command <- paste0("CP", kk, "s<-which(Events[[ii]]$P", kk, "[,1]=='S')")
+            command <- paste0("CP", kk, "s<-which(Events[[ii]]$P", 
+                kk, "[,1]=='S')")
             eval(parse(text = command))
-            command <- paste0("CP", kk, "e<-which(Events[[ii]]$P", kk, "[,2]=='E')")
+            command <- paste0("CP", kk, "e<-which(Events[[ii]]$P", 
+                kk, "[,2]=='E')")
             eval(parse(text = command))
-            a <- paste0("a<-length(CP", kk, "s)>0|length(CP", kk, "e)>0")
+            a <- paste0("a<-length(CP", kk, 
+                "s)>0|length(CP", kk, "e)>0")
             eval(parse(text = a))
             if (a) {
-                command <- paste0("CC<-c(CP", kk, "s,CP", kk, "e)")
+                command <- paste0("CC<-c(CP", 
+                  kk, "s,CP", kk, "e)")
                 eval(parse(text = command))
-                command <- paste0("Events[[ii]]$P", kk, "<-Events[[ii]]$P", kk, "[-CC,]")
+                command <- paste0("Events[[ii]]$P", 
+                  kk, "<-Events[[ii]]$P", 
+                  kk, "[-CC,]")
                 eval(parse(text = command))
             }
             command <- paste0("PS", kk, "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
@@ -637,11 +843,13 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
             command <- paste0("PE", kk, "<-as.numeric(gsub('.[ab]','',Events[[ii]]$P", 
                 kk, "[,2]))")
             eval(parse(text = command))
-            command <- paste0("Path", kk, "<-as.matrix(cbind(PS", kk, ",PE", kk, 
-                "))")
+            command <- paste0("Path", kk, 
+                "<-as.matrix(cbind(PS", kk, 
+                ",PE", kk, "))")
             eval(parse(text = command))
-            command <- paste0("Path", kk, "<-Path", kk, "[order(Path", kk, "[,1],Path", 
-                kk, "[,2]),,drop=FALSE]")
+            command <- paste0("Path", kk, 
+                "<-Path", kk, "[order(Path", 
+                kk, "[,1],Path", kk, "[,2]),,drop=FALSE]")
             eval(parse(text = command))
         }
         
@@ -650,26 +858,36 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
         
         
         
-        # CP2s<-which(Events[[ii]]$P2[,1]=='S') CP2e<-which(Events[[ii]]$P2[,2]=='E')
-        # if(length(CP2s)>0|length(CP2e)>0) { CC<-c(CP2s,CP2e)
-        # Events[[ii]]$P2<-Events[[ii]]$P2[-CC,] }
+        # CP2s<-which(Events[[ii]]$P2[,1]=='S')
+        # CP2e<-which(Events[[ii]]$P2[,2]=='E')
+        # if(length(CP2s)>0|length(CP2e)>0) {
+        # CC<-c(CP2s,CP2e)
+        # Events[[ii]]$P2<-Events[[ii]]$P2[-CC,]
+        # }
         # PS2<-as.numeric(gsub('.[ab]','',Events[[ii]]$P2[,1]))
         # PE2<-as.numeric(gsub('.[ab]','',Events[[ii]]$P2[,2]))
         # Path2<-as.matrix(cbind(PS2,PE2))
         # Path2<-Path2[order(Path2[,1],Path2[,2]),,drop=FALSE]
         
-        CPRs <- which(Events[[ii]]$Ref[, 1] == "S")
-        CPRe <- which(Events[[ii]]$Ref[, 2] == "E")
+        CPRs <- which(Events[[ii]]$Ref[, 
+            1] == "S")
+        CPRe <- which(Events[[ii]]$Ref[, 
+            2] == "E")
         
-        if (length(CPRs) > 0 | length(CPRe) > 0) {
+        if (length(CPRs) > 0 | length(CPRe) > 
+            0) {
             CC <- c(CPRs, CPRe)
-            Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, ]
+            Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, 
+                ]
         }
         
-        PSR <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 1]))
-        PER <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 2]))
+        PSR <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$Ref[, 1]))
+        PER <- as.numeric(gsub(".[ab]", "", 
+            Events[[ii]]$Ref[, 2]))
         PathR <- as.matrix(cbind(PSR, PER))
-        PathR <- PathR[order(PathR[, 1], PathR[, 2]), , drop = FALSE]
+        PathR <- PathR[order(PathR[, 1], 
+            PathR[, 2]), , drop = FALSE]
         
         
         # Path1<-paste(Path1[,1],'-',Path1[,2],sep='',collapse=',')
@@ -677,29 +895,34 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
         NEv <- "NEv<-data.frame(EventID,GeneName,EventNumber,EventType,GPos,EventNumP,"
         for (kk in seq_len(paths)) {
             if (kk <= EventNumP) {
-                command <- paste0("Path", kk, "<-paste(Path", kk, "[,1],'-',Path", 
-                  kk, "[,2],sep='',collapse=',')")
+                command <- paste0("Path", 
+                  kk, "<-paste(Path", kk, 
+                  "[,1],'-',Path", kk, "[,2],sep='',collapse=',')")
                 eval(parse(text = command))
                 # command <-
-                # paste0('ProbesP',kk,'<-paste(Events[[ii]]$Probes_P',kk,',collapse=',')')
-                # eval(parse(text = command))
+                # paste0('ProbesP',kk,'<-paste(Events[[ii]]$Probes_P',
+                # kk,',collapse=',')') eval(parse(text =
+                # command))
             } else {
-                command <- paste0("Path", kk, "<-'-'")
+                command <- paste0("Path", 
+                  kk, "<-'-'")
                 eval(parse(text = command))
-                # command <- paste0('ProbesP',kk,'<-'-'') eval(parse(text = command))
+                # command <- paste0('ProbesP',kk,'<-'-'')
+                # eval(parse(text = command))
             }
-            NEv <- paste0(NEv, "Path", kk, ",")
+            NEv <- paste0(NEv, "Path", kk, 
+                ",")
         }
         
-        PathR <- paste(PathR[, 1], "-", PathR[, 2], sep = "", collapse = ",")
+        PathR <- paste(PathR[, 1], "-", PathR[, 
+            2], sep = "", collapse = ",")
         NEv <- paste0(NEv, "PathR,stringsAsFactors = FALSE)")
         eval(parse(text = NEv))
         rownames(NEv) <- NULL
-        # NEv<-data.frame(EventID,GeneName,EventNumber,EventType,GPos,Path1,Path2,PathR,stringsAsFactors
-        # = FALSE)
+        # NEv<-data.frame(EventID,GeneName,EventNumber,EventType,GPos,
+        # Path1,Path2,PathR,stringsAsFactors =
+        # FALSE)
         Result[[ii]] <- NEv
-        
-        
     }
     
     Result <- do.call(rbind, Result)
@@ -709,127 +932,168 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events, paths) {
         if (kk == (paths + 1)) {
             command <- paste0(command, "'Path Ref')")
         } else {
-            command <- paste0(command, "'Path ", kk, "',")
+            command <- paste0(command, "'Path ", 
+                kk, "',")
         }
     }
     eval(parse(text = command))
     return(Result)
-    
-    
 }
 
 #' @rdname InternalFunctions
-AnnotateEvents_KLL <- function(Events, Gxx, GenI) {
+AnnotateEvents_KLL <- function(Events, Gxx, 
+    GenI) {
     {
         # Gxx <- GeneName
         GeneName <- Gxx
         GeneID <- GenI
-        Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, "Chr"]))
+        Chrom <- gsub("chr", "", as.vector(Events[[1]]$P1[1, 
+            "Chr"]))
         Result <- vector("list")
         # Flat<-vector('list')
         mm <- 0
         
         for (ii in seq_along(Events)) {
-            if (!any(c(identical(unique(Events[[ii]]$P1$Type), "V"), identical(unique(Events[[ii]]$P2$Type), 
-                "V"), identical(unique(Events[[ii]]$Ref$Type), "V")) == TRUE)) {
+            if (!any(c(identical(unique(Events[[ii]]$P1$Type), 
+                "V"), identical(unique(Events[[ii]]$P2$Type), 
+                "V"), identical(unique(Events[[ii]]$Ref$Type), 
+                "V")) == TRUE)) {
                 mm <- mm + 1
                 
                 EventNumber <- ii
                 
                 EventType <- Events[[ii]]$Type
                 
-                Positions <- rbind(Events[[ii]]$P1, Events[[ii]]$P2)[, 4:5]
-                Start <- as.numeric(Positions[, 1])
-                End <- as.numeric(Positions[, 2])
-                Start <- Start[which(Start != 0)]
+                Positions <- rbind(Events[[ii]]$P1, 
+                  Events[[ii]]$P2)[, 4:5]
+                Start <- as.numeric(Positions[, 
+                  1])
+                End <- as.numeric(Positions[, 
+                  2])
+                Start <- Start[which(Start != 
+                  0)]
                 End <- End[which(End != 0)]
                 
                 # browser()
                 minGPos <- min(Start)
                 maxGPos <- max(End)
-                GPos <- paste(Chrom, ":", minGPos, "-", maxGPos, sep = "")
+                GPos <- paste(Chrom, ":", 
+                  minGPos, "-", maxGPos, 
+                  sep = "")
                 
-                CP1s <- which(Events[[ii]]$P1[, 1] == "S")
-                CP1e <- which(Events[[ii]]$P1[, 2] == "E")
+                CP1s <- which(Events[[ii]]$P1[, 
+                  1] == "S")
+                CP1e <- which(Events[[ii]]$P1[, 
+                  2] == "E")
                 
-                if (length(CP1s) > 0 | length(CP1e) > 0) {
+                if (length(CP1s) > 0 | length(CP1e) > 
+                  0) {
                   CC <- c(CP1s, CP1e)
-                  Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, ]
+                  Events[[ii]]$P1 <- Events[[ii]]$P1[-CC, 
+                    ]
                 }
                 
-                PS1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 1]))
-                PE1 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P1[, 2]))
-                Path1 <- as.matrix(cbind(PS1, PE1))
-                Path1 <- Path1[order(Path1[, 1], Path1[, 2]), , drop = FALSE]
+                PS1 <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$P1[, 1]))
+                PE1 <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$P1[, 2]))
+                Path1 <- as.matrix(cbind(PS1, 
+                  PE1))
+                Path1 <- Path1[order(Path1[, 
+                  1], Path1[, 2]), , drop = FALSE]
                 
-                CP2s <- which(Events[[ii]]$P2[, 1] == "S")
-                CP2e <- which(Events[[ii]]$P2[, 2] == "E")
+                CP2s <- which(Events[[ii]]$P2[, 
+                  1] == "S")
+                CP2e <- which(Events[[ii]]$P2[, 
+                  2] == "E")
                 
-                if (length(CP2s) > 0 | length(CP2e) > 0) {
+                if (length(CP2s) > 0 | length(CP2e) > 
+                  0) {
                   CC <- c(CP2s, CP2e)
-                  Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, ]
+                  Events[[ii]]$P2 <- Events[[ii]]$P2[-CC, 
+                    ]
                 }
                 
-                PS2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 1]))
-                PE2 <- as.numeric(gsub(".[ab]", "", Events[[ii]]$P2[, 2]))
-                Path2 <- as.matrix(cbind(PS2, PE2))
-                Path2 <- Path2[order(Path2[, 1], Path2[, 2]), , drop = FALSE]
+                PS2 <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$P2[, 1]))
+                PE2 <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$P2[, 2]))
+                Path2 <- as.matrix(cbind(PS2, 
+                  PE2))
+                Path2 <- Path2[order(Path2[, 
+                  1], Path2[, 2]), , drop = FALSE]
                 
-                CPRs <- which(Events[[ii]]$Ref[, 1] == "S")
-                CPRe <- which(Events[[ii]]$Ref[, 2] == "E")
+                CPRs <- which(Events[[ii]]$Ref[, 
+                  1] == "S")
+                CPRe <- which(Events[[ii]]$Ref[, 
+                  2] == "E")
                 
-                if (length(CPRs) > 0 | length(CPRe) > 0) {
+                if (length(CPRs) > 0 | length(CPRe) > 
+                  0) {
                   CC <- c(CPRs, CPRe)
-                  Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, ]
+                  Events[[ii]]$Ref <- Events[[ii]]$Ref[-CC, 
+                    ]
                 }
                 
-                PSR <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 1]))
-                PER <- as.numeric(gsub(".[ab]", "", Events[[ii]]$Ref[, 2]))
-                PathR <- as.matrix(cbind(PSR, PER))
-                PathR <- PathR[order(PathR[, 1], PathR[, 2]), , drop = FALSE]
+                PSR <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$Ref[, 
+                    1]))
+                PER <- as.numeric(gsub(".[ab]", 
+                  "", Events[[ii]]$Ref[, 
+                    2]))
+                PathR <- as.matrix(cbind(PSR, 
+                  PER))
+                PathR <- PathR[order(PathR[, 
+                  1], PathR[, 2]), , drop = FALSE]
                 
                 
-                Path1 <- paste(Path1[, 1], "-", Path1[, 2], sep = "", collapse = ",")
-                Path2 <- paste(Path2[, 1], "-", Path2[, 2], sep = "", collapse = ",")
-                PathR <- paste(PathR[, 1], "-", PathR[, 2], sep = "", collapse = ",")
+                Path1 <- paste(Path1[, 1], 
+                  "-", Path1[, 2], sep = "", 
+                  collapse = ",")
+                Path2 <- paste(Path2[, 1], 
+                  "-", Path2[, 2], sep = "", 
+                  collapse = ",")
+                PathR <- paste(PathR[, 1], 
+                  "-", PathR[, 2], sep = "", 
+                  collapse = ",")
                 
                 
-                NEv <- data.frame(GeneName, GeneID, EventNumber, EventType, GPos, 
-                  Path1, Path2, PathR, stringsAsFactors = FALSE)
+                NEv <- data.frame(GeneName, 
+                  GeneID, EventNumber, EventType, 
+                  GPos, Path1, Path2, PathR, 
+                  stringsAsFactors = FALSE)
                 Result[[mm]] <- NEv
-                
-                
             }
-            
         }
         
         Result <- do.call(rbind, Result)
         
         return(Result)
     }
-    
 }
 
 
 #' @rdname InternalFunctions
 ClassifyEvents <- function(SG, Events, twopaths) {
-    
     Events <- lapply(seq_along(Events), function(XX) {
         if (XX %in% twopaths) {
-            # Keep the components of Path 1 and Path 2
+            # Keep the components of Path 1 and Path
+            # 2
             P1 <- Events[[XX]]$P1[, seq_len(2)]
             P2 <- Events[[XX]]$P2[, seq_len(2)]
             Info <- rbind(P1, P2)
             
-            # If there is an edge that leaves the Start node, we have an Alternative First
-            # Exon
+            # If there is an edge that leaves the
+            # Start node, we have an Alternative
+            # First Exon
             if (any(Info[, 1] == "S")) {
                 Events[[XX]]$Type <- "Alternative First Exon"
                 # next
                 return(Events[[XX]])
             }
             
-            # If there is an edge that enters the End node, we have an Alternative Last Exon
+            # If there is an edge that enters the End
+            # node, we have an Alternative Last Exon
             
             if (any(Info[, 2] == "E")) {
                 Events[[XX]]$Type <- "Alternative Last Exon"
@@ -837,67 +1101,84 @@ ClassifyEvents <- function(SG, Events, twopaths) {
                 return(Events[[XX]])
             }
             
-            # Create a Mini Adjacency Graph using only the elements from Path 1 and Path 2
+            # Create a Mini Adjacency Graph using
+            # only the elements from Path 1 and Path
+            # 2
             
-            # Find the From Nodes and To Nodes in the complete Adjacency Matrix
+            # Find the From Nodes and To Nodes in the
+            # complete Adjacency Matrix
             ii <- sort(match(Info[, 1], rownames(SG$Adjacency)))
             jj <- sort(match(Info[, 2], rownames(SG$Adjacency)))
             
-            # The new one will have those rows and columns
+            # The new one will have those rows and
+            # columns
             MiniSGA <- SG$Adjacency[ii, jj]
             
-            # Get unique values, as the elements might be repeated
+            # Get unique values, as the elements
+            # might be repeated
             iixx <- unique(rownames(MiniSGA))
             jjxx <- unique(colnames(MiniSGA))
-            MiniSGA <- MiniSGA[iixx, jjxx, drop = FALSE]
+            MiniSGA <- MiniSGA[iixx, jjxx, 
+                drop = FALSE]
             
             
-            # If MiniSGA has a dimension of 3x3, the event could be: Cassette, Retained
-            # Intron, Alt 3' , Alt 5' or Complex 1a --> 1b --> 2a --> 2b --> 3a --> 3b
-            # \------------------/
-            
-            # 2a 2b 3a 1b 1 .  1 2a .  1 .  2b .  .  1
+            # If MiniSGA has a dimension of 3x3, the
+            # event could be: Cassette, Retained
             
             
-            if (dim(MiniSGA)[1] == 3 & dim(MiniSGA)[2] == 3) {
+            if (dim(MiniSGA)[1] == 3 & dim(MiniSGA)[2] == 
+                3) {
                 
-                # Get the nodes in order: of path 1 (path 1 is the largest and the important one)
-                MisExons <- data.frame(From = Events[[XX]]$P1$From, To = Events[[XX]]$P1$To)
-                Info2 <- merge(MisExons, SG$Edges)
-                Info2$dist <- as.numeric(as.vector(Info2$End)) - as.numeric(as.vector(Info2$Start))
+                # Get the nodes in order: of path 1 (path
+                # 1 is the largest and the important one)
+                MisExons <- data.frame(From = Events[[XX]]$P1$From, 
+                  To = Events[[XX]]$P1$To)
+                Info2 <- merge(MisExons, 
+                  SG$Edges)
+                Info2$dist <- as.numeric(as.vector(Info2$End)) - 
+                  as.numeric(as.vector(Info2$Start))
                 
-                MisExons <- unique(as.numeric(gsub("[.ab]", "", c(as.vector(MisExons$From), 
-                  as.vector(MisExons$To)))))
+                MisExons <- unique(as.numeric(gsub("[.ab]", 
+                  "", c(as.vector(MisExons$From), 
+                    as.vector(MisExons$To)))))
                 
                 misDiff <- diff(sort(MisExons))
-                # if the misDiff == 1 1 -> we have contiguous nodes. This is required for group 1
-                # events.
+                # if the misDiff == 1 1 -> we have
+                # contiguous nodes.  This is required for
+                # group 1 events.
                 
-                AA <- Info2$dist[Info2$Type == "J"]
+                AA <- Info2$dist[Info2$Type == 
+                  "J"]
                 l_A <- length(AA)
-                # The different among the group one relies on the length of the edges.
+                # The different among the group one
+                # relies on the length of the edges.
                 
-                if (l_A == 2 & max(misDiff) == 1) {
-                  if (AA[1] > 1 & AA[2] > 1) {
+                if (l_A == 2 & max(misDiff) == 
+                  1) {
+                  if (AA[1] > 1 & AA[2] > 
+                    1) {
                     # skip a exon.
                     
                     Events[[XX]]$Type <- "Cassette Exon"
                     return(Events[[XX]])
                   }
                   
-                  if (AA[1] > 1 & AA[2] == 1) {
+                  if (AA[1] > 1 & AA[2] == 
+                    1) {
                     # altern 3'
                     Events[[XX]]$Type <- "Alternative 3' Splice Site"
                     return(Events[[XX]])
                   }
                   
-                  if (AA[1] == 1 & AA[2] > 1) {
+                  if (AA[1] == 1 & AA[2] > 
+                    1) {
                     # altern 5'
                     Events[[XX]]$Type <- "Alternative 5' Splice Site"
                     return(Events[[XX]])
                   }
                   
-                  if (AA[1] == 1 & AA[2] == 1) {
+                  if (AA[1] == 1 & AA[2] == 
+                    1) {
                     # Retained Intron
                     Events[[XX]]$Type <- "Retained Intron"
                     return(Events[[XX]])
@@ -907,39 +1188,48 @@ ClassifyEvents <- function(SG, Events, twopaths) {
             
             # The case of Mutually Exclusive Exons
             
-            # /----> 2a --> 2b---\ 1a --> 1b 4a--> 4b \----> 3a --> 3b---/
             
-            # 2a 2b 3a 3b 4a 1b 1 .  1 .  .  2a .  1 .  .  .  2b .  .  * .  1 3a .  .  .  1 .
-            # 3b .  .  .  .  1 * Element Must be Zero
-            
-            
-            if (dim(MiniSGA)[1] == 5 & dim(MiniSGA)[2] == 5) {
+            if (dim(MiniSGA)[1] == 5 & dim(MiniSGA)[2] == 
+                5) {
                 if (MiniSGA[3, 3] == 0) {
                   # path 1
-                  MisExons_1 <- data.frame(From = Events[[XX]]$P1$From, To = Events[[XX]]$P1$To)
-                  Info1 <- merge(MisExons_1, SG$Edges)
-                  Info1$dist <- as.numeric(as.vector(Info1$End)) - as.numeric(as.vector(Info1$Start))
-                  AA_1 <- Info1$dist[Info1$Type == "J"]
+                  MisExons_1 <- data.frame(From = Events[[XX]]$P1$From, 
+                    To = Events[[XX]]$P1$To)
+                  Info1 <- merge(MisExons_1, 
+                    SG$Edges)
+                  Info1$dist <- as.numeric(as.vector(Info1$End)) - 
+                    as.numeric(as.vector(Info1$Start))
+                  AA_1 <- Info1$dist[Info1$Type == 
+                    "J"]
                   l_1 <- length(AA_1)
                   
-                  MisExons_1 <- unique(as.numeric(gsub("[.ab]", "", c(as.vector(MisExons_1$From), 
-                    as.vector(MisExons_1$To)))))
+                  MisExons_1 <- unique(as.numeric(gsub("[.ab]", 
+                    "", c(as.vector(MisExons_1$From), 
+                      as.vector(MisExons_1$To)))))
                   
                   
                   # path 2
-                  MisExons_2 <- data.frame(From = Events[[XX]]$P2$From, To = Events[[XX]]$P2$To)
-                  Info2 <- merge(MisExons_2, SG$Edges)
-                  Info2$dist <- as.numeric(as.vector(Info2$End)) - as.numeric(as.vector(Info2$Start))
-                  AA_2 <- Info2$dist[Info2$Type == "J"]
+                  MisExons_2 <- data.frame(From = Events[[XX]]$P2$From, 
+                    To = Events[[XX]]$P2$To)
+                  Info2 <- merge(MisExons_2, 
+                    SG$Edges)
+                  Info2$dist <- as.numeric(as.vector(Info2$End)) - 
+                    as.numeric(as.vector(Info2$Start))
+                  AA_2 <- Info2$dist[Info2$Type == 
+                    "J"]
                   l_2 <- length(AA_2)
                   
-                  MisExons_2 <- unique(as.numeric(gsub("[.ab]", "", c(as.vector(MisExons_2$From), 
-                    as.vector(MisExons_2$To)))))
+                  MisExons_2 <- unique(as.numeric(gsub("[.ab]", 
+                    "", c(as.vector(MisExons_2$From), 
+                      as.vector(MisExons_2$To)))))
                   
-                  misDiff <- diff(sort(unique(c(MisExons_1, MisExons_2))))
+                  misDiff <- diff(sort(unique(c(MisExons_1, 
+                    MisExons_2))))
                   
-                  if (l_2 == 2 & l_1 == 2 & max(misDiff) == 1) {
-                    if (!any(c(AA_1, AA_2) == 1)) {
+                  if (l_2 == 2 & l_1 == 2 & 
+                    max(misDiff) == 1) {
+                    if (!any(c(AA_1, AA_2) == 
+                      1)) {
                       Events[[XX]]$Type <- "Mutually Exclusive Exons"
                       return(Events[[XX]])
                     }
@@ -964,53 +1254,61 @@ ClassifyEvents <- function(SG, Events, twopaths) {
     
     
     if (SG$Edges[1, "Strand"] == "-") {
-        Types <- sapply(seq_along(Events), function(x) {
-            Events[[x]]$Type
-        })
+        Types <- sapply(seq_along(Events), 
+            function(x) {
+                Events[[x]]$Type
+            })
         
-        if (any(Types == "Alternative 5' Splice Site" | Types == "Alternative 3' Splice Site" | 
-            Types == "Alternative First Exon" | Types == "Alternative Last Exon")) 
-            
-        Events <- lapply(seq_along(Events), function(XX) {
-            
-            if (Events[[XX]]$Type == "Alternative 5' Splice Site") {
-                Events[[XX]]$Type <- "Alternative 3' Splice Site"
-                return(Events[[XX]])
-            }
-            if (Events[[XX]]$Type == "Alternative 3' Splice Site") {
-                Events[[XX]]$Type <- "Alternative 5' Splice Site"
-                return(Events[[XX]])
-            }
-            if (Events[[XX]]$Type == "Alternative First Exon") {
-                Events[[XX]]$Type <- "Alternative Last Exon"
-                return(Events[[XX]])
-            }
-            if (Events[[XX]]$Type == "Alternative Last Exon") {
-                Events[[XX]]$Type <- "Alternative First Exon"
-                return(Events[[XX]])
-            }
-            
-            return(Events[[XX]])
-        })
-        
+        if (any(Types == "Alternative 5' Splice Site" | 
+            Types == "Alternative 3' Splice Site" | 
+            Types == "Alternative First Exon" | 
+            Types == "Alternative Last Exon")) {
+            Events <- lapply(seq_along(Events), 
+                function(XX) {
+                  if (Events[[XX]]$Type == 
+                    "Alternative 5' Splice Site") {
+                    Events[[XX]]$Type <- "Alternative 3' Splice Site"
+                    return(Events[[XX]])
+                  }
+                  if (Events[[XX]]$Type == 
+                    "Alternative 3' Splice Site") {
+                    Events[[XX]]$Type <- "Alternative 5' Splice Site"
+                    return(Events[[XX]])
+                  }
+                  if (Events[[XX]]$Type == 
+                    "Alternative First Exon") {
+                    Events[[XX]]$Type <- "Alternative Last Exon"
+                    return(Events[[XX]])
+                  }
+                  if (Events[[XX]]$Type == 
+                    "Alternative Last Exon") {
+                    Events[[XX]]$Type <- "Alternative First Exon"
+                    return(Events[[XX]])
+                  }
+                  
+                  return(Events[[XX]])
+                })
+        }
     }
     
     
     
     return(Events)
-    
-    
 }
 
 
 #' @rdname InternalFunctions
 
-########################################################## Given the signals of the three paths, estimate the concentrations of each of
-########################################################## the isoforms
+##### Given the signals of the three paths,
+##### estimate the concentrations of each of
+##### the isoforms
 
-# lambda parameter included to regularize the affinities
 
-estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda) {
+# lambda parameter included to regularize
+# the affinities
+
+estimateAbsoluteConc <- function(Signal1, 
+    Signal2, SignalR, lambda) {
     # require(nnls)
     Signal1 <- as.numeric(Signal1)
     Signal2 <- as.numeric(Signal2)
@@ -1030,19 +1328,24 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda) {
         offset <- w/(1 - u - v)  # some times the offset is way too large (1-u-v = 0)
         T1est <- Signal1 * u
         T2est <- Signal2 * v
-        Relerror <- as.numeric(crossprod((A[, seq_len(2)]) %*% c(u, v) - b)/crossprod(b))
+        Relerror <- as.numeric(crossprod((A[, 
+            seq_len(2)]) %*% c(u, v) - b)/crossprod(b))
         
-        residuals <- resultado$residuals[seq_len(cols), , drop = FALSE]
+        residuals <- resultado$residuals[seq_len(cols), 
+            , drop = FALSE]
         
-        return(list(T1est = T1est, T2est = T2est, offset = offset, Relerror = Relerror, 
+        return(list(T1est = T1est, T2est = T2est, 
+            offset = offset, Relerror = Relerror, 
             Residuals = residuals))
     }
-    # Add a new equation to make the values of u and v close to each other
+    # Add a new equation to make the values
+    # of u and v close to each other
     if (is.null(lambda)) {
         lambda <- 0.1
     }
     
-    penalty <- lambda * ((Salida$deviance)/(sum((Salida$x - 1)^2)))
+    penalty <- lambda * ((Salida$deviance)/(sum((Salida$x - 
+        1)^2)))
     penalty <- sqrt(penalty)
     
     A <- rbind(A, c(penalty, 0), c(0, penalty))
@@ -1057,17 +1360,21 @@ estimateAbsoluteConc <- function(Signal1, Signal2, SignalR, lambda) {
     offset <- w/(1 - u - v)  # some times the offset is way too large (1-u-v = 0)
     T1est <- Signal1 * u
     T2est <- Signal2 * v
-    Relerror <- as.numeric(crossprod(cbind(Signal1, Signal2) %*% c(u, v) - SignalR)/crossprod(SignalR))
+    Relerror <- as.numeric(crossprod(cbind(Signal1, 
+        Signal2) %*% c(u, v) - SignalR)/crossprod(SignalR))
     # if(Relerror==0){browser()}
-    residuals <- resultado$residuals[seq_len(cols), , drop = FALSE]
+    residuals <- resultado$residuals[seq_len(cols), 
+        , drop = FALSE]
     residuals <- residuals/SignalR
     
-    return(list(T1est = T1est, T2est = T2est, offset = offset, Relerror = Relerror, 
+    return(list(T1est = T1est, T2est = T2est, 
+        offset = offset, Relerror = Relerror, 
         Residuals = residuals))
 }
 
 #' @rdname InternalFunctions
-estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1) {
+estimateAbsoluteConcmultipath <- function(datos, 
+    lambda = 0.1) {
     
     # require(nnls)
     l <- dim(datos)[1]
@@ -1075,14 +1382,16 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1) {
     Signal <- list()
     A <- c()
     for (k in seq_len((l - 1))) {
-        Signal[[k]] <- as.numeric(datos[k, ])
+        Signal[[k]] <- as.numeric(datos[k, 
+            ])
         A <- cbind(A, Signal[[k]])
     }
     Signal[[l]] <- as.numeric(datos[l, ])
     b <- Signal[[l]]
     Salida <- nnls(A, b)
     u <- c()
-    Tset <- matrix(0, ncol = cols, nrow = (l - 1))
+    Tset <- matrix(0, ncol = cols, nrow = (l - 
+        1))
     if (lambda == 0) {
         resultado <- nnls(A, b)
         Salida <- resultado$x
@@ -1092,16 +1401,20 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1) {
         }
         w <- 0
         offset <- w/(1 - sum(u))
-        Relerror <- as.numeric(crossprod((A[, seq_len((l - 1))]) %*% u - b)/crossprod(b))
-        residuals <- resultado$residuals[seq_len(cols), , drop = FALSE]
-        return(list(Tset = Tset, offset = offset, Relerror = Relerror, Residuals = residuals))
+        Relerror <- as.numeric(crossprod((A[, 
+            seq_len((l - 1))]) %*% u - b)/crossprod(b))
+        residuals <- resultado$residuals[seq_len(cols), 
+            , drop = FALSE]
+        return(list(Tset = Tset, offset = offset, 
+            Relerror = Relerror, Residuals = residuals))
     }
     if (is.null(lambda)) {
         lambda <- 0.1
     }
     
     
-    penalty <- lambda * ((Salida$deviance)/(sum((Salida$x - 1)^2)))
+    penalty <- lambda * ((Salida$deviance)/(sum((Salida$x - 
+        1)^2)))
     penalty <- sqrt(penalty)
     
     
@@ -1118,14 +1431,15 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1) {
     w <- 0
     offset <- w/(1 - sum(u))
     
-    Relerror <- as.numeric(crossprod((A[seq_len(cols), seq_len((l - 1))]) %*% u - 
-        b[seq_len(cols)])/crossprod(b[seq_len(cols)]))
+    Relerror <- as.numeric(crossprod((A[seq_len(cols), 
+        seq_len((l - 1))]) %*% u - b[seq_len(cols)])/crossprod(b[seq_len(cols)]))
     
-    residuals <- resultado$residuals[seq_len(cols), , drop = FALSE]
+    residuals <- resultado$residuals[seq_len(cols), 
+        , drop = FALSE]
     
     
-    return(list(Tset = Tset, offset = offset, Relerror = Relerror, Residuals = residuals))
-    
+    return(list(Tset = Tset, offset = offset, 
+        Relerror = Relerror, Residuals = residuals))
 }
 
 
@@ -1133,28 +1447,39 @@ estimateAbsoluteConcmultipath <- function(datos, lambda = 0.1) {
 #' @rdname InternalFunctions
 findTriplets <- function(randSol, tol = 1e-08) {
     
-    # Compute the Distance Matrix from the matrix of fluxes
+    # Compute the Distance Matrix from the
+    # matrix of fluxes
     X <- as.matrix(dist(randSol))
     
-    # Which distances are smaller than the tolerance (To ensure the flux is the same
-    # always)
+    # Which distances are smaller than the
+    # tolerance (To ensure the flux is the
+    # same always)
     Inc <- (X < tol)
     
-    # Create a graph from the adjacency matrix and find the connected components
+    # Create a graph from the adjacency
+    # matrix and find the connected
+    # components
     g <- graph_from_adjacency_matrix(Inc)
     Groups <- clusters(g)
     
-    EdgG_Flux <- randSol[match(seq_len(Groups$no), Groups$membership), ]
+    EdgG_Flux <- randSol[match(seq_len(Groups$no), 
+        Groups$membership), ]
     
-    # All possible combination of two elements from the graph to create all the
-    # posible sums to find the triplets of events
+    # All possible combination of two
+    # elements from the graph to create all
+    # the posible sums to find the triplets
+    # of events
     Index <- combn(nrow(EdgG_Flux), 2)
-    flowsum <- EdgG_Flux[Index[1, ], , drop = FALSE] + EdgG_Flux[Index[2, ], , drop = FALSE]  # All the possible sums
+    flowsum <- EdgG_Flux[Index[1, ], , drop = FALSE] + 
+        EdgG_Flux[Index[2, ], , drop = FALSE]  # All the possible sums
     
-    # Calculate the distance between all the possible sums of every element of the
-    # graph and the flow matrix. The Events will be those in which the distance is
-    # smaller than the tolerance (almost equal to 0). The tolerance is used to avoid
-    # rounding problems
+    # Calculate the distance between all the
+    # possible sums of every element of the
+    # graph and the flow matrix. The Events
+    # will be those in which the distance is
+    # smaller than the tolerance (almost
+    # equal to 0). The tolerance is used to
+    # avoid ounding problems
     DistanceMat <- pdist2(flowsum, EdgG_Flux)
     
     x_Ref <- which(DistanceMat < tol, arr.ind = TRUE)
@@ -1169,40 +1494,48 @@ findTriplets <- function(randSol, tol = 1e-08) {
     triplets <- cbind(P1, P2, Ref)
     
     return(list(groups = GG, triplets = triplets))
-    
-    
 }
 
 #' @rdname InternalFunctions
-findTriplets2 <- function(Incidence, paths = 2, randSol) {
-    # randSol <- getRandomFlow(Incidence, ncol = 2)
+findTriplets2 <- function(Incidence, paths = 2, 
+    randSol) {
+    # randSol <- getRandomFlow(Incidence,
+    # ncol = 2)
     X <- as.matrix(dist(randSol))
     tol <- 1e-08
     Inc <- (X < tol)
     g <- graph_from_adjacency_matrix(Inc)
-    Groups <- clusters(g)  # This approach looks to use too heavy weapons to solve the problem...
+    Groups <- clusters(g)  # This approach looks to use too heavy weapons
+    # to solve the problem...
     
     if (Groups$no == 2) {
-        multipaths <- matrix(NA, nrow = 0, ncol = 1)
-        return(list(groups = Groups$membership, multipaths = multipaths))
+        multipaths <- matrix(NA, nrow = 0, 
+            ncol = 1)
+        return(list(groups = Groups$membership, 
+            multipaths = multipaths))
     }
     
-    # TODO: Build the triplets using only the unique fluxes NewIncidence <- Incidence
-    # %*% EdgeXG NewIncidence <- Incidence[,apply(EdgeXG, 2,which.max)]
+    # TODO: Build the triplets using only the
+    # unique fluxes NewIncidence <- Incidence
+    # %*% EdgeXG NewIncidence <-
+    # Incidence[,apply(EdgeXG, 2,which.max)]
     
     NewIncidence <- Incidence
     csI <- colCumsums(NewIncidence)
     # rownames(csI) <- rownames(Incidence)
     
     mg <- matrix(0, nrow = ncol(csI), ncol = Groups$no[1])
-    mg[cbind(seq_len(length(Groups$membership)), Groups$membership)] <- 1
+    mg[cbind(seq_len(length(Groups$membership)), 
+        Groups$membership)] <- 1
     colnames(mg) <- seq_len(ncol(mg))
-    # for (kk in seq_len(ncol(mg))){ mg[,kk]<-Groups$membership==kk }
+    # for (kk in seq_len(ncol(mg))){
+    # mg[,kk]<-Groups$membership==kk }
     csI <- csI %*% mg
     csI <- uniquefast(csI)
     Index <- combn(nrow(csI), 2)
     
-    BigDeltacsI <- csI[Index[2, ], ] - csI[Index[1, ], ]
+    BigDeltacsI <- csI[Index[2, ], ] - csI[Index[1, 
+        ], ]
     
     BigDeltacsI <- uniquefast(BigDeltacsI)
     
@@ -1211,57 +1544,71 @@ findTriplets2 <- function(Incidence, paths = 2, randSol) {
     MinusOnes <- rowSums(BigDeltacsI == -1)
     
     multipaths <- matrix(ncol = paths + 2)
-    colnames(multipaths) <- c(paste(rep("p", paths), sep = "", c(seq_len(paths))), 
+    colnames(multipaths) <- c(paste(rep("p", 
+        paths), sep = "", c(seq_len(paths))), 
         "Ref", "NumP")
     
     for (ii in 2:paths) {
-        # Severalgood <- (Several >2) & (Several == ii+1) & GoodOnes
-        Severalgood <- (Several > 2) & (Several == ii + 1)
+        # Severalgood <- (Several >2) & (Several
+        # == ii+1) & GoodOnes
+        Severalgood <- (Several > 2) & (Several == 
+            ii + 1)
         # Type One
         TypeOne <- which((Ones == 1) & Severalgood)
         if (length(TypeOne) > 0) {
-            
-            P12 <- apply(BigDeltacsI[TypeOne, , drop = FALSE], 1, FUN = function(x) {
+            P12 <- apply(BigDeltacsI[TypeOne, 
+                , drop = FALSE], 1, FUN = function(x) {
                 which(x == -1)
             })
-            PR <- apply(BigDeltacsI[TypeOne, , drop = FALSE], 1, FUN = function(x) {
+            PR <- apply(BigDeltacsI[TypeOne, 
+                , drop = FALSE], 1, FUN = function(x) {
                 which(x == 1)
             })
             
             comb <- cbind(t(P12), PR)
-            # comb <- matrix(Groups$membership[comb], ncol = ncol(comb)) comb <-
-            # cbind(t(apply(comb[,seq_len(ii),drop=FALSE],1,function(x){x[order(x)]})),comb[,ii+1])
+            # comb <- matrix(Groups$membership[comb],
+            # ncol = ncol(comb)) comb <-
+            # cbind(t(apply(comb[,seq_len(ii),drop=FALSE],1,
+            # function(x){x[order(x)]})),comb[,ii+1])
             # comb <- unique(comb)
             
-            A <- matrix(0, nrow = dim(comb)[1], ncol = paths + 2)
+            A <- matrix(0, nrow = dim(comb)[1], 
+                ncol = paths + 2)
             A[, seq_len(ii)] <- comb[, seq_len(ii)]
-            A[, paths + 1] <- comb[, ii + 1]
+            A[, paths + 1] <- comb[, ii + 
+                1]
             A[, paths + 2] <- ii
-            multipaths <- rbind(multipaths, A)
-            
+            multipaths <- rbind(multipaths, 
+                A)
         }
         # Type MinusOne
-        TypeMinusOne <- which((MinusOnes == 1) & Severalgood)
+        TypeMinusOne <- which((MinusOnes == 
+            1) & Severalgood)
         if (length(TypeMinusOne) > 0) {
-            
-            P12 <- apply(BigDeltacsI[TypeMinusOne, , drop = FALSE], 1, FUN = function(x) {
+            P12 <- apply(BigDeltacsI[TypeMinusOne, 
+                , drop = FALSE], 1, FUN = function(x) {
                 which(x == 1)
             })
-            PR <- apply(BigDeltacsI[TypeMinusOne, , drop = FALSE], 1, FUN = function(x) {
+            PR <- apply(BigDeltacsI[TypeMinusOne, 
+                , drop = FALSE], 1, FUN = function(x) {
                 which(x == -1)
             })
             
             comb <- cbind(t(P12), PR)
-            # comb <- matrix(Groups$membership[comb], ncol = ncol(comb)) comb <-
-            # cbind(t(apply(comb[,1:ii,drop=FALSE],1,function(x){x[order(x)]})),comb[,ii+1])
+            # comb <- matrix(Groups$membership[comb],
+            # ncol = ncol(comb)) comb <-
+            # cbind(t(apply(comb[,1:ii,drop=FALSE],1,
+            # function(x){x[order(x)]})),comb[,ii+1])
             # comb <- unique(comb)
             
-            A <- matrix(0, nrow = dim(comb)[1], ncol = paths + 2)
+            A <- matrix(0, nrow = dim(comb)[1], 
+                ncol = paths + 2)
             A[, seq_len(ii)] <- comb[, seq_len(ii)]
-            A[, paths + 1] <- comb[, ii + 1]
+            A[, paths + 1] <- comb[, ii + 
+                1]
             A[, paths + 2] <- ii
-            multipaths <- rbind(multipaths, A)
-            
+            multipaths <- rbind(multipaths, 
+                A)
         }
     }
     multipaths <- unique(multipaths)
@@ -1270,8 +1617,8 @@ findTriplets2 <- function(Incidence, paths = 2, randSol) {
         multipaths <- t(multipaths)
     }
     
-    return(list(groups = Groups$membership, multipaths = multipaths))
-    
+    return(list(groups = Groups$membership, 
+        multipaths = multipaths))
 }
 
 
@@ -1279,14 +1626,18 @@ findTriplets2 <- function(Incidence, paths = 2, randSol) {
 GetCounts <- function(Events, sg_txiki, type = "counts") {
     readsC <- counts(sg_txiki)
     readsF <- FPKM(sg_txiki)
-    countsEvents <- lapply(Events, getPathCounts, readsC)
-    countsEvents <- lapply(countsEvents, getPathFPKMs, readsF)
+    countsEvents <- lapply(Events, getPathCounts, 
+        readsC)
+    countsEvents <- lapply(countsEvents, 
+        getPathFPKMs, readsF)
     return(countsEvents)
 }
 
 getPathCounts <- function(x, readsC, widthinit) {
-    reads <- rbind(colSums(readsC[x$P1$featureID, , drop = FALSE]), colSums(readsC[x$P2$featureID, 
-        , drop = FALSE]), colSums(readsC[x$Ref$featureID, , drop = FALSE]))
+    reads <- rbind(colSums(readsC[x$P1$featureID, 
+        , drop = FALSE]), colSums(readsC[x$P2$featureID, 
+        , drop = FALSE]), colSums(readsC[x$Ref$featureID, 
+        , drop = FALSE]))
     
     rownames(reads) <- c("P1", "P2", "Ref")
     x$Counts <- reads
@@ -1294,8 +1645,10 @@ getPathCounts <- function(x, readsC, widthinit) {
 }
 
 getPathFPKMs <- function(x, readsC, widthinit) {
-    reads <- rbind(colSums(readsC[x$P1$featureID, , drop = FALSE]), colSums(readsC[x$P2$featureID, 
-        , drop = FALSE]), colSums(readsC[x$Ref$featureID, , drop = FALSE]))
+    reads <- rbind(colSums(readsC[x$P1$featureID, 
+        , drop = FALSE]), colSums(readsC[x$P2$featureID, 
+        , drop = FALSE]), colSums(readsC[x$Ref$featureID, 
+        , drop = FALSE]))
     
     rownames(reads) <- c("P1", "P2", "Ref")
     x$FPKM <- reads
@@ -1303,11 +1656,14 @@ getPathFPKMs <- function(x, readsC, widthinit) {
 }
 
 #' @rdname InternalFunctions
-GetCountsMP <- function(Events, sg_txiki, type = "counts") {
+GetCountsMP <- function(Events, sg_txiki, 
+    type = "counts") {
     readsC <- counts(sg_txiki)
     readsF <- FPKM(sg_txiki)
-    countsEvents <- lapply(Events, getPathCountsMP, readsC)
-    countsEvents <- lapply(countsEvents, getPathFPKMsMP, readsF)
+    countsEvents <- lapply(Events, getPathCountsMP, 
+        readsC)
+    countsEvents <- lapply(countsEvents, 
+        getPathFPKMsMP, readsF)
     return(countsEvents)
 }
 
@@ -1317,16 +1673,21 @@ getPathCountsMP <- function(x, readsC, widthinit) {
         if (i == (x$NumP + 1)) {
             command <- paste0(command, "colSums(readsC[x$Ref$featureID,,drop = FALSE]))")
         } else {
-            command <- paste0(command, "colSums(readsC[x$P", i, "$featureID,,drop = FALSE]),")
-            
+            command <- paste0(command, "colSums(readsC[x$P", 
+                i, "$featureID,,drop = FALSE]),")
         }
     }
     eval(parse(text = command))
-    # reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),
-    # colSums(readsC[x$P2$featureID,,drop = FALSE]),
-    # colSums(readsC[x$Ref$featureID,,drop = FALSE]))
+    # reads <-
+    # rbind(colSums(readsC[x$P1$featureID,,drop
+    # = FALSE]),
+    # colSums(readsC[x$P2$featureID,,drop =
+    # FALSE]),
+    # colSums(readsC[x$Ref$featureID,,drop =
+    # FALSE]))
     
-    rownames(reads) <- c(paste("P", seq_len(x$NumP), sep = ""), "Ref")
+    rownames(reads) <- c(paste("P", seq_len(x$NumP), 
+        sep = ""), "Ref")
     x$Counts <- reads
     return(x)
 }
@@ -1337,16 +1698,21 @@ getPathFPKMsMP <- function(x, readsC, widthinit) {
         if (i == (x$NumP + 1)) {
             command <- paste0(command, "colSums(readsC[x$Ref$featureID,,drop = FALSE]))")
         } else {
-            command <- paste0(command, "colSums(readsC[x$P", i, "$featureID,,drop = FALSE]),")
-            
+            command <- paste0(command, "colSums(readsC[x$P", 
+                i, "$featureID,,drop = FALSE]),")
         }
     }
     eval(parse(text = command))
-    # reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),
-    # colSums(readsC[x$P2$featureID,,drop = FALSE]),
-    # colSums(readsC[x$Ref$featureID,,drop = FALSE]))
+    # reads <-
+    # rbind(colSums(readsC[x$P1$featureID,,drop
+    # = FALSE]),
+    # colSums(readsC[x$P2$featureID,,drop =
+    # FALSE]),
+    # colSums(readsC[x$Ref$featureID,,drop =
+    # FALSE]))
     
-    rownames(reads) <- c(paste("P", seq_len(x$NumP), sep = ""), "Ref")
+    rownames(reads) <- c(paste("P", seq_len(x$NumP), 
+        sep = ""), "Ref")
     x$FPKM <- reads
     return(x)
 }
@@ -1357,74 +1723,93 @@ getPathFPKMsMP <- function(x, readsC, widthinit) {
 #' @rdname InternalFunctions
 
 getEventPaths <- function(Events, SG) {
-    
     Groups <- Events$groups
     Triplets <- Events$triplets
     
-    P1 <- lapply(seq_len(nrow(Triplets)), function(x) {
-        A <- SG$Edges[which(Groups == Triplets[x, 1]), ]
-        return(A)
-    })
-    P2 <- lapply(seq_len(nrow(Triplets)), function(x) {
-        A <- SG$Edges[which(Groups == Triplets[x, 2]), ]
-        return(A)
-    })
-    Ref <- lapply(seq_len(nrow(Triplets)), function(x) {
-        A <- SG$Edges[which(Groups == Triplets[x, 3]), ]
-        return(A)
-    })
+    P1 <- lapply(seq_len(nrow(Triplets)), 
+        function(x) {
+            A <- SG$Edges[which(Groups == 
+                Triplets[x, 1]), ]
+            return(A)
+        })
+    P2 <- lapply(seq_len(nrow(Triplets)), 
+        function(x) {
+            A <- SG$Edges[which(Groups == 
+                Triplets[x, 2]), ]
+            return(A)
+        })
+    Ref <- lapply(seq_len(nrow(Triplets)), 
+        function(x) {
+            A <- SG$Edges[which(Groups == 
+                Triplets[x, 3]), ]
+            return(A)
+        })
     
     Result <- lapply(seq_along(P1), function(X) {
-        
         if (nrow(P1[[X]]) > nrow(P2[[X]])) {
-            A <- list(P1 = P1[[X]], P2 = P2[[X]], Ref = Ref[[X]])
+            A <- list(P1 = P1[[X]], P2 = P2[[X]], 
+                Ref = Ref[[X]])
         } else {
-            A <- list(P1 = P2[[X]], P2 = P1[[X]], Ref = Ref[[X]])
+            A <- list(P1 = P2[[X]], P2 = P1[[X]], 
+                Ref = Ref[[X]])
         }
         
         return(A)
-        
     })
     
     return(Result)
 }
 
 #' @rdname InternalFunctions
-getEventMultiPaths <- function(Events, SG, twopaths, paths) {
+getEventMultiPaths <- function(Events, SG, 
+    twopaths, paths) {
+    P1 <- NULL
+    A <- NULL
     multipaths <- Events$multipaths
     Groups <- Events$groups
     
     
     for (ii in seq_len(paths)) {
-        command <- paste(paste("P", ii, sep = ""), "<-lapply(seq_len(nrow(multipaths)),function(x){A<-SG$Edges[which(Groups==multipaths[x,ii]),];return(A)})", 
+        command <- paste(paste("P", ii, sep = ""), 
+            "<-lapply(seq_len(nrow(multipaths)),function(x){A<-SG$Edges[which(Groups==multipaths[x,ii]),];return(A)})", 
             sep = "")
         eval(parse(text = command))
     }
     
-    Ref <- lapply(seq_len(nrow(multipaths)), function(x) {
-        A <- SG$Edges[which(Groups == multipaths[x, paths + 1]), ]
-        return(A)
-    })
-    NumP <- lapply(seq_len(nrow(multipaths)), function(x) {
-        A <- multipaths[x, paths + 2]
-        return(A)
-    })
+    Ref <- lapply(seq_len(nrow(multipaths)), 
+        function(x) {
+            A <- SG$Edges[which(Groups == 
+                multipaths[x, paths + 1]), 
+                ]
+            return(A)
+        })
+    NumP <- lapply(seq_len(nrow(multipaths)), 
+        function(x) {
+            A <- multipaths[x, paths + 2]
+            return(A)
+        })
     X <- 1
     Result <- lapply(seq_along(P1), function(X) {
         command <- "A <- list("
         for (i in seq_len((paths + 2))) {
             if (i == 1) {
-                command <- paste(command, paste(paste(paste(paste("P", i, sep = ""), 
-                  "=P", sep = ""), i, sep = ""), "[[X]]", sep = ""), sep = "")
+                command <- paste(command, 
+                  paste(paste(paste(paste("P", 
+                    i, sep = ""), "=P", sep = ""), 
+                    i, sep = ""), "[[X]]", 
+                    sep = ""), sep = "")
             } else if (i == (paths + 1)) {
-                command <- paste(command, "Ref=Ref[[X]]", sep = ",")
-                
+                command <- paste(command, 
+                  "Ref=Ref[[X]]", sep = ",")
             } else if (i == (paths + 2)) {
-                
-                command <- paste(command, "NumP=NumP[[X]])", sep = ",")
+                command <- paste(command, 
+                  "NumP=NumP[[X]])", sep = ",")
             } else {
-                command <- paste(command, paste(paste(paste(paste("P", i, sep = ""), 
-                  "=P", sep = ""), i, sep = ""), "[[X]]", sep = ""), sep = ",")
+                command <- paste(command, 
+                  paste(paste(paste(paste("P", 
+                    i, sep = ""), "=P", sep = ""), 
+                    i, sep = ""), "[[X]]", 
+                    sep = ""), sep = ",")
             }
         }
         eval(parse(text = command))
@@ -1433,7 +1818,8 @@ getEventMultiPaths <- function(Events, SG, twopaths, paths) {
     
     if (length(twopaths) > 0) {
         for (j in seq_len(length(twopaths))) {
-            if (nrow(Result[[twopaths[j]]]$P2) > nrow(Result[[twopaths[j]]]$P1)) {
+            if (nrow(Result[[twopaths[j]]]$P2) > 
+                nrow(Result[[twopaths[j]]]$P1)) {
                 d <- Result[[twopaths[j]]]$P2
                 Result[[twopaths[j]]]$P2 <- Result[[twopaths[j]]]$P1
                 Result[[twopaths[j]]]$P1 <- d
@@ -1442,36 +1828,40 @@ getEventMultiPaths <- function(Events, SG, twopaths, paths) {
     }
     
     return(Result)
-    
 }
 
 #' @rdname InternalFunctions
 GetIGVPaths <- function(EventInfo, SG_Edges) {
-    
     Gene <- as.vector(EventInfo[1, 1])
     
-    Path1 <- matrix(unlist(strsplit(as.vector(EventInfo[, "Path.1"]), "[,-]")), ncol = 2, 
+    Path1 <- matrix(unlist(strsplit(as.vector(EventInfo[, 
+        "Path.1"]), "[,-]")), ncol = 2, byrow = TRUE)
+    Path2 <- matrix(unlist(strsplit(as.vector(EventInfo[, 
+        "Path.2"]), "[,-]")), ncol = 2, byrow = TRUE)
+    PathR <- matrix(unlist(strsplit(as.vector(EventInfo[, 
+        "Path.Reference"]), "[,-]")), ncol = 2, 
         byrow = TRUE)
-    Path2 <- matrix(unlist(strsplit(as.vector(EventInfo[, "Path.2"]), "[,-]")), ncol = 2, 
-        byrow = TRUE)
-    PathR <- matrix(unlist(strsplit(as.vector(EventInfo[, "Path.Reference"]), "[,-]")), 
-        ncol = 2, byrow = TRUE)
     
     SG_Edges_Orig <- SG_Edges
     
-    SG_Edges[, 1] <- gsub(".[ab]", "", SG_Edges[, 1])
-    SG_Edges[, 2] <- gsub(".[ab]", "", SG_Edges[, 2])
+    SG_Edges[, 1] <- gsub(".[ab]", "", SG_Edges[, 
+        1])
+    SG_Edges[, 2] <- gsub(".[ab]", "", SG_Edges[, 
+        2])
     
     P1.ix <- apply(Path1, 1, function(x) {
-        ix <- which(SG_Edges[, 1] == x[1] & SG_Edges[, 2] == x[2])
+        ix <- which(SG_Edges[, 1] == x[1] & 
+            SG_Edges[, 2] == x[2])
         return(ix)
     })
     P2.ix <- apply(Path2, 1, function(x) {
-        ix <- which(SG_Edges[, 1] == x[1] & SG_Edges[, 2] == x[2])
+        ix <- which(SG_Edges[, 1] == x[1] & 
+            SG_Edges[, 2] == x[2])
         return(ix)
     })
     PR.ix <- apply(PathR, 1, function(x) {
-        ix <- which(SG_Edges[, 1] == x[1] & SG_Edges[, 2] == x[2])
+        ix <- which(SG_Edges[, 1] == x[1] & 
+            SG_Edges[, 2] == x[2])
         return(ix)
     })
     
@@ -1486,31 +1876,38 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
         Type <- as.vector(Path1[ii, "Type"])
         
         if (Type == "J") {
-            
-            Chr <- as.vector(rep(Path1[ii, "Chr"], 2))
-            St <- as.numeric(c(as.vector(Path1[ii, "Start"]), as.vector(Path1[ii, 
+            Chr <- as.vector(rep(Path1[ii, 
+                "Chr"], 2))
+            St <- as.numeric(c(as.vector(Path1[ii, 
+                "Start"]), as.vector(Path1[ii, 
                 "End"])))
             Ed <- St
             Wd <- as.numeric(rep(0, 2))
-            Str <- as.vector(rep(Path1[ii, "Strand"], 2))
+            Str <- as.vector(rep(Path1[ii, 
+                "Strand"], 2))
             Gn <- as.vector(rep(Gene, 2))
             Trs <- rep("A", 2)
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gn, transcript = Trs, stringsAsFactors = FALSE)
-            PlotPath1 <- rbind(PlotPath1, Res)
-            
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gn, 
+                transcript = Trs, stringsAsFactors = FALSE)
+            PlotPath1 <- rbind(PlotPath1, 
+                Res)
         } else if (Type == "E") {
             Chr <- as.vector(Path1[ii, "Chr"])
-            St <- as.numeric(as.vector(Path1[ii, "Start"]))
-            Ed <- as.numeric(as.vector(Path1[ii, "End"]))
+            St <- as.numeric(as.vector(Path1[ii, 
+                "Start"]))
+            Ed <- as.numeric(as.vector(Path1[ii, 
+                "End"]))
             Wd <- Ed - St
             Str <- as.vector(Path1[ii, "Strand"])
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gene, transcript = "A", stringsAsFactors = FALSE)
-            PlotPath1 <- rbind(PlotPath1, Res)
-            
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gene, 
+                transcript = "A", stringsAsFactors = FALSE)
+            PlotPath1 <- rbind(PlotPath1, 
+                Res)
         }
-        
     }
     
     
@@ -1520,31 +1917,38 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
         Type <- as.vector(Path2[ii, "Type"])
         
         if (Type == "J") {
-            
-            Chr <- as.vector(rep(Path2[ii, "Chr"], 2))
-            St <- as.numeric(c(as.vector(Path2[ii, "Start"]), as.vector(Path2[ii, 
+            Chr <- as.vector(rep(Path2[ii, 
+                "Chr"], 2))
+            St <- as.numeric(c(as.vector(Path2[ii, 
+                "Start"]), as.vector(Path2[ii, 
                 "End"])))
             Ed <- St
             Wd <- as.numeric(rep(0, 2))
-            Str <- as.vector(rep(Path2[ii, "Strand"], 2))
+            Str <- as.vector(rep(Path2[ii, 
+                "Strand"], 2))
             Gn <- as.vector(rep(Gene, 2))
             Trs <- rep("B", 2)
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gn, transcript = Trs, stringsAsFactors = FALSE)
-            PlotPath2 <- rbind(PlotPath2, Res)
-            
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gn, 
+                transcript = Trs, stringsAsFactors = FALSE)
+            PlotPath2 <- rbind(PlotPath2, 
+                Res)
         } else if (Type == "E") {
             Chr <- as.vector(Path2[ii, "Chr"])
-            St <- as.numeric(as.vector(Path2[ii, "Start"]))
-            Ed <- as.numeric(as.vector(Path2[ii, "End"]))
+            St <- as.numeric(as.vector(Path2[ii, 
+                "Start"]))
+            Ed <- as.numeric(as.vector(Path2[ii, 
+                "End"]))
             Wd <- Ed - St
             Str <- as.vector(Path2[ii, "Strand"])
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gene, transcript = "B", stringsAsFactors = FALSE)
-            PlotPath2 <- rbind(PlotPath2, Res)
-            
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gene, 
+                transcript = "B", stringsAsFactors = FALSE)
+            PlotPath2 <- rbind(PlotPath2, 
+                Res)
         }
-        
     }
     
     Ref.Group <- connectedComp(ftM2graphNEL(as.matrix(SG_Edges_Orig[rownames(PathR), 
@@ -1553,88 +1957,109 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
     
     for (ii in seq_along(Ref.Group)) {
         LL <- length(Ref.Group[[ii]])
-        Ref.Group[[ii]] <- cbind(Ref.Group[[ii]][seq_len((LL - 1))], Ref.Group[[ii]][2:LL])
-        ixx <- row.match(as.data.frame(Ref.Group[[ii]]), SG_Edges_Orig[, c(1, 2)])
+        Ref.Group[[ii]] <- cbind(Ref.Group[[ii]][seq_len((LL - 
+            1))], Ref.Group[[ii]][2:LL])
+        ixx <- row.match(as.data.frame(Ref.Group[[ii]]), 
+            SG_Edges_Orig[, c(1, 2)])
         RR <- SG_Edges_Orig[ixx, ]
-        RR[, 1] <- gsub(".[ab]", "", RR[, 1])
-        RR[, 2] <- gsub(".[ab]", "", RR[, 2])
-        Trs <- rep(paste("Ref", ii, sep = ""), nrow(RR))
+        RR[, 1] <- gsub(".[ab]", "", RR[, 
+            1])
+        RR[, 2] <- gsub(".[ab]", "", RR[, 
+            2])
+        Trs <- rep(paste("Ref", ii, sep = ""), 
+            nrow(RR))
         RR <- cbind(RR, Trs)
         Ref.Group[[ii]] <- RR
-        
     }
     
     Reference <- do.call(rbind, Ref.Group)
     PlotReference <- c()
     
     for (ii in seq_len(nrow(Reference))) {
-        
         Type <- as.vector(Reference[ii, "Type"])
         
         if (Type == "J") {
-            
-            Chr <- as.vector(rep(Reference[ii, "Chr"], 2))
-            St <- as.numeric(c(as.vector(Reference[ii, "Start"]), as.vector(Reference[ii, 
+            Chr <- as.vector(rep(Reference[ii, 
+                "Chr"], 2))
+            St <- as.numeric(c(as.vector(Reference[ii, 
+                "Start"]), as.vector(Reference[ii, 
                 "End"])))
             Ed <- St
             Wd <- as.numeric(rep(0, 2))
-            Str <- as.vector(rep(Reference[ii, "Strand"], 2))
+            Str <- as.vector(rep(Reference[ii, 
+                "Strand"], 2))
             Gn <- as.vector(rep(Gene, 2))
-            Trs <- rep(Reference[ii, "Trs"], 2)
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gn, transcript = Trs, stringsAsFactors = FALSE)
-            PlotReference <- rbind(PlotReference, Res)
-            
+            Trs <- rep(Reference[ii, "Trs"], 
+                2)
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gn, 
+                transcript = Trs, stringsAsFactors = FALSE)
+            PlotReference <- rbind(PlotReference, 
+                Res)
         } else if (Type == "E") {
-            Chr <- as.vector(Reference[ii, "Chr"])
-            St <- as.numeric(as.vector(Reference[ii, "Start"]))
-            Ed <- as.numeric(as.vector(Reference[ii, "End"]))
+            Chr <- as.vector(Reference[ii, 
+                "Chr"])
+            St <- as.numeric(as.vector(Reference[ii, 
+                "Start"]))
+            Ed <- as.numeric(as.vector(Reference[ii, 
+                "End"]))
             Wd <- Ed - St
-            Str <- as.vector(Reference[ii, "Strand"])
-            Res <- data.frame(chromosome = Chr, start = St, end = Ed, width = Wd, 
-                strand = Str, gene = Gene, transcript = Reference[ii, "Trs"], stringsAsFactors = FALSE)
-            PlotReference <- rbind(PlotReference, Res)
-            
+            Str <- as.vector(Reference[ii, 
+                "Strand"])
+            Res <- data.frame(chromosome = Chr, 
+                start = St, end = Ed, width = Wd, 
+                strand = Str, gene = Gene, 
+                transcript = Reference[ii, 
+                  "Trs"], stringsAsFactors = FALSE)
+            PlotReference <- rbind(PlotReference, 
+                Res)
         }
-        
-        
     }
     
     Plot <- rbind(PlotPath1, PlotPath2, PlotReference)
     # Plot[,1]<-paste('chr',Plot[,1],sep='')
     
     return(Plot)
-    
-    
 }
 
 #' @rdname InternalFunctions
 getPSI <- function(ExFit, lambda = 0.1) {
-    # Create matrix to fill with PSI values (1 per event and sample)
-    PSI <- matrix(0, nrow = nrow(ExFit)/3, ncol = ncol(ExFit) - 5)
+    # Create matrix to fill with PSI values
+    # (1 per event and sample)
+    PSI <- matrix(0, nrow = nrow(ExFit)/3, 
+        ncol = ncol(ExFit) - 5)
     colnames(PSI) <- colnames(ExFit[6:ncol(ExFit)])
-    rownames(PSI) <- ExFit[seq(1, nrow(ExFit), by = 3), 1]
+    rownames(PSI) <- ExFit[seq(1, nrow(ExFit), 
+        by = 3), 1]
     
     NCols <- ncol(ExFit)
     ExFit2 <- as.matrix(ExFit[, 6:NCols])
     Residuals <- PSI
-    # Perform the operations for every detectable alternative splicing event
+    # Perform the operations for every
+    # detectable alternative splicing event
     for (n in seq_len(nrow(ExFit)/3)) {
         
         # Get expression signal from path 1
-        Signal1 <- ExFit2[1 + 3 * (n - 1), ]
+        Signal1 <- ExFit2[1 + 3 * (n - 1), 
+            ]
         
         # Get expression signal from path 2
-        Signal2 <- ExFit2[2 + 3 * (n - 1), ]
+        Signal2 <- ExFit2[2 + 3 * (n - 1), 
+            ]
         
         # Get expression signal from Reference
-        SignalR <- ExFit2[3 + 3 * (n - 1), ]
+        SignalR <- ExFit2[3 + 3 * (n - 1), 
+            ]
         
-        # Function to estimate concentrations from the interrogated isoforms
-        Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda)
+        # Function to estimate concentrations
+        # from the interrogated isoforms
+        Output <- estimateAbsoluteConc(Signal1, 
+            Signal2, SignalR, lambda)
         
         # Compute the actual PSI value (T1/T1+T2)
-        psi <- Output$T1est/(Output$T1est + Output$T2est)
+        psi <- Output$T1est/(Output$T1est + 
+            Output$T2est)
         PSI[n, ] <- psi
         Residuals[n, ] <- Output$Residuals
     }
@@ -1646,19 +2071,24 @@ getPSImultipath <- function(ExFit, lambda = 0.1) {
     # EventNames <- rownames(ExFit)
     EventNames <- ExFit$unitName
     
-    EventNames <- sapply(strsplit(EventNames, "_"), function(x) {
+    EventNames <- sapply(strsplit(EventNames, 
+        "_"), function(x) {
         a <- paste(x[1], x[2], sep = "")
         return(a)
     })
     EventNames <- as.matrix(table(EventNames))
-    numrows <- sum(EventNames - 1)  #for each path we calculate the PSI (PSI1, PSI2,..., PSIn)
+    numrows <- sum(EventNames - 1)  # for each path we calculate the PSI
+    # (PSI1, PSI2,..., PSIn)
     
-    PSI <- matrix(0, nrow = numrows, ncol = ncol(ExFit) - 5)
+    PSI <- matrix(0, nrow = numrows, ncol = ncol(ExFit) - 
+        5)
     colnames(PSI) <- colnames(ExFit)[6:ncol(ExFit)]
-    rownames(PSI) <- rep(rownames(EventNames), EventNames[seq_len(nrow(EventNames))] - 
-        1)
+    rownames(PSI) <- rep(rownames(EventNames), 
+        EventNames[seq_len(nrow(EventNames))] - 
+            1)
     
-    Residuals <- matrix(0, ncol = ncol(PSI), nrow = length(rownames(EventNames)))
+    Residuals <- matrix(0, ncol = ncol(PSI), 
+        nrow = length(rownames(EventNames)))
     rownames(Residuals) <- rownames(EventNames)
     
     NCols <- ncol(ExFit)
@@ -1676,7 +2106,8 @@ getPSImultipath <- function(ExFit, lambda = 0.1) {
     
     for (n in seq_len(length(e))) {
         datos <- ExFit2[s[n]:e[n], ]
-        Output <- estimateAbsoluteConcmultipath(datos, lambda)
+        Output <- estimateAbsoluteConcmultipath(datos, 
+            lambda)
         Tset <- Output$Tset
         TR <- apply(Tset, 2, sum)
         
@@ -1708,55 +2139,59 @@ getPSI_RNASeq <- function(Result, lambda = 0.1) {
                 return(Res)
             })
             names(Evs_Counts) <- seq_len(length(Evs_Counts))
-            Ids <- paste(A[[1]]$Gene, "_", names(Evs_Counts), sep = "")
+            Ids <- paste(A[[1]]$Gene, "_", 
+                names(Evs_Counts), sep = "")
             Ids <- rep(Ids, each = 3)
             Vec <- c(Vec, Ids)
-            Evs_Counts <- do.call(rbind, Evs_Counts)
+            Evs_Counts <- do.call(rbind, 
+                Evs_Counts)
             
             if (!any(is.na(Evs_Counts))) {
                 CountMatrix[[jj]] <- Evs_Counts
             } else {
-                
                 CountMatrix[[jj]] <- NULL
             }
-            
-            
         } else {
             
             
         }
-        
-        
     }
     
     
     Ids <- rep(c("_P1", "_P2", "_Ref"), length(Vec)/3)
     CountMatrix <- do.call(rbind, CountMatrix)
-    rownames(CountMatrix) <- paste(Vec, Ids, sep = "")
+    rownames(CountMatrix) <- paste(Vec, Ids, 
+        sep = "")
     
-    PSI <- matrix(0, nrow = nrow(CountMatrix)/3, ncol = ncol(CountMatrix))
+    PSI <- matrix(0, nrow = nrow(CountMatrix)/3, 
+        ncol = ncol(CountMatrix))
     colnames(PSI) <- colnames(CountMatrix)
-    rownames(PSI) <- Vec[seq(1, length(Vec), by = 3)]
+    rownames(PSI) <- Vec[seq(1, length(Vec), 
+        by = 3)]
     
     Residuals <- PSI
     
     for (n in seq_len(nrow(CountMatrix)/3)) {
-        Signal1 <- CountMatrix[1 + 3 * (n - 1), ]
-        Signal2 <- CountMatrix[2 + 3 * (n - 1), ]
-        SignalR <- CountMatrix[3 + 3 * (n - 1), ]
-        Output <- estimateAbsoluteConc(Signal1, Signal2, SignalR, lambda)
-        psi <- Output$T1est/(Output$T1est + Output$T2est)
+        Signal1 <- CountMatrix[1 + 3 * (n - 
+            1), ]
+        Signal2 <- CountMatrix[2 + 3 * (n - 
+            1), ]
+        SignalR <- CountMatrix[3 + 3 * (n - 
+            1), ]
+        Output <- estimateAbsoluteConc(Signal1, 
+            Signal2, SignalR, lambda)
+        psi <- Output$T1est/(Output$T1est + 
+            Output$T2est)
         PSI[n, ] <- psi
         Residuals[n, ] <- Output$Residuals
     }
     
     return(list(PSI = PSI, Residuals = Residuals))
-    
 }
 
 #' @rdname InternalFunctions
-getPSI_RNASeq_MultiPath <- function(Result, lambda = 0.1) {
-    
+getPSI_RNASeq_MultiPath <- function(Result, 
+    lambda = 0.1) {
     CountMatrix <- vector("list", length = length(Result))
     Vec <- c()
     indices <- c()
@@ -1777,18 +2212,18 @@ getPSI_RNASeq_MultiPath <- function(Result, lambda = 0.1) {
             nump <- nump + 1
             indices <- c(indices, nump)
             names(Evs_Counts) <- seq_len(length(Evs_Counts))
-            Ids <- paste(A[[1]]$Gene, "_", names(Evs_Counts), sep = "")
+            Ids <- paste(A[[1]]$Gene, "_", 
+                names(Evs_Counts), sep = "")
             Ids <- rep(Ids, nump)
             Vec <- c(Vec, Ids)
-            Evs_Counts <- do.call(rbind, Evs_Counts)
+            Evs_Counts <- do.call(rbind, 
+                Evs_Counts)
             
             if (!any(is.na(Evs_Counts))) {
                 CountMatrix[[jj]] <- Evs_Counts
             } else {
-                
                 CountMatrix[[jj]] <- NULL
             }
-            
         } else {
             
         }
@@ -1806,28 +2241,35 @@ getPSI_RNASeq_MultiPath <- function(Result, lambda = 0.1) {
     Ids[1 + cumsum(indices)] <- "_P2"
     if (maxp > 3) {
         for (kk in 2:(maxp - 2)) {
-            Ids[kk + cumsum(indices)[which(Ids[kk + cumsum(indices)] == "")]] <- paste0("_P", 
+            Ids[kk + cumsum(indices)[which(Ids[kk + 
+                cumsum(indices)] == "")]] <- paste0("_P", 
                 kk + 1)
         }
     }
     # 
     
     CountMatrix <- do.call(rbind, CountMatrix)
-    rownames(CountMatrix) <- paste(Vec, Ids, sep = "")
+    rownames(CountMatrix) <- paste(Vec, Ids, 
+        sep = "")
     
     names(EventNames) <- NULL
     
     
-    # PSI <- matrix(0, nrow = nrow(CountMatrix)/3, ncol = ncol(CountMatrix))
-    numrows <- sum(EventNames - 1)  #for each path we calculate the PSI (PSI1, PSI2,..., PSIn)
+    # PSI <- matrix(0, nrow =
+    # nrow(CountMatrix)/3, ncol =
+    # ncol(CountMatrix))
+    numrows <- sum(EventNames - 1)  # for each path we calculate the PSI
+    # (PSI1, PSI2,..., PSIn)
     PSI <- matrix(0, nrow = numrows, ncol = ncol(CountMatrix))
     
     colnames(PSI) <- colnames(CountMatrix)
-    # rownames(PSI) <- Vec[seq(1,length(Vec),by = 3)]
+    # rownames(PSI) <-
+    # Vec[seq(1,length(Vec),by = 3)]
     rownames(PSI) <- rownames(CountMatrix)[-cumsum(EventNames)]
     
     namesrowres <- Vec[cumsum(EventNames)]
-    Residuals <- matrix(0, nrow = length(namesrowres), ncol = ncol(PSI))
+    Residuals <- matrix(0, nrow = length(namesrowres), 
+        ncol = ncol(PSI))
     rownames(Residuals) <- namesrowres
     
     s <- c(1, EventNames)
@@ -1841,8 +2283,10 @@ getPSI_RNASeq_MultiPath <- function(Result, lambda = 0.1) {
     ep <- as.numeric(sp + EventNames - 2)
     
     for (n in seq_len(length(e))) {
-        datos <- CountMatrix[s[n]:e[n], , drop = FALSE]
-        Output <- estimateAbsoluteConcmultipath(datos, lambda)
+        datos <- CountMatrix[s[n]:e[n], , 
+            drop = FALSE]
+        Output <- estimateAbsoluteConcmultipath(datos, 
+            lambda)
         Tset <- Output$Tset
         TR <- apply(Tset, 2, sum)
         
@@ -1857,60 +2301,77 @@ getPSI_RNASeq_MultiPath <- function(Result, lambda = 0.1) {
     }
     result <- list(PSI = PSI, Residuals = Residuals)
     return(result)
-    
-    
 }
 
 
 
 #' @rdname InternalFunctions
 getRandomFlow <- function(Incidence, ncol = 1) {
-    # With the incidence matrix, it is possible to get its null-space and generate an
-    # arbitrary flow on it. Using the flow it is possible to get the triplets of
-    # events.
+    # With the incidence matrix, it is
+    # possible to get its null-space and
+    # generate an arbitrary flow on it. Using
+    # the flow it is possible to get the
+    # triplets of events.
     
-    # The seed is set to ensure the order of events remains the same
+    # The seed is set to ensure the order of
+    # events remains the same
     set.seed("0xABBA")
     
-    # Solve the Null Space for the Incidence Matrix
+    # Solve the Null Space for the Incidence
+    # Matrix
     solh <- Null(t(Incidence))
     
-    # COndition to ensure that everything that exits the Start node (-1), exits at
-    # the End Node (1)
-    solp <- ginv(Incidence) %*% c(-1, rep(0, nrow(Incidence) - 2), 1)
+    # Condition to ensure that everything
+    # that exits the Start node (-1), exits
+    # at the End Node (1)
+    solp <- ginv(Incidence) %*% c(-1, rep(0, 
+        nrow(Incidence) - 2), 1)
     
-    # Matrix of fluxes, with as many columns as specified by the user
-    v <- matrix(runif(ncol(solh) * ncol), ncol = ncol)
-    randSol <- as.vector(solp) + solh %*% v
+    # Matrix of fluxes, with as many columns
+    # as specified by the user
+    v <- matrix(runif(ncol(solh) * ncol), 
+        ncol = ncol)
+    randSol <- as.vector(solp) + solh %*% 
+        v
     
     return(randSol)
-    
 }
 
 #' @rdname InternalFunctions
-IHsummarization <- function(Pv1, t1, Pv2, t2, coherence = "Opposite") {
-    
+IHsummarization <- function(Pv1, t1, Pv2, 
+    t2, coherence = "Opposite") {
     if (coherence == "Equal") {
-        nPv1 <- (Pv1/2) * (t1 > 0) + (1 - Pv1/2) * (t1 <= 0)
-        nPv2 <- (Pv2/2) * (t2 > 0) + (1 - Pv2/2) * (t2 <= 0)
+        nPv1 <- (Pv1/2) * (t1 > 0) + (1 - 
+            Pv1/2) * (t1 <= 0)
+        nPv2 <- (Pv2/2) * (t2 > 0) + (1 - 
+            Pv2/2) * (t2 <= 0)
         Psuma <- nPv1 + nPv2
-        PIH <- (Psuma^2)/2 * (Psuma < 1) + (1 - (2 - Psuma)^2/2) * (Psuma >= 1)
+        PIH <- (Psuma^2)/2 * (Psuma < 1) + 
+            (1 - (2 - Psuma)^2/2) * (Psuma >= 
+                1)
         ZIH <- qnorm(PIH)
-        PIH_2tail <- PIH * 2 * (PIH < 0.5) + ((1 - PIH) * 2) * (PIH >= 0.5)
+        PIH_2tail <- PIH * 2 * (PIH < 0.5) + 
+            ((1 - PIH) * 2) * (PIH >= 0.5)
         
-        # 1: Pv1 > 0.5 ; Pv2 > 0.5 ; t1 >0 ; t2 >0
+        # 1: Pv1 > 0.5 ; Pv2 > 0.5 ; t1 >0 ; t2
+        # >0
         
-        Cambiar <- which(Pv1 < 0.5 & Pv2 < 0.5 & t1 <= 0 & t2 <= 0)
+        Cambiar <- which(Pv1 < 0.5 & Pv2 < 
+            0.5 & t1 <= 0 & t2 <= 0)
         nPv1[Cambiar] <- Pv1[Cambiar]/2
         nPv2[Cambiar] <- Pv2[Cambiar]/2
-        Psuma[Cambiar] <- nPv1[Cambiar] + nPv2[Cambiar]
+        Psuma[Cambiar] <- nPv1[Cambiar] + 
+            nPv2[Cambiar]
         PIH[Cambiar] <- (Psuma[Cambiar]^2)/2
         ZIH[Cambiar] <- -qnorm(PIH[Cambiar])
-        PIH_2tail[Cambiar] <- (PIH[Cambiar]) * 2
+        PIH_2tail[Cambiar] <- (PIH[Cambiar]) * 
+            2
         
-        return(list(Pvalues = PIH_2tail, Tstats = ZIH))
+        return(list(Pvalues = PIH_2tail, 
+            Tstats = ZIH))
     } else {
-        return(IHsummarization(Pv1, t1, Pv2, -t2, coherence = "Equal"))
+        return(IHsummarization(Pv1, t1, Pv2, 
+            -t2, coherence = "Equal"))
     }
 }
 
@@ -1937,77 +2398,80 @@ PrepareCountData <- function(Result) {
                 Res <- X$FPKM
                 return(Res)
             })
-            Evs_Counts <- lapply(Evs_Counts, function(X) {
-                X <- X[c("Ref", "P1", "P2"), ]
-                return(X)
-            })
+            Evs_Counts <- lapply(Evs_Counts, 
+                function(X) {
+                  X <- X[c("Ref", "P1", "P2"), 
+                    ]
+                  return(X)
+                })
             Cols <- ncol(Evs_Counts[[1]])
-            Mat <- matrix(unlist(Evs_Counts), ncol = length(A))
-            colnames(Mat) <- paste(jj, "_", seq_len(length(A)), sep = "")
+            Mat <- matrix(unlist(Evs_Counts), 
+                ncol = length(A))
+            colnames(Mat) <- paste(jj, "_", 
+                seq_len(length(A)), sep = "")
             Samples <- colnames(Evs_Counts[[1]])
-            rownames(Mat) <- paste(rep(Samples, each = 3), c("_Ref", "_P1", "_P2"), 
-                sep = "")
-            colnames(Mat) <- paste(A[[1]]$Gene, seq_len(length(A)), sep = "_")
+            rownames(Mat) <- paste(rep(Samples, 
+                each = 3), c("_Ref", "_P1", 
+                "_P2"), sep = "")
+            colnames(Mat) <- paste(A[[1]]$Gene, 
+                seq_len(length(A)), sep = "_")
             
             if (!any(is.na(Mat))) {
                 CountMatrix[[jj]] <- Mat
             } else {
-                
                 CountMatrix[[jj]] <- NULL
             }
-            
-            
         } else {
             
             
         }
-        
-        
     }
     
     CountMatrix <- do.call(cbind, CountMatrix)
     return(CountMatrix)
-    
-    
 }
 
 #' @rdname InternalFunctions
 PrepareProbes <- function(Probes, Class) {
-    
     if (Class == "PSR") {
-        
-        Probes <- Probes[, c(seq_len(4), 8:11, 7)]
-        colnames(Probes) <- c("Probe ID", "X Coord", "Y Coord", "Gene", "Chr", "Start", 
-            "Stop", "Strand", "Probe Sequence")
-        
-        
+        Probes <- Probes[, c(seq_len(4), 
+            8:11, 7)]
+        colnames(Probes) <- c("Probe ID", 
+            "X Coord", "Y Coord", "Gene", 
+            "Chr", "Start", "Stop", "Strand", 
+            "Probe Sequence")
     } else if (Class == "Junction") {
         
-        # There are some probes that have more than 2 alignments (3,4,5), for now we will
-        # discard those probes. We should ask Affy.
+        # There are some probes that have more
+        # than 2 alignments (3,4,5), for now we
+        # will discard those probes. We should
+        # ask Affy.
         
-        Probes <- Probes[, c(seq_len(4), 9:11, 8)]
-        Probes[, 5] <- paste("chr", Probes[, 5], sep = "")
+        Probes <- Probes[, c(seq_len(4), 
+            9:11, 8)]
+        Probes[, 5] <- paste("chr", Probes[, 
+            5], sep = "")
         ix <- str_count(Probes[, 6], ",")
         ix <- which(ix == 1)
         Probes <- Probes[ix, ]
-        ProbSS <- matrix(as.numeric(unlist(strsplit(Probes[, 6], "[,-]"))), ncol = 4, 
-            byrow = 2)[, 2:3]
-        Probes <- cbind(Probes[, seq_len(5)], ProbSS, Probes[, 7:8])
-        colnames(Probes) <- c("Probe ID", "X Coord", "Y Coord", "Gene", "Chr", "Start", 
-            "Stop", "Strand", "Probe Sequence")
+        ProbSS <- matrix(as.numeric(unlist(strsplit(Probes[, 
+            6], "[,-]"))), ncol = 4, byrow = 2)[, 
+            2:3]
+        Probes <- cbind(Probes[, seq_len(5)], 
+            ProbSS, Probes[, 7:8])
+        colnames(Probes) <- c("Probe ID", 
+            "X Coord", "Y Coord", "Gene", 
+            "Chr", "Start", "Stop", "Strand", 
+            "Probe Sequence")
         # Probes<-Probes[ix,]
-        
     }
     
     
     return(Probes)
-    
 }
 
 #' @rdname InternalFunctions
 PrepareOutput <- function(Result, Final) {
-    
     GeneN <- sapply(seq_along(Result), function(x) {
         Result[[x]][[1]]$GeneName
     })
@@ -2016,153 +2480,186 @@ PrepareOutput <- function(Result, Final) {
     })
     Index <- seq_along(Result)
     
-    iix <- matrix(as.numeric(unlist(strsplit(Final[, 1], "_"))), ncol = 2, byrow = TRUE)
+    iix <- matrix(as.numeric(unlist(strsplit(Final[, 
+        1], "_"))), ncol = 2, byrow = TRUE)
     
     Types <- vector("list", length = nrow(Final))
     Positions <- vector("list", length = nrow(Final))
     GeneList <- vector("list", length = nrow(Final))
     GeneID <- vector("list", length = nrow(Final))
     
-    InfoX <- data.frame(GeneName = GeneN, GeneID = as.numeric(GeneI), Index = as.numeric(Index), 
+    InfoX <- data.frame(GeneName = GeneN, 
+        GeneID = as.numeric(GeneI), Index = as.numeric(Index), 
         stringsAsFactors = FALSE)
     
-    Output <- lapply(seq_len(nrow(Final)), function(x) {
-        
-        A <- InfoX[match(iix[x, 1], InfoX[, 2]), 3]
-        B <- iix[x, 2]
-        
-        EventType <- Result[[A]][[B]]$Type
-        
-        Mat <- rbind(Result[[A]][[B]]$P1, Result[[A]][[B]]$P2)
-        Mat <- Mat[Mat[, 4] != 0, ]
-        Mat <- Mat[Mat[, 5] != 0, ]
-        Chr <- Result[[A]][[B]]$P1[1, 3]
-        
-        St <- min(Mat[, 4])
-        Sp <- max(Mat[, 5])
-        
-        Position <- paste(Chr, ":", St, "-", Sp, sep = "")
-        
-        
-        Res <- data.frame(Gene = InfoX[A, 1], Event_Type = EventType, Position = Position, 
-            Pvalue = Final[x, 2], Zvalue = Final[x, 3], stringsAsFactors = FALSE)
-        rownames(Res) <- Final[x, 1]
-        return(Res)
-        
-    })
+    Output <- lapply(seq_len(nrow(Final)), 
+        function(x) {
+            A <- InfoX[match(iix[x, 1], InfoX[, 
+                2]), 3]
+            B <- iix[x, 2]
+            
+            EventType <- Result[[A]][[B]]$Type
+            
+            Mat <- rbind(Result[[A]][[B]]$P1, 
+                Result[[A]][[B]]$P2)
+            Mat <- Mat[Mat[, 4] != 0, ]
+            Mat <- Mat[Mat[, 5] != 0, ]
+            Chr <- Result[[A]][[B]]$P1[1, 
+                3]
+            
+            St <- min(Mat[, 4])
+            Sp <- max(Mat[, 5])
+            
+            Position <- paste(Chr, ":", St, 
+                "-", Sp, sep = "")
+            
+            
+            Res <- data.frame(Gene = InfoX[A, 
+                1], Event_Type = EventType, 
+                Position = Position, Pvalue = Final[x, 
+                  2], Zvalue = Final[x, 3], 
+                stringsAsFactors = FALSE)
+            rownames(Res) <- Final[x, 1]
+            return(Res)
+        })
     
     Output <- do.call(rbind, Output)
     Pval_Order <- order(Output[, "Pvalue"])
     Output <- Output[Pval_Order, ]
     
     return(Output)
-    
 }
 
 
 #' @rdname InternalFunctions
 SG_Info <- function(SG_Gene) {
-    
     SE_Cond <- FALSE
     TTS_Cond <- FALSE
     TSS_Cond <- FALSE
     
-    # Obtain information of all the elements of the Graph
+    # Obtain information of all the elements
+    # of the Graph
     
     Graph <- SGSeq:::exonGraph(SG_Gene, tx_view = FALSE)
     Graph_Nodes <- SGSeq:::nodes(Graph)
     Graph_Edges <- SGSeq:::edges(Graph)
-    # Graph<-exonGraph(SG_Gene,tx_view=FALSE) Graph_Nodes <- nodes(Graph)
+    # Graph<-exonGraph(SG_Gene,tx_view=FALSE)
+    # Graph_Nodes <- nodes(Graph)
     # Graph_Edges<- edges(Graph)
     
-    Nodes_Pos <- matrix(unlist(strsplit(Graph_Nodes[, 2], "[:-]")), ncol = 4, byrow = TRUE)
-    Edges_Pos <- matrix(unlist(strsplit(Graph_Edges[, 3], "[:-]")), ncol = 4, byrow = TRUE)
+    Nodes_Pos <- matrix(unlist(strsplit(Graph_Nodes[, 
+        2], "[:-]")), ncol = 4, byrow = TRUE)
+    Edges_Pos <- matrix(unlist(strsplit(Graph_Edges[, 
+        3], "[:-]")), ncol = 4, byrow = TRUE)
     
-    Graph_Nodes <- cbind(Graph_Nodes[, 1], Nodes_Pos, Graph_Nodes[, 3:4])
-    Graph_Nodes <- as.data.frame(Graph_Nodes, stringsAsFactors = FALSE)
-    colnames(Graph_Nodes) <- c("Name", "Chr", "Start", "End", "Strand", "Type", "featureID")
-    Nodes <- as.numeric(as.vector(Graph_Nodes[, 1]))
-    
-    Graph_Edges <- cbind(Graph_Edges[, c(1, 2)], Edges_Pos, Graph_Edges[, 4:5])
-    Graph_Edges <- as.data.frame(Graph_Edges, stringsAsFactors = FALSE)
-    colnames(Graph_Edges) <- c("From", "To", "Chr", "Start", "End", "Strand", "Type", 
+    Graph_Nodes <- cbind(Graph_Nodes[, 1], 
+        Nodes_Pos, Graph_Nodes[, 3:4])
+    Graph_Nodes <- as.data.frame(Graph_Nodes, 
+        stringsAsFactors = FALSE)
+    colnames(Graph_Nodes) <- c("Name", "Chr", 
+        "Start", "End", "Strand", "Type", 
         "featureID")
+    Nodes <- as.numeric(as.vector(Graph_Nodes[, 
+        1]))
     
-    if (as.vector(strand(SG_Gene)@values) == "-") {
-        Graph_Edges <- Graph_Edges[, c(2, 1, 3:8)]
-        colnames(Graph_Edges) <- c("From", "To", "Chr", "Start", "End", "Strand", 
-            "Type", "featureID")
-        
+    Graph_Edges <- cbind(Graph_Edges[, c(1, 
+        2)], Edges_Pos, Graph_Edges[, 4:5])
+    Graph_Edges <- as.data.frame(Graph_Edges, 
+        stringsAsFactors = FALSE)
+    colnames(Graph_Edges) <- c("From", "To", 
+        "Chr", "Start", "End", "Strand", 
+        "Type", "featureID")
+    
+    if (as.vector(strand(SG_Gene)@values) == 
+        "-") {
+        Graph_Edges <- Graph_Edges[, c(2, 
+            1, 3:8)]
+        colnames(Graph_Edges) <- c("From", 
+            "To", "Chr", "Start", "End", 
+            "Strand", "Type", "featureID")
     }
     
     # Determine Subexons
     
-    SE.II <- as.numeric(as.vector(Graph_Nodes[2:nrow(Graph_Nodes), 3])) - as.numeric(as.vector(Graph_Nodes[seq_len((nrow(Graph_Nodes) - 
+    SE.II <- as.numeric(as.vector(Graph_Nodes[2:nrow(Graph_Nodes), 
+        3])) - as.numeric(as.vector(Graph_Nodes[seq_len((nrow(Graph_Nodes) - 
         1)), 4]))
     SE.II <- which(SE.II == 1)
     L_SE.II <- length(SE.II)
-    SE_chr <- rep(as.vector(Graph_Nodes[1, 2]), L_SE.II)
+    SE_chr <- rep(as.vector(Graph_Nodes[1, 
+        2]), L_SE.II)
     SE_St <- Graph_Nodes[SE.II, 4]
     SE_Ed <- Graph_Nodes[SE.II + 1, 3]
-    SE_std <- rep(as.vector(Graph_Nodes[1, 5]), L_SE.II)
+    SE_std <- rep(as.vector(Graph_Nodes[1, 
+        5]), L_SE.II)
     SE_type <- rep("J", L_SE.II)
     SE_FID <- rep(0, L_SE.II)
     
-    SubExons <- data.frame(SE.II, SE.II + 1, SE_chr, SE_St, SE_Ed, SE_std, SE_type, 
-        SE_FID, stringsAsFactors = FALSE)
+    SubExons <- data.frame(SE.II, SE.II + 
+        1, SE_chr, SE_St, SE_Ed, SE_std, 
+        SE_type, SE_FID, stringsAsFactors = FALSE)
     colnames(SubExons) <- colnames(Graph_Edges)
     
     if (nrow(SubExons) != 0) {
-        Graph_Edges <- rbind(Graph_Edges, SubExons)
+        Graph_Edges <- rbind(Graph_Edges, 
+            SubExons)
         SE_Cond <- TRUE
-        
     }
     
     # Determine Alternative Last
     
-    TTS <- setdiff(Nodes, as.numeric(as.vector(Graph_Edges[, 1])))
+    TTS <- setdiff(Nodes, as.numeric(as.vector(Graph_Edges[, 
+        1])))
     
     if (length(TTS) > 0) {
         TTS <- paste(TTS, ".b", sep = "")
         Ln_TTS <- length(TTS)
         
         EE <- rep("E", length(TTS))
-        TTS <- data.frame(TTS, EE, rep(Graph_Edges[1, 3], Ln_TTS), rep(0, Ln_TTS), 
-            rep(0, Ln_TTS), rep(as.vector(Graph_Edges[1, 6]), Ln_TTS), rep("J", Ln_TTS), 
+        TTS <- data.frame(TTS, EE, rep(Graph_Edges[1, 
+            3], Ln_TTS), rep(0, Ln_TTS), 
+            rep(0, Ln_TTS), rep(as.vector(Graph_Edges[1, 
+                6]), Ln_TTS), rep("J", Ln_TTS), 
             rep(0, Ln_TTS), stringsAsFactors = FALSE)
         colnames(TTS) <- colnames(Graph_Edges)
         
         TTS_Cond <- TRUE
-        
     }
     
     
     # Determine Alternative First
     
     
-    TSS <- setdiff(Nodes, as.numeric(as.vector(Graph_Edges[, 2])))
+    TSS <- setdiff(Nodes, as.numeric(as.vector(Graph_Edges[, 
+        2])))
     
     if (length(TSS) > 0) {
         TSS <- paste(TSS, ".a", sep = "")
         Ln_TSS <- length(TSS)
         
         SS <- rep("S", Ln_TSS)
-        TSS <- data.frame(SS, TSS, rep(Graph_Edges[1, 3], Ln_TSS), rep(0, Ln_TSS), 
-            rep(0, Ln_TSS), rep(as.vector(Graph_Edges[1, 6]), Ln_TSS), rep("J", Ln_TSS), 
+        TSS <- data.frame(SS, TSS, rep(Graph_Edges[1, 
+            3], Ln_TSS), rep(0, Ln_TSS), 
+            rep(0, Ln_TSS), rep(as.vector(Graph_Edges[1, 
+                6]), Ln_TSS), rep("J", Ln_TSS), 
             rep(0, Ln_TSS), stringsAsFactors = FALSE)
         colnames(TSS) <- colnames(Graph_Edges)
         
         TSS_Cond <- TRUE
-        
     }
     
     # Extend SG
     
-    Graph_Edges[, 1] <- paste(as.vector(Graph_Edges[, 1]), ".b", sep = "")
-    Graph_Edges[, 2] <- paste(as.vector(Graph_Edges[, 2]), ".a", sep = "")
-    From <- paste(as.vector(Graph_Nodes[, 1]), ".a", sep = "")
-    To <- paste(as.vector(Graph_Nodes[, 1]), ".b", sep = "")
-    Extended <- cbind(From, To, Graph_Nodes[, 2:7])
+    Graph_Edges[, 1] <- paste(as.vector(Graph_Edges[, 
+        1]), ".b", sep = "")
+    Graph_Edges[, 2] <- paste(as.vector(Graph_Edges[, 
+        2]), ".a", sep = "")
+    From <- paste(as.vector(Graph_Nodes[, 
+        1]), ".a", sep = "")
+    To <- paste(as.vector(Graph_Nodes[, 1]), 
+        ".b", sep = "")
+    Extended <- cbind(From, To, Graph_Nodes[, 
+        2:7])
     
     Graph_Edges <- rbind(Graph_Edges, Extended)
     
@@ -2171,7 +2668,8 @@ SG_Info <- function(SG_Gene) {
     }
     
     if (TTS_Cond) {
-        Graph_Edges <- rbind(Graph_Edges, TTS)
+        Graph_Edges <- rbind(Graph_Edges, 
+            TTS)
     }
     
     
@@ -2179,17 +2677,22 @@ SG_Info <- function(SG_Gene) {
     
     # Get Adjacency and Incidence Matrix
     
-    GGraph <- graph_from_data_frame(Graph_Edges, directed = TRUE)
+    GGraph <- graph_from_data_frame(Graph_Edges, 
+        directed = TRUE)
     Adjacency <- as_adj(GGraph)
     
     
-    Incidence <- matrix(0, nrow = ((length(Nodes) * 2) + 2), ncol = nrow(Graph_Edges))
+    Incidence <- matrix(0, nrow = ((length(Nodes) * 
+        2) + 2), ncol = nrow(Graph_Edges))
     colnames(Incidence) <- rownames(Graph_Edges)
-    rownames(Incidence) <- c("S", paste(rep(Nodes, each = 2), c(".a", ".b"), sep = ""), 
+    rownames(Incidence) <- c("S", paste(rep(Nodes, 
+        each = 2), c(".a", ".b"), sep = ""), 
         "E")
     
-    Incidence[cbind(as.vector(Graph_Edges[, "From"]), colnames(Incidence))] <- -1
-    Incidence[cbind(as.vector(Graph_Edges[, "To"]), colnames(Incidence))] <- 1
+    Incidence[cbind(as.vector(Graph_Edges[, 
+        "From"]), colnames(Incidence))] <- -1
+    Incidence[cbind(as.vector(Graph_Edges[, 
+        "To"]), colnames(Incidence))] <- 1
     
     iijj <- match(rownames(Incidence), rownames(Adjacency))
     Adjacency <- Adjacency[iijj, iijj]
@@ -2197,56 +2700,66 @@ SG_Info <- function(SG_Gene) {
     
     # Return All Information
     
-    Result <- list(Edges = Graph_Edges, Adjacency = Adjacency, Incidence = Incidence)
+    Result <- list(Edges = Graph_Edges, Adjacency = Adjacency, 
+        Incidence = Incidence)
     # Result<-list(Edges=Graph_Edges,Incidence=Incidence)
     return(Result)
-    
-    
-    
 }
 
 #' @rdname InternalFunctions
 SG_creation <- function(SG_Gene) {
-    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == "E"]
+    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == 
+        "E"]
     Ts <- unique(unlist(txName(SG_Gene_SoloE)))
     
     # Build Adjacency Matrix
-    ncolAdj <- length(SG_Gene_SoloE) * 2 + 2
+    ncolAdj <- length(SG_Gene_SoloE) * 2 + 
+        2
     Adj <- matrix(0, ncol = ncolAdj, nrow = ncolAdj)
-    nombres <- rep(paste(seq_len((ncolAdj/2 - 1)), ".b", sep = ""), each = 2)
-    nombresa <- rep(paste(seq_len((ncolAdj/2 - 1)), ".a", sep = ""), each = 2)
-    nombres[seq(1, (ncolAdj - 2), by = 2)] <- nombresa[seq(1, (ncolAdj - 2), by = 2)]
-    rownames(Adj) <- colnames(Adj) <- c("S", nombres, "E")
+    nombres <- rep(paste(seq_len((ncolAdj/2 - 
+        1)), ".b", sep = ""), each = 2)
+    nombresa <- rep(paste(seq_len((ncolAdj/2 - 
+        1)), ".a", sep = ""), each = 2)
+    nombres[seq(1, (ncolAdj - 2), by = 2)] <- nombresa[seq(1, 
+        (ncolAdj - 2), by = 2)]
+    rownames(Adj) <- colnames(Adj) <- c("S", 
+        nombres, "E")
     for (Trans in Ts) {
-        dummy <- sapply(txName(SG_Gene_SoloE) == Trans, any)
+        dummy <- sapply(txName(SG_Gene_SoloE) == 
+            Trans, any)
         dummy2 <- rep(which(dummy) * 2, each = 2)
-        dummy2[seq(2, length(dummy2), by = 2)] <- dummy2[seq(2, length(dummy2), by = 2)] + 
-            1
+        dummy2[seq(2, length(dummy2), by = 2)] <- dummy2[seq(2, 
+            length(dummy2), by = 2)] + 1
         dummy2 <- c(1, dummy2, ncolAdj)
-        Adj[cbind(dummy2[seq_len((length(dummy2) - 1))], dummy2[2:length(dummy2)])] <- 1
+        Adj[cbind(dummy2[seq_len((length(dummy2) - 
+            1))], dummy2[2:length(dummy2)])] <- 1
     }
     
-    PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), end(ranges(SG_Gene_SoloE)))), 
-        0)
+    PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), 
+        end(ranges(SG_Gene_SoloE)))), 0)
     
     # Build incidence matrix
-    Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 1], seq_len(ncol(Inc)))] <- -1
+    Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
+        0))
+    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+        2], seq_len(ncol(Inc)))] <- 1
+    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+        1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
     colnames(Inc) <- seq_len(ncol(Inc))
     
     NuevoOrden <- which(Inc[1, ] == -1)
-    NuevoOrden <- c(NuevoOrden, setdiff(unlist(apply(Inc[grep("b", rownames(Inc)), 
-        ], 1, function(x) {
+    NuevoOrden <- c(NuevoOrden, setdiff(unlist(apply(Inc[grep("b", 
+        rownames(Inc)), ], 1, function(x) {
         A <- which(x == -1)
     })), which(Inc[nrow(Inc), ] == 1)))
-    NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)), ], 1, 
-        function(x) {
-            which(x == -1)
-        })))
-    NuevoOrden <- c(NuevoOrden, which(Inc[nrow(Inc), ] == 1))
+    NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", 
+        rownames(Inc)), ], 1, function(x) {
+        which(x == -1)
+    })))
+    NuevoOrden <- c(NuevoOrden, which(Inc[nrow(Inc), 
+        ] == 1))
     
     Inc <- Inc[, NuevoOrden]
     
@@ -2255,11 +2768,13 @@ SG_creation <- function(SG_Gene) {
     
     # Build edges data.frame
     Edges <- data.frame()
-    # From <- colnames(Adj)[which(Adj>0, arr.ind=1)[,1]]
+    # From <- colnames(Adj)[which(Adj>0,
+    # arr.ind=1)[,1]]
     From <- rownames(Inc)[apply(Inc, 2, function(X) {
         which(X == -1)
     })]
-    # To <- colnames(Adj)[which(Adj>0, arr.ind=1)[,2]]
+    # To <- colnames(Adj)[which(Adj>0,
+    # arr.ind=1)[,2]]
     To <- rownames(Inc)[apply(Inc, 2, function(X) {
         which(X == 1)
     })]
@@ -2268,23 +2783,28 @@ SG_creation <- function(SG_Gene) {
     Edges$Start <- 0
     Edges$End <- 0
     Exons <- grep("a", Edges$From)
-    # Edges$Strand <- as.character(strand(SG_Gene_SoloE[Exons[1]]))
+    # Edges$Strand <-
+    # as.character(strand(SG_Gene_SoloE[Exons[1]]))
     Edges$Strand <- strand(SG_Gene)@values
     Edges$Type <- "J"
-    Virtual <- c(grep("S", Edges$From), grep("E", Edges$To))
+    Virtual <- c(grep("S", Edges$From), grep("E", 
+        Edges$To))
     Edges[Exons, "Type"] <- "E"
     Edges[Virtual, "Type"] <- "V"  # If J is required, comment this line.
-    Edges$Start <- PosAdj[match(Edges$From, colnames(Adj))]
+    Edges$Start <- PosAdj[match(Edges$From, 
+        colnames(Adj))]
     Edges$End <- PosAdj[match(Edges$To, colnames(Adj))]
     Edges$Chr <- max(Edges$Chr)
     
     # Put featuresID
-    matched <- match(Edges$End + 1e+06 * Edges$Start, end(ranges(SG_Gene)) + 1e+06 * 
-        start(ranges(SG_Gene)))
+    matched <- match(Edges$End + 1e+06 * 
+        Edges$Start, end(ranges(SG_Gene)) + 
+        1e+06 * start(ranges(SG_Gene)))
     IndexEdge <- which(!is.na(matched))
     Edges$featureID <- 0
     Edges$featureID[IndexEdge] <- featureID(SG_Gene[matched[IndexEdge]])
-    return(list(Edges = Edges, Adjacency = Adjacency, Incidence = Inc))
+    return(list(Edges = Edges, Adjacency = Adjacency, 
+        Incidence = Inc))
 }
 
 
@@ -2292,36 +2812,53 @@ SG_creation <- function(SG_Gene) {
 SG_creation_RNASeq <- function(SG_Gene) {
     # which((start(SG_Gene)-end(SG_Gene))==0)
     
-    SG_Gene <- SG_Gene[which((start(SG_Gene) - end(SG_Gene)) != 0)]
-    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == "E"]
-    nodos <- sort(unique(c(start(SG_Gene_SoloE), end(SG_Gene_SoloE))))
+    SG_Gene <- SG_Gene[which((start(SG_Gene) - 
+        end(SG_Gene)) != 0)]
+    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == 
+        "E"]
+    nodos <- sort(unique(c(start(SG_Gene_SoloE), 
+        end(SG_Gene_SoloE))))
     ncolAdj <- length(nodos) + 2
-    Adj <- matrix(0, nrow = length(nodos) + 2, ncol = length(nodos) + 2)
-    colnames(Adj) <- rownames(Adj) <- c("S", nodos, "E")
-    edges <- cbind(match(start(SG_Gene), colnames(Adj)), match(end(SG_Gene), colnames(Adj)))
+    Adj <- matrix(0, nrow = length(nodos) + 
+        2, ncol = length(nodos) + 2)
+    colnames(Adj) <- rownames(Adj) <- c("S", 
+        nodos, "E")
+    edges <- cbind(match(start(SG_Gene), 
+        colnames(Adj)), match(end(SG_Gene), 
+        colnames(Adj)))
     
     # subexones adyacentes
     adyacentes1 <- which(diff(nodos) == 1)
-    edges <- rbind(edges, cbind(1 + adyacentes1, adyacentes1 + 2))
+    edges <- rbind(edges, cbind(1 + adyacentes1, 
+        adyacentes1 + 2))
     Adj[edges] <- 1
     diag(Adj) <- 0
     
     
-    # Include new start and end sites based on annotation
+    # Include new start and end sites based
+    # on annotation
     
-    if (!sum(sapply(txName(SG_Gene_SoloE), length)) == 0) {
+    if (!sum(sapply(txName(SG_Gene_SoloE), 
+        length)) == 0) {
         Ts <- unique(unlist(txName(SG_Gene_SoloE)))
-        Salida <- lapply(txName(SG_Gene_SoloE), match, Ts)
+        Salida <- lapply(txName(SG_Gene_SoloE), 
+            match, Ts)
         veces <- sapply(Salida, length)
-        y <- rep(seq_len(length(veces)), veces)
+        y <- rep(seq_len(length(veces)), 
+            veces)
         x <- unlist(Salida)
-        Transcripts <- matrix(FALSE, nrow = max(x), ncol = max(y))
+        Transcripts <- matrix(FALSE, nrow = max(x), 
+            ncol = max(y))
         Transcripts[cbind(x, y)] <- TRUE
-        initial <- unique(max.col(Transcripts, ties.method = c("first")))
-        final <- unique(max.col(Transcripts, ties.method = c("last")))
-        colstarts <- match(start(SG_Gene_SoloE[initial]), colnames(Adj))
+        initial <- unique(max.col(Transcripts, 
+            ties.method = c("first")))
+        final <- unique(max.col(Transcripts, 
+            ties.method = c("last")))
+        colstarts <- match(start(SG_Gene_SoloE[initial]), 
+            colnames(Adj))
         Adj[cbind(1, colstarts)] <- 1
-        rowends <- match(end(SG_Gene_SoloE[final]), rownames(Adj))
+        rowends <- match(end(SG_Gene_SoloE[final]), 
+            rownames(Adj))
         Adj[cbind(rowends, ncol(Adj))] <- 1
     }
     
@@ -2345,36 +2882,47 @@ SG_creation_RNASeq <- function(SG_Gene) {
     }
     diag(Adj) <- 0
     
-    # Change the name of the rows and columns to 1.a 1.b 2.a 2.b,...
+    # Change the name of the rows and columns
+    # to 1.a 1.b 2.a 2.b,...
     
-    nombres <- rep(paste(seq_len((ncolAdj/2 - 1)), ".b", sep = ""), each = 2)
-    nombresa <- rep(paste(seq_len((ncolAdj/2 - 1)), ".a", sep = ""), each = 2)
-    nombres[seq(1, (ncolAdj - 2), by = 2)] <- nombresa[seq(1, (ncolAdj - 2), by = 2)]
-    rownames(Adj) <- colnames(Adj) <- c("S", nombres, "E")
+    nombres <- rep(paste(seq_len((ncolAdj/2 - 
+        1)), ".b", sep = ""), each = 2)
+    nombresa <- rep(paste(seq_len((ncolAdj/2 - 
+        1)), ".a", sep = ""), each = 2)
+    nombres[seq(1, (ncolAdj - 2), by = 2)] <- nombresa[seq(1, 
+        (ncolAdj - 2), by = 2)]
+    rownames(Adj) <- colnames(Adj) <- c("S", 
+        nombres, "E")
     
     
     
-    PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), end(ranges(SG_Gene_SoloE)))), 
-        0)
+    PosAdj <- c(0, as.numeric(rbind(start(ranges(SG_Gene_SoloE)), 
+        end(ranges(SG_Gene_SoloE)))), 0)
     
     # Build incidence matrix
-    Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 1], seq_len(ncol(Inc)))] <- -1
+    Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
+        0))
+    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+        2], seq_len(ncol(Inc)))] <- 1
+    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+        1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
     colnames(Inc) <- seq_len(ncol(Inc))
     
     NuevoOrden <- which(Inc[1, ] == -1)
-    NuevoOrden <- c(NuevoOrden, setdiff(unlist(apply(Inc[grep("b", rownames(Inc)), 
-        , drop = FALSE], 1, function(x) {
-        A <- which(x == -1)
-    })), which(Inc[nrow(Inc), ] == 1)))
-    NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)), , drop = FALSE], 
+    NuevoOrden <- c(NuevoOrden, setdiff(unlist(apply(Inc[grep("b", 
+        rownames(Inc)), , drop = FALSE], 
+        1, function(x) {
+            A <- which(x == -1)
+        })), which(Inc[nrow(Inc), ] == 1)))
+    NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", 
+        rownames(Inc)), , drop = FALSE], 
         1, function(x) {
             which(x == -1)
         })))
-    NuevoOrden <- c(NuevoOrden, which(Inc[nrow(Inc), ] == 1))
+    NuevoOrden <- c(NuevoOrden, which(Inc[nrow(Inc), 
+        ] == 1))
     
     Inc <- Inc[, NuevoOrden]
     
@@ -2383,11 +2931,13 @@ SG_creation_RNASeq <- function(SG_Gene) {
     
     # Build edges data.frame
     Edges <- data.frame()
-    # From <- colnames(Adj)[which(Adj>0, arr.ind=1)[,1]]
+    # From <- colnames(Adj)[which(Adj>0,
+    # arr.ind=1)[,1]]
     From <- rownames(Inc)[apply(Inc, 2, function(X) {
         which(X == -1)
     })]
-    # To <- colnames(Adj)[which(Adj>0, arr.ind=1)[,2]]
+    # To <- colnames(Adj)[which(Adj>0,
+    # arr.ind=1)[,2]]
     To <- rownames(Inc)[apply(Inc, 2, function(X) {
         which(X == 1)
     })]
@@ -2396,45 +2946,51 @@ SG_creation_RNASeq <- function(SG_Gene) {
     Edges$Start <- 0
     Edges$End <- 0
     Exons <- grep("a", Edges$From)
-    # Edges$Strand <- as.character(strand(SG_Gene_SoloE[Exons[1]]))
+    # Edges$Strand <-
+    # as.character(strand(SG_Gene_SoloE[Exons[1]]))
     Edges$Strand <- strand(SG_Gene)@values
     Edges$Type <- "J"
-    Virtual <- c(grep("S", Edges$From), grep("E", Edges$To))
+    Virtual <- c(grep("S", Edges$From), grep("E", 
+        Edges$To))
     Edges[Exons, "Type"] <- "E"
     Edges[Virtual, "Type"] <- "V"  # If J is required, comment this line.
-    Edges$Start <- PosAdj[match(Edges$From, colnames(Adj))]
+    Edges$Start <- PosAdj[match(Edges$From, 
+        colnames(Adj))]
     Edges$End <- PosAdj[match(Edges$To, colnames(Adj))]
     Edges$Chr <- max(Edges$Chr)
     
     # Put featuresID
-    matched <- match(Edges$End + 1e+06 * Edges$Start, end(ranges(SG_Gene)) + 1e+06 * 
-        start(ranges(SG_Gene)))
+    matched <- match(Edges$End + 1e+06 * 
+        Edges$Start, end(ranges(SG_Gene)) + 
+        1e+06 * start(ranges(SG_Gene)))
     IndexEdge <- which(!is.na(matched))
     Edges$featureID <- 0
     Edges$featureID[IndexEdge] <- featureID(SG_Gene[matched[IndexEdge]])
-    return(list(Edges = Edges, Adjacency = Adjacency, Incidence = Inc))
+    return(list(Edges = Edges, Adjacency = Adjacency, 
+        Incidence = Inc))
 }
 
 
 #' @rdname InternalFunctions
-############################################################################## function to create Event plots in IGV
-WriteGTF <- function(PATH, Data, Probes, Paths) {
-    
-    
-    
+######## function to create Event plots in IGV
+WriteGTF <- function(PATH, Data, Probes, 
+    Paths) {
     STRAND <- unique(Paths[, 5])
-    FILE.probes <- paste(PATH, "/probes.gtf", sep = "")
-    ### Error en los grep.. si no encuentra regresa 0 y no NA
+    FILE.probes <- paste(PATH, "/probes.gtf", 
+        sep = "")
+    ### Error en los grep.. si no encuentra
+    ### regresa 0 y no NA
     PATHS <- as.vector(unique(Probes[, 6]))
     
     
     for (i in seq_len(nrow(Probes))) {
-        
         if (STRAND == "+") {
             START <- Probes[i, 3]
-            END <- Probes[i, 3] + Probes[i, 4]
+            END <- Probes[i, 3] + Probes[i, 
+                4]
         } else if (STRAND == "-") {
-            START <- Probes[i, 3] - Probes[i, 4]
+            START <- Probes[i, 3] - Probes[i, 
+                4]
             END <- Probes[i, 3]
         }
         
@@ -2446,12 +3002,16 @@ WriteGTF <- function(PATH, Data, Probes, Paths) {
         } else if (Probes[i, 6] == "Path2") {
             COL <- "#00CC33"
         }
-        PROBES <- paste(Probes[i, 2], "\t", "microarray", "\t", "probe", "\t", Probes[i, 
-            3], "\t", END, "\t", "0", "\t", "*", "\t", "0", "\t", "event=", Data[1, 
-            4], "; path=", Probes[i, 6], "; color=", COL, ";", "probeID=", Probes[i, 
-            1], ";", sep = "")
-        cat(file = FILE.probes, PROBES, sep = "\n", append = TRUE)
-        
+        PROBES <- paste(Probes[i, 2], "\t", 
+            "microarray", "\t", "probe", 
+            "\t", Probes[i, 3], "\t", END, 
+            "\t", "0", "\t", "*", "\t", "0", 
+            "\t", "event=", Data[1, 4], "; path=", 
+            Probes[i, 6], "; color=", COL, 
+            ";", "probeID=", Probes[i, 1], 
+            ";", sep = "")
+        cat(file = FILE.probes, PROBES, sep = "\n", 
+            append = TRUE)
     }
     
     
@@ -2461,72 +3021,103 @@ WriteGTF <- function(PATH, Data, Probes, Paths) {
     II <- order(Paths[, 7])
     Paths <- Paths[II, ]
     PATHS <- unique(Paths[, 7])
-    FILE.paths <- paste(PATH, "/paths.gtf", sep = "")
+    FILE.paths <- paste(PATH, "/paths.gtf", 
+        sep = "")
     
     
-    GENESSSSS <- paste(Paths[, 1], "\t", "EventPointer", "\t", "gene", "\t", min(Paths[, 
-        2]), "\t", max(Paths[, 3]), "\t", "0", "\t", Paths[, 5], "\t", "0", "\t", 
-        paste("gene_id ", Data[1, 2], "_", Data[1, 3], "; ", "type ", shQuote(as.vector(Data[1, 
-            4]), type = "cmd"), "; color=", "#000000", ";", sep = ""), sep = "")
+    GENESSSSS <- paste(Paths[, 1], "\t", 
+        "EventPointer", "\t", "gene", "\t", 
+        min(Paths[, 2]), "\t", max(Paths[, 
+            3]), "\t", "0", "\t", Paths[, 
+            5], "\t", "0", "\t", paste("gene_id ", 
+            Data[1, 2], "_", Data[1, 3], 
+            "; ", "type ", shQuote(as.vector(Data[1, 
+                4]), type = "cmd"), "; color=", 
+            "#000000", ";", sep = ""), sep = "")
     GENESSSSS <- unique(GENESSSSS)
     
-    cat(file = FILE.paths, GENESSSSS, sep = "\n", append = TRUE)
+    cat(file = FILE.paths, GENESSSSS, sep = "\n", 
+        append = TRUE)
     
     
     # browser()
     for (i in seq_along(PATHS)) {
         ii <- which(Paths[, 7] == PATHS[i])
         # if (all(!is.na(grep('Ref',PATHS[i])))){
-        if (length(!is.na(grep("Ref", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("Ref", PATHS[i]))) != 
+            0) {
             COL <- "#B0B0B0"
             aaaaaa <- 3
         }
         # if (all(!is.na(match('A',PATHS[i])))){
-        if (length(!is.na(grep("A", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("A", PATHS[i]))) != 
+            0) {
             COL <- "#D00000"
             aaaaaa <- 2
         }
         # if (all(!is.na(match('B',PATHS[i])))){
-        if (length(!is.na(grep("B", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("B", PATHS[i]))) != 
+            0) {
             COL <- "#00CC33"
             aaaaaa <- 1
         }
-        # if (all(!is.na(match('Empty',PATHS[i])))){
-        if (length(!is.na(grep("Empty", PATHS[i]))) != 0) {
+        # if
+        # (all(!is.na(match('Empty',PATHS[i])))){
+        if (length(!is.na(grep("Empty", PATHS[i]))) != 
+            0) {
             COL <- "#FFFFFF"
         }
         
         
         # browser() TRANS <-
-        # paste(Paths[ii,1],'\t','EventPointer','\t','transcript','\t',min(Paths[,2])-10*as.numeric(as.matrix(Data[2]))-aaaaaa
+        # paste(Paths[ii,1],'\t','EventPointer','\t','transcript','\t',
+        # min(Paths[,2])-10*as.numeric(as.matrix(Data[2]))-aaaaaa
         # MINGENE-as.numeric(as.matrix(Data[2])),
-        TRANS <- paste(Paths[ii, 1], "\t", "EventPointer", "\t", "transcript", "\t", 
-            min(Paths[ii, 2]), "\t", max(Paths[ii, 3]), "\t", "0", "\t", Paths[ii, 
-                5], "\t", "0", "\t", paste("gene_id ", Data[1, 2], "_", Data[1, 3], 
-                "; ", "transcript_id ", shQuote(Paths[ii, 7], type = "cmd"), "_", 
-                gsub(" ", "_", Data[1, 4]), "_", unique(Paths[ii, 6]), "_", Data[1, 
-                  3], "; ", "type ", shQuote(Data[1, 4], type = "cmd"), "; color=", 
-                COL, ";", sep = ""), sep = "")
+        TRANS <- paste(Paths[ii, 1], "\t", 
+            "EventPointer", "\t", "transcript", 
+            "\t", min(Paths[ii, 2]), "\t", 
+            max(Paths[ii, 3]), "\t", "0", 
+            "\t", Paths[ii, 5], "\t", "0", 
+            "\t", paste("gene_id ", Data[1, 
+                2], "_", Data[1, 3], "; ", 
+                "transcript_id ", shQuote(Paths[ii, 
+                  7], type = "cmd"), "_", 
+                gsub(" ", "_", Data[1, 4]), 
+                "_", unique(Paths[ii, 6]), 
+                "_", Data[1, 3], "; ", "type ", 
+                shQuote(Data[1, 4], type = "cmd"), 
+                "; color=", COL, ";", sep = ""), 
+            sep = "")
         TRANS <- unique(TRANS)
         
-        GTF <- paste(Paths[ii, 1], "\t", "EventPointer", "\t", "exon", "\t", Paths[ii, 
-            2], "\t", Paths[ii, 3], "\t", "0", "\t", Paths[ii, 5], "\t", "0", "\t", 
-            paste("gene_id ", Data[1, 2], "_", Data[1, 3], "; ", "transcript_id ", 
-                shQuote(Paths[ii, 7], type = "cmd"), "_", gsub(" ", "_", Data[1, 
-                  4]), "_", unique(Paths[ii, 6]), "_", Data[1, 3], "; ", "type ", 
-                shQuote(Data[1, 4], type = "cmd"), "; exon_number ", seq_len(length(ii)), 
-                "; color=", COL, ";", sep = ""), sep = "")
-        # if (i == 1){ cat(file=FILE.paths,TRANS,sep='\n') }else{
-        cat(file = FILE.paths, TRANS, sep = "\n", append = TRUE)
+        GTF <- paste(Paths[ii, 1], "\t", 
+            "EventPointer", "\t", "exon", 
+            "\t", Paths[ii, 2], "\t", Paths[ii, 
+                3], "\t", "0", "\t", Paths[ii, 
+                5], "\t", "0", "\t", paste("gene_id ", 
+                Data[1, 2], "_", Data[1, 
+                  3], "; ", "transcript_id ", 
+                shQuote(Paths[ii, 7], type = "cmd"), 
+                "_", gsub(" ", "_", Data[1, 
+                  4]), "_", unique(Paths[ii, 
+                  6]), "_", Data[1, 3], "; ", 
+                "type ", shQuote(Data[1, 
+                  4], type = "cmd"), "; exon_number ", 
+                seq_len(length(ii)), "; color=", 
+                COL, ";", sep = ""), sep = "")
+        # if (i == 1){
+        # cat(file=FILE.paths,TRANS,sep='\n')
+        # }else{
+        cat(file = FILE.paths, TRANS, sep = "\n", 
+            append = TRUE)
         # }
-        cat(file = FILE.paths, GTF, sep = "\n", append = TRUE)
+        cat(file = FILE.paths, GTF, sep = "\n", 
+            append = TRUE)
     }
-    
-    
 }
 
 #' @rdname InternalFunctions
-############################################################################## function to create Event plots in IGV
+####### function to create Event plots in IGV
 WriteGTF_RNASeq <- function(PATH, Data, Paths) {
     
     # browser() Paths GTF
@@ -2534,39 +3125,50 @@ WriteGTF_RNASeq <- function(PATH, Data, Paths) {
     II <- order(Paths[, 7])
     Paths <- Paths[II, ]
     PATHS <- unique(Paths[, 7])
-    FILE.paths <- paste(PATH, "/paths_RNASeq.gtf", sep = "")
+    FILE.paths <- paste(PATH, "/paths_RNASeq.gtf", 
+        sep = "")
     
-    GENESSSSS <- paste(Paths[, 1], "\t", "EventPointer", "\t", "gene", "\t", min(Paths[, 
-        2]), "\t", max(Paths[, 3]), "\t", "0", "\t", Paths[, 5], "\t", "0", "\t", 
-        paste("gene_id ", Data[1, 1], "; ", "type ", shQuote(as.vector(Data[1, 4]), 
-            type = "cmd"), "; color=", "#000000", ";", sep = ""), sep = "")
+    GENESSSSS <- paste(Paths[, 1], "\t", 
+        "EventPointer", "\t", "gene", "\t", 
+        min(Paths[, 2]), "\t", max(Paths[, 
+            3]), "\t", "0", "\t", Paths[, 
+            5], "\t", "0", "\t", paste("gene_id ", 
+            Data[1, 1], "; ", "type ", shQuote(as.vector(Data[1, 
+                4]), type = "cmd"), "; color=", 
+            "#000000", ";", sep = ""), sep = "")
     
     GENESSSSS <- unique(GENESSSSS)
     
     # browser()
-    cat(file = FILE.paths, GENESSSSS, sep = "\n", append = TRUE)
+    cat(file = FILE.paths, GENESSSSS, sep = "\n", 
+        append = TRUE)
     
     
     # browser()
     for (i in seq_along(PATHS)) {
         ii <- which(Paths[, 7] == PATHS[i])
         # if (all(!is.na(grep('Ref',PATHS[i])))){
-        if (length(!is.na(grep("Ref", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("Ref", PATHS[i]))) != 
+            0) {
             COL <- "#B0B0B0"
             aaaaaa <- 3
         }
         # if (all(!is.na(match('A',PATHS[i])))){
-        if (length(!is.na(grep("A", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("A", PATHS[i]))) != 
+            0) {
             COL <- "#D00000"
             aaaaaa <- 2
         }
         # if (all(!is.na(match('B',PATHS[i])))){
-        if (length(!is.na(grep("B", PATHS[i]))) != 0) {
+        if (length(!is.na(grep("B", PATHS[i]))) != 
+            0) {
             COL <- "#00CC33"
             aaaaaa <- 1
         }
-        # if (all(!is.na(match('Empty',PATHS[i])))){
-        if (length(!is.na(grep("Empty", PATHS[i]))) != 0) {
+        # if
+        # (all(!is.na(match('Empty',PATHS[i])))){
+        if (length(!is.na(grep("Empty", PATHS[i]))) != 
+            0) {
             COL <- "#FFFFFF"
         }
         
@@ -2574,29 +3176,45 @@ WriteGTF_RNASeq <- function(PATH, Data, Paths) {
         # browser() TRANS <-
         # paste(Paths[ii,1],'\t','EventPointer','\t','transcript','\t',min(Paths[,2])-10*as.numeric(as.matrix(Data[2]))-aaaaaa
         # MINGENE-as.numeric(as.matrix(Data[2])),
-        TRANS <- paste(Paths[ii, 1], "\t", "EventPointer", "\t", "transcript", "\t", 
-            min(Paths[ii, 2]), "\t", max(Paths[ii, 3]), "\t", "0", "\t", Paths[ii, 
-                5], "\t", "0", "\t", paste("gene_id ", Data[1, 1], "; ", "transcript_id ", 
-                shQuote(Paths[ii, 7], type = "cmd"), "_", gsub(" ", "_", Data[1, 
-                  4]), "_", Data[1, 1], "; ", "type ", shQuote(Data[1, 4], type = "cmd"), 
-                "; color=", COL, ";", sep = ""), sep = "")
+        TRANS <- paste(Paths[ii, 1], "\t", 
+            "EventPointer", "\t", "transcript", 
+            "\t", min(Paths[ii, 2]), "\t", 
+            max(Paths[ii, 3]), "\t", "0", 
+            "\t", Paths[ii, 5], "\t", "0", 
+            "\t", paste("gene_id ", Data[1, 
+                1], "; ", "transcript_id ", 
+                shQuote(Paths[ii, 7], type = "cmd"), 
+                "_", gsub(" ", "_", Data[1, 
+                  4]), "_", Data[1, 1], "; ", 
+                "type ", shQuote(Data[1, 
+                  4], type = "cmd"), "; color=", 
+                COL, ";", sep = ""), sep = "")
         TRANS <- unique(TRANS)
         
-        GTF <- paste(Paths[ii, 1], "\t", "EventPointer", "\t", "exon", "\t", Paths[ii, 
-            2], "\t", Paths[ii, 3], "\t", "0", "\t", Paths[ii, 5], "\t", "0", "\t", 
-            paste("gene_id ", Data[1, 1], "; ", "transcript_id ", shQuote(Paths[ii, 
-                7], type = "cmd"), "_", gsub(" ", "_", Data[1, 4]), "_", Data[1, 
-                1], "; ", "type ", shQuote(Data[1, 4], type = "cmd"), "; exon_number ", 
-                seq_len(length(ii)), "; color=", COL, ";", sep = ""), sep = "")
+        GTF <- paste(Paths[ii, 1], "\t", 
+            "EventPointer", "\t", "exon", 
+            "\t", Paths[ii, 2], "\t", Paths[ii, 
+                3], "\t", "0", "\t", Paths[ii, 
+                5], "\t", "0", "\t", paste("gene_id ", 
+                Data[1, 1], "; ", "transcript_id ", 
+                shQuote(Paths[ii, 7], type = "cmd"), 
+                "_", gsub(" ", "_", Data[1, 
+                  4]), "_", Data[1, 1], "; ", 
+                "type ", shQuote(Data[1, 
+                  4], type = "cmd"), "; exon_number ", 
+                seq_len(length(ii)), "; color=", 
+                COL, ";", sep = ""), sep = "")
         
         
-        # browser() if (i == 1){ cat(file=FILE.paths,TRANS,sep='\n') }else{
-        cat(file = FILE.paths, TRANS, sep = "\n", append = TRUE)
+        # browser() if (i == 1){
+        # cat(file=FILE.paths,TRANS,sep='\n')
+        # }else{
+        cat(file = FILE.paths, TRANS, sep = "\n", 
+            append = TRUE)
         # }
-        cat(file = FILE.paths, GTF, sep = "\n", append = TRUE)
+        cat(file = FILE.paths, GTF, sep = "\n", 
+            append = TRUE)
     }
-    
-    
 }
 
 
@@ -2604,86 +3222,132 @@ WriteGTF_RNASeq <- function(PATH, Data, Paths) {
 #' @rdname InternalFunctions
 #################################################################### flat2Cdf
 #---------
-# this function takes a 'flat' file and converts it to a binary CDF file it was
-# downloaded from: http://www.aroma-project.org/howtos/create_CDF_from_scratch/
-# for further details see that link.  example:
-# flat2Cdf(file='hjay.r1.flat',chipType='hjay',tag='r1,TC') file: assumes
-# header...better perhaps to have ... that passes to read.table?; requires header
-# X, Y ucol: unit column gcol: group column col.class: column classes of file
-# (see read.table); NOTE: needs check that right number?  splitn: parameter that
-# controls the number of initial chunks that are unwrapped (number of characters
-# of unit names used to keep units together for initial chunks) rows: cols:
-flat2Cdf <- function(file, chipType, tags = NULL, rows = 2560, cols = 2560, verbose = 10, 
-    xynames = c("X", "Y"), gcol = 5, ucol = 6, splitn = 4, col.class = c("integer", 
-        "character")[c(1, 1, 1, 2, 2, 2)], Directory = getwd(), ...) {
-    split.quick <- function(r, ucol, splitn = 3, verbose = TRUE) {
+# this function takes a 'flat' file and
+# converts it to a binary CDF file it was
+# downloaded from:
+# http://www.aroma-project.org/howtos/create_CDF_from_scratch/
+# for further details see that link.
+# example:
+# flat2Cdf(file='hjay.r1.flat',chipType='hjay',tag='r1,TC')
+# file: assumes header...better perhaps
+# to have ...  that passes to
+# read.table?; requires header X, Y ucol:
+# unit column gcol: group column
+# col.class: column classes of file (see
+# read.table); NOTE: needs check that
+# right number?  splitn: parameter that
+# controls the number of initial chunks
+# that are unwrapped (number of
+# characters of unit names used to keep
+# units together for initial chunks)
+# rows: cols:
+flat2Cdf <- function(file, chipType, tags = NULL, 
+    rows = 2560, cols = 2560, verbose = 10, 
+    xynames = c("X", "Y"), gcol = 5, ucol = 6, 
+    splitn = 4, col.class = c("integer", 
+        "character")[c(1, 1, 1, 2, 2, 2)], 
+    Directory = getwd(), ...) {
+    split.quick <- function(r, ucol, splitn = 3, 
+        verbose = TRUE) {
         rn3 <- substr(r[, ucol], 1, splitn)
         split.matrix <- split.data.frame
         rr <- split(r, factor(rn3))
-        if (verbose) 
-            cat(" split into", length(rr), "initial chunks ...")
-        rr <- unlist(lapply(rr, FUN = function(u) split(u, u[, ucol])), recursive = FALSE)
-        if (verbose) 
-            cat(" unwrapped into", length(rr), "chunks ...")
-        names(rr) <- substr(names(rr), splitn + 2, nchar(rr))
+        if (verbose) {
+            cat(" split into", length(rr), 
+                "initial chunks ...")
+        }
+        rr <- unlist(lapply(rr, FUN = function(u) split(u, 
+            u[, ucol])), recursive = FALSE)
+        if (verbose) {
+            cat(" unwrapped into", length(rr), 
+                "chunks ...")
+        }
+        names(rr) <- substr(names(rr), splitn + 
+            2, nchar(rr))
         rr
         ## rr<-unlist(lapply(rr,FUN=function(u)
         ## split(u,u[,ucol])),recursive=FALSE,use.names=FALSE)
-        ## namrr<-sapply(rr,function(u){nam<-unique(u[,ucol]); if(length(nam)>1)
-        ## stop('Programming Error (units', nam,'). Please report') else
-        ## return(nam)},USE.NAMES=FALSE) names(rr)<-namrr
+        ## namrr<-sapply(rr,function(u){nam<-unique(u[,ucol]);
+        ## if(length(nam)>1) stop('Programming
+        ## Error (units', nam,'). Please report')
+        ## else return(nam)},USE.NAMES=FALSE)
+        ## names(rr)<-namrr
         ## rr<-unlist(lapply(rr,FUN=function(u)
         ## split(u[,-ucol],u[,ucol])),recursive=FALSE)
         ## names(rr)<-sapply(strsplit(names(rr),'\\.'),.subset2,2)
-        
     }
     
-    if (verbose) 
+    if (verbose) {
         cat("Reading TXT file ...")
-    file <- read.table(file, header = TRUE, colClasses = col.class, stringsAsFactors = FALSE, 
+    }
+    file <- read.table(file, header = TRUE, 
+        colClasses = col.class, stringsAsFactors = FALSE, 
         comment.char = "", ...)
-    if (verbose) 
+    if (verbose) {
         cat(" Done.\n")
+    }
     
-    if (verbose) 
+    if (verbose) {
         cat("Splitting TXT file into units ...")
+    }
     gxys <- split.quick(file, ucol, splitn)
     rm(file)
     gc()
-    if (verbose) 
+    if (verbose) {
         cat(" Done.\n")
+    }
     
     l <- vector("list", length(gxys))
-    if (verbose) 
-        cat("Creating structure for", length(gxys), "units (dot=250):\n")
+    if (verbose) {
+        cat("Creating structure for", length(gxys), 
+            "units (dot=250):\n")
+    }
     for (i in seq_len(length(gxys))) {
-        sp <- split(gxys[[i]], factor(gxys[[i]][, gcol]))
+        sp <- split(gxys[[i]], factor(gxys[[i]][, 
+            gcol]))
         e <- vector("list", length(sp))
         for (j in seq_len(length(sp))) {
             np <- nrow(sp[[j]])
-            e[[j]] <- list(x = sp[[j]][, xynames[1]], y = sp[[j]][, xynames[2]], 
-                pbase = rep("A", np), tbase = rep("T", np), atom = 0:(np - 1), indexpos = 0:(np - 
-                  1), groupdirection = "sense", natoms = np, ncellsperatom = 1)
+            e[[j]] <- list(x = sp[[j]][, 
+                xynames[1]], y = sp[[j]][, 
+                xynames[2]], pbase = rep("A", 
+                np), tbase = rep("T", np), 
+                atom = 0:(np - 1), indexpos = 0:(np - 
+                  1), groupdirection = "sense", 
+                natoms = np, ncellsperatom = 1)
         }
         names(e) <- names(sp)
-        l[[i]] <- list(unittype = 1, unitdirection = 1, groups = e, natoms = nrow(gxys[[i]]), 
-            ncells = nrow(gxys[[i]]), ncellsperatom = 1, unitnumber = i)
+        l[[i]] <- list(unittype = 1, unitdirection = 1, 
+            groups = e, natoms = nrow(gxys[[i]]), 
+            ncells = nrow(gxys[[i]]), ncellsperatom = 1, 
+            unitnumber = i)
         if (verbose) {
-            if (i%%250 == 0) 
+            if (i%%250 == 0) {
                 cat(".")
-            if (i%%5000 == 0) 
+            }
+            if (i%%5000 == 0) {
                 cat("(", i, ")\n", sep = "")
+            }
         }
     }
     cat("\n")
     names(l) <- names(gxys)
-    if (!is.null(tags) && tags != "") 
-        filename <- paste(chipType, tags, sep = ",") else filename <- chipType
-    filename <- paste0(Directory, "/", filename, ".cdf")
-    hdr <- list(probesets = length(l), qcprobesets = 0, reference = "", chiptype = chipType, 
-        filename = filename, nqcunits = 0, nunits = length(l), rows = rows, cols = cols, 
-        refseq = "", nrows = rows, ncols = cols)
-    writeCdf(hdr$filename, cdfheader = hdr, cdf = l, cdfqc = NULL, overwrite = TRUE, 
+    if (!is.null(tags) && tags != "") {
+        filename <- paste(chipType, tags, 
+            sep = ",")
+    } else {
+        filename <- chipType
+    }
+    filename <- paste0(Directory, "/", filename, 
+        ".cdf")
+    hdr <- list(probesets = length(l), qcprobesets = 0, 
+        reference = "", chiptype = chipType, 
+        filename = filename, nqcunits = 0, 
+        nunits = length(l), rows = rows, 
+        cols = cols, refseq = "", nrows = rows, 
+        ncols = cols)
+    writeCdf(hdr$filename, cdfheader = hdr, 
+        cdf = l, cdfqc = NULL, overwrite = TRUE, 
         verbose = verbose)
     invisible(list(cdfList = l, cdfHeader = hdr))
 }
@@ -2702,12 +3366,19 @@ filterimagine <- function(Info, paths) {
     l <- dim(Info)[1]
     tofilter <- vector(length = l)
     for (ii in seq_len(l)) {
-        command <- paste0("p <- c(Info$`Path 1`[", ii, "],")
-        for (kk in 2:(Info$`Num of Paths`[ii] + 1)) {
-            if (kk == (Info$`Num of Paths`[ii] + 1)) {
-                command <- paste0(command, "Info$`Path Ref`[", ii, "])")
+        command <- paste0("p <- c(Info$`Path 1`[", 
+            ii, "],")
+        for (kk in 2:(Info$`Num of Paths`[ii] + 
+            1)) {
+            if (kk == (Info$`Num of Paths`[ii] + 
+                1)) {
+                command <- paste0(command, 
+                  "Info$`Path Ref`[", ii, 
+                  "])")
             } else {
-                command <- paste0(command, "Info$`Path ", kk, "`[", ii, "],")
+                command <- paste0(command, 
+                  "Info$`Path ", kk, "`[", 
+                  ii, "],")
             }
         }
         eval(parse(text = command))
@@ -2716,20 +3387,21 @@ filterimagine <- function(Info, paths) {
     }
     
     return(which(tofilter == TRUE))
-    
 }
 
 
 
 #' @rdname InternalFunctions
 transfromedge <- function(SG, SG_Gene) {
-    # La salida es un data.frame que tiene el numero del edge, su start y end y a los
+    # La salida es un data.frame que tiene el
+    # numero del edge, su start y end y a los
     # transcritos a los que pertenece
     
     
     A <- SG$Edges  # lo que viene de SG_Creation
     
-    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == "E"]
+    SG_Gene_SoloE <- SG_Gene[type(SG_Gene) == 
+        "E"]
     B <- SG_Gene_SoloE  # El correspondiente a un Gen
     
     nn <- length(txName(B))
@@ -2740,18 +3412,21 @@ transfromedge <- function(SG, SG_Gene) {
     aa <- unique(aa)
     
     edge <- seq_len(dim(A))[1]
-    transcripts <- vector(mode = "character", length = length(edge))
+    transcripts <- vector(mode = "character", 
+        length = length(edge))
     
     iixe <- which(A$Type == "E")
     
-    matrixexons <- matrix(0, nrow = length(aa), ncol = length(iixe))
+    matrixexons <- matrix(0, nrow = length(aa), 
+        ncol = length(iixe))
     colnames(matrixexons) <- iixe
     rownames(matrixexons) <- aa
     
     for (ii in iixe) {
         s <- A$Start[ii]
         e <- A$End[ii]
-        ix <- which(start(B) == s & end(B) == e)
+        ix <- which(start(B) == s & end(B) == 
+            e)
         trans <- txName(B)[[ix]]
         n <- length(trans)
         if (n == 0) {
@@ -2764,11 +3439,11 @@ transfromedge <- function(SG, SG_Gene) {
             tt <- trans
             trans <- trans[1]
             for (kk in 2:n) {
-                trans <- paste(trans, tt[kk], sep = "|")
+                trans <- paste(trans, tt[kk], 
+                  sep = "|")
             }
             transcripts[ii] <- trans
         }
-        
     }
     
     
@@ -2783,51 +3458,48 @@ transfromedge <- function(SG, SG_Gene) {
         s <- as.character(A$From[ii])
         e <- as.character(A$To[ii])
         
-        # ex1 <- as.character(iixe[which(A$To[iixe]==s)]) ex2 <-
+        # ex1 <-
+        # as.character(iixe[which(A$To[iixe]==s)])
+        # ex2 <-
         # as.character(iixe[which(A$From[iixe]==e)])
         
         ex1 <- which(A$To[iixe] == s)
         ex2 <- which(A$From[iixe] == e)
         
         
-        trans <- rownames(matrixexons)[which(rowSums(matrixexons[, ex1:ex2]) == 2 & 
-            matrixexons[, ex1] == 1 & matrixexons[, ex2] == 1)]
+        trans <- rownames(matrixexons)[which(rowSums(matrixexons[, 
+            ex1:ex2]) == 2 & matrixexons[, 
+            ex1] == 1 & matrixexons[, ex2] == 
+            1)]
         
         n <- length(trans)
         if (n == 0) {
             transcripts[ii] <- "no mapeado en la referencia"
         } else if (n == 1) {
-            
             transcripts[ii] <- trans
         } else {
-            
             tt <- trans
             trans <- trans[1]
             for (kk in 2:n) {
-                trans <- paste(trans, tt[kk], sep = "|")
+                trans <- paste(trans, tt[kk], 
+                  sep = "|")
             }
             transcripts[ii] <- trans
         }
-        
-        
-        
-        
     }
     
     From <- A$From
     To <- A$To
     Start <- A$Start
     End <- A$End
-    D <- data.frame(edge = edge, From = From, To = To, Start = Start, End = End, 
+    D <- data.frame(edge = edge, From = From, 
+        To = To, Start = Start, End = End, 
         transcripts = transcripts)
     return(D)
-    
 }
 
 #' @rdname InternalFunctions
 sacartranscritos <- function(edgetr, events) {
-    
-    
     p1 <- events$Path1
     p2 <- events$Path2
     pref <- events$PathR
@@ -2847,26 +3519,28 @@ sacartranscritos <- function(edgetr, events) {
                 ee <- paste0(ee, ".a")
             }
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)])
+                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)])
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)], sep = "|")
+                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)], 
+                  sep = "|")
             }
-            
         }
-        trans <- sapply(strsplit(trans, "\\|"), function(X) {
-            tt <- unique(X)
-            if (length(tt) == 1) {
-                return(tt)
-            } else {
-                tran <- tt[1]
-                for (j in 2:length(tt)) {
-                  tran <- paste(tran, tt[j], sep = "|")
+        trans <- sapply(strsplit(trans, "\\|"), 
+            function(X) {
+                tt <- unique(X)
+                if (length(tt) == 1) {
+                  return(tt)
+                } else {
+                  tran <- tt[1]
+                  for (j in 2:length(tt)) {
+                    tran <- paste(tran, tt[j], 
+                      sep = "|")
+                  }
+                  return(tran)
                 }
-                return(tran)
-            }
-        })
+            })
         
         return(trans)
     })
@@ -2885,27 +3559,29 @@ sacartranscritos <- function(edgetr, events) {
                 ee <- paste0(ee, ".a")
             }
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)])
+                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)])
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)], sep = "|")
+                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)], 
+                  sep = "|")
             }
-            
         }
         
-        trans <- sapply(strsplit(trans, "\\|"), function(X) {
-            tt <- unique(X)
-            if (length(tt) == 1) {
-                return(tt)
-            } else {
-                tran <- tt[1]
-                for (j in 2:length(tt)) {
-                  tran <- paste(tran, tt[j], sep = "|")
+        trans <- sapply(strsplit(trans, "\\|"), 
+            function(X) {
+                tt <- unique(X)
+                if (length(tt) == 1) {
+                  return(tt)
+                } else {
+                  tran <- tt[1]
+                  for (j in 2:length(tt)) {
+                    tran <- paste(tran, tt[j], 
+                      sep = "|")
+                  }
+                  return(tran)
                 }
-                return(tran)
-            }
-        })
+            })
         
         return(trans)
     })
@@ -2924,27 +3600,29 @@ sacartranscritos <- function(edgetr, events) {
                 ee <- paste0(ee, ".a")
             }
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)])
+                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)])
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == ss & 
-                  edgetr$To == ee)], sep = "|")
+                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
+                  ss & edgetr$To == ee)], 
+                  sep = "|")
             }
-            
         }
         
-        trans <- sapply(strsplit(trans, "\\|"), function(X) {
-            tt <- unique(X)
-            if (length(tt) == 1) {
-                return(tt)
-            } else {
-                tran <- tt[1]
-                for (j in 2:length(tt)) {
-                  tran <- paste(tran, tt[j], sep = "|")
+        trans <- sapply(strsplit(trans, "\\|"), 
+            function(X) {
+                tt <- unique(X)
+                if (length(tt) == 1) {
+                  return(tt)
+                } else {
+                  tran <- tt[1]
+                  for (j in 2:length(tt)) {
+                    tran <- paste(tran, tt[j], 
+                      sep = "|")
+                  }
+                  return(tran)
                 }
-                return(tran)
-            }
-        })
+            })
         
         
         return(trans)
@@ -2952,19 +3630,24 @@ sacartranscritos <- function(edgetr, events) {
     
     
     return(data.frame(p1 = p1, p2 = p2, ref = pref))
-    
 }
 
 #' @rdname InternalFunctions
 comprobaciontranscritos2 <- function(Result) {
-    Events <- Result[, c("tran_P1", "tran_P2", "tran_Ref")]
+    Events <- Result[, c("tran_P1", "tran_P2", 
+        "tran_Ref")]
     
     comprobacion <- apply(Events, 1, function(X) {
-        # condicion 0: los transcritos de un path no pueden ser unicamente 'no mapeado en
+        # condicion 0: los transcritos de un path
+        # no pueden ser unicamente
+        #' no mapeado en
         # la referencia' (hay q eliminarlos)
-        p1 <- unlist(strsplit(as.character(X[1]), "\\|"))
-        p2 <- unlist(strsplit(as.character(X[2]), "\\|"))
-        p3 <- unlist(strsplit(as.character(X[3]), "\\|"))
+        p1 <- unlist(strsplit(as.character(X[1]), 
+            "\\|"))
+        p2 <- unlist(strsplit(as.character(X[2]), 
+            "\\|"))
+        p3 <- unlist(strsplit(as.character(X[3]), 
+            "\\|"))
         
         iix1 <- which(p1 == "no mapeado en la referencia")
         if (length(iix1) > 0) {
@@ -2981,46 +3664,54 @@ comprobaciontranscritos2 <- function(Result) {
             p3 <- p3[-iix3]
         }
         
-        if (length(p1) > 0 & length(p2) > 0 & length(p3) > 0) {
+        if (length(p1) > 0 & length(p2) > 
+            0 & length(p3) > 0) {
             
             
-            # condicion 1: los que estan en p1 no pueden estar en p2
+            # condicion 1: los que estan en p1 no
+            # pueden estar en p2
             
-            cond1 <- (any(p1 %in% p2 == TRUE) | any(p2 %in% p1 == TRUE))  #Falso si se cumple la condicion (True si no se cumple)
+            cond1 <- (any(p1 %in% p2 == TRUE) | 
+                any(p2 %in% p1 == TRUE))
+            # Falso si se cumple la condicion (True
+            # si no se cumple)
             
-            # condicion 2: la suma de los que estan en p1 y p2 tienen q ser los mismos que
+            # condicion 2: la suma de los que estan
+            # en p1 y p2 tienen q ser los mismos que
             # los q estan en p3
             
-            # p1p2 <- paste(X[1],X[2],sep='|') p1p2 <-
-            # sapply(strsplit(p1p2,'\\|'),function(XX) return(XX))
-            
-            # p3<-as.character(X[3]) p3 <- sapply(strsplit(p3,'\\|'),function(XX)
+            # p1p2 <- paste(X[1],X[2],sep='|') p1p2
+            # <-
+            # sapply(strsplit(p1p2,'\\|'),function(XX)
             # return(XX))
+            
+            # p3<-as.character(X[3]) p3 <-
+            # sapply(strsplit(p3,'\\|'),
+            # function(XX) return(XX))
             
             p1p2 <- c(p1, p2)
             
-            cond2 <- (any(p1p2 %in% p3 == FALSE) | any(p3 %in% p1p2 == FALSE))  #Falso si se cumple la condicon (True si no se cumple)
+            cond2 <- (any(p1p2 %in% p3 == 
+                FALSE) | any(p3 %in% p1p2 == 
+                FALSE))
+            ## Falso si se cumple la condicon (True si
+            ## no se cumple)
             
             return(!(cond1 | cond2))
-            
-            
         } else {
             return(FALSE)
         }
-        
-        
-        
     })
-    
-    
 }
 
 
 
 
-# The functios of the correction of SGSeq:
+# The functios of the correction of
+# SGSeq:
 #' @rdname InternalFunctions
-convertToSGFeatures2 <- function(x, coerce = FALSE, merge = FALSE) {
+convertToSGFeatures2 <- function(x, coerce = FALSE, 
+    merge = FALSE) {
     if (!is(x, "TxFeatures")) {
         stop("x must be a TxFeatures object")
     }
@@ -3030,11 +3721,16 @@ convertToSGFeatures2 <- function(x, coerce = FALSE, merge = FALSE) {
     if (coerce) {
         features <- granges(x)
         mcols(features)$type <- as.character(type(x))
-        splice5p <- mcols(features)$type %in% c("I", "L")
-        splice3p <- mcols(features)$type %in% c("I", "F")
-        splice5p[mcols(features)$type == "J"] <- NA
-        splice3p[mcols(features)$type == "J"] <- NA
-        mcols(features)$type[mcols(features)$type != "J"] <- "E"
+        splice5p <- mcols(features)$type %in% 
+            c("I", "L")
+        splice3p <- mcols(features)$type %in% 
+            c("I", "F")
+        splice5p[mcols(features)$type == 
+            "J"] <- NA
+        splice3p[mcols(features)$type == 
+            "J"] <- NA
+        mcols(features)$type[mcols(features)$type != 
+            "J"] <- "E"
         mcols(features)$splice5p <- splice5p
         mcols(features)$splice3p <- splice3p
         mcols(features)$txName <- txName(x)
@@ -3051,19 +3747,27 @@ convertToSGFeatures2 <- function(x, coerce = FALSE, merge = FALSE) {
     return(features)
 }
 #' @rdname InternalFunctions
-processFeatures2 <- function(features, coerce = FALSE, merge = FALSE) {
-    junctions <- granges(features)[type(features) == "J"]
+processFeatures2 <- function(features, coerce = FALSE, 
+    merge = FALSE) {
+    junctions <- granges(features)[type(features) == 
+        "J"]
     junctions_D <- flank(junctions, -1, TRUE)
     junctions_A <- flank(junctions, -1, FALSE)
     mcols(junctions)$type <- rep("J", length(junctions))
     if (is(features, "TxFeatures")) {
-        exons <- features[type(features) %in% c("I", "F", "L", "U")]
-        exons_D <- flank(features[type(features) %in% c("I", "F")], -1, FALSE)
-        exons_A <- flank(features[type(features) %in% c("I", "L")], -1, TRUE)
+        exons <- features[type(features) %in% 
+            c("I", "F", "L", "U")]
+        exons_D <- flank(features[type(features) %in% 
+            c("I", "F")], -1, FALSE)
+        exons_A <- flank(features[type(features) %in% 
+            c("I", "L")], -1, TRUE)
     } else if (is(features, "SGFeatures")) {
-        exons <- features[type(features) == "E"]
-        exons_D <- flank(features[splice3p(features)], -1, FALSE)
-        exons_A <- flank(features[splice5p(features)], -1, TRUE)
+        exons <- features[type(features) == 
+            "E"]
+        exons_D <- flank(features[splice3p(features)], 
+            -1, FALSE)
+        exons_A <- flank(features[splice5p(features)], 
+            -1, TRUE)
     }
     exons <- granges(exons)
     exons_D <- granges(exons_D)
@@ -3079,41 +3783,50 @@ processFeatures2 <- function(features, coerce = FALSE, merge = FALSE) {
     exons_end <- flank(exons, -1, FALSE)
     i_q <- which(!exons_end %over% splicesites)
     i_s <- which(!exons_start %over% splicesites)
-    ol <- findOverlaps(suppressWarnings(flank(exons[i_q], 1, FALSE)), exons_start[i_s])
+    ol <- findOverlaps(suppressWarnings(flank(exons[i_q], 
+        1, FALSE)), exons_start[i_s])
     if ((length(ol) > 0)) {
         qH <- i_q[queryHits(ol)]
         sH <- i_s[subjectHits(ol)]
         i_to_be_merged <- union(qH, sH)
         d <- data.frame(from = qH, to = sH)
         v <- data.frame(name = i_to_be_merged)
-        g <- graph.data.frame(d = d, directed = TRUE, vertices = v)
+        g <- graph.data.frame(d = d, directed = TRUE, 
+            vertices = v)
         k <- clusters(g)$membership
-        exons_to_be_merged <- split(exons[i_to_be_merged], k)
+        exons_to_be_merged <- split(exons[i_to_be_merged], 
+            k)
         exons_merged <- unlist(reduce(exons_to_be_merged))
-        if (length(exons_to_be_merged) != length(exons_merged)) {
+        if (length(exons_to_be_merged) != 
+            length(exons_merged)) {
             stop("cannot merge non-adjacent exons")
         }
-        if (merge) 
-            exons <- c(exons[-i_to_be_merged], exons_merged)
+        if (merge) {
+            exons <- c(exons[-i_to_be_merged], 
+                exons_merged)
+        }
     }
     exons_start <- flank(exons, -1, TRUE)
     exons_end <- flank(exons, -1, FALSE)
     splice5p <- rep(FALSE, length(exons))
-    i_spliced <- unique(queryHits(findOverlaps(exons_start, A)))
-    i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 1, 
-        TRUE)), exons)))
+    i_spliced <- unique(queryHits(findOverlaps(exons_start, 
+        A)))
+    i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 
+        1, TRUE)), exons)))
     splice5p[setdiff(i_spliced, i_adjacent)] <- TRUE
     splice3p <- rep(FALSE, length(exons))
-    i_spliced <- unique(queryHits(findOverlaps(exons_end, D)))
-    i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 1, 
-        FALSE)), exons)))
+    i_spliced <- unique(queryHits(findOverlaps(exons_end, 
+        D)))
+    i_adjacent <- unique(queryHits(findOverlaps(suppressWarnings(flank(exons, 
+        1, FALSE)), exons)))
     splice3p[setdiff(i_spliced, i_adjacent)] <- TRUE
     mcols(exons)$type <- rep("E", length(exons))
     mcols(exons)$splice5p <- splice5p
     mcols(exons)$splice3p <- splice3p
     mcols(other)$splice5p <- rep(NA, length(other))
     mcols(other)$splice3p <- rep(NA, length(other))
-    features <- setNames(c(exons, other), NULL)
+    features <- setNames(c(exons, other), 
+        NULL)
     features <- sort(features)
     return(features)
 }
@@ -3124,7 +3837,8 @@ annotate2 <- function(query, subject) {
         stop("subject must be a TxFeatures object")
     }
     if (is(query, "SGFeatures")) {
-        query <- annotateFeatures2(query, subject)
+        query <- annotateFeatures2(query, 
+            subject)
     } else if (is(query, "SGVariants")) {
         query <- updateObject(query, verbose = TRUE)
         query_class <- class(query)
@@ -3132,7 +3846,8 @@ annotate2 <- function(query, subject) {
         query_unlisted <- unlist(query, use.names = FALSE)
         extended <- addDummySpliceSites(query_unlisted)
         extended <- annotate(extended, subject)
-        i <- match(featureID(query_unlisted), featureID(extended))
+        i <- match(featureID(query_unlisted), 
+            featureID(extended))
         query_unlisted <- extended[i]
         query <- relist(query_unlisted, query)
         mcols(query) <- query_mcols
@@ -3148,22 +3863,28 @@ annotate2 <- function(query, subject) {
 #' @rdname InternalFunctions
 annotateFeatures2 <- function(query, subject) {
     # query <- features subject <- a
-    i <- which(type(subject) %in% c("F", "L"))
+    i <- which(type(subject) %in% c("F", 
+        "L"))
     if (length(i) > 0) {
-        subject <- c(subject[-i], mergeExonsTerminal2(subject[i], 1))
+        subject <- c(subject[-i], mergeExonsTerminal2(subject[i], 
+            1))
     }
     if (is(query, "TxFeatures")) {
         hits <- matchTxFeatures(query, subject)
     } else if (is(query, "SGFeatures")) {
-        hits <- SGSeq:::matchSGFeatures(query, subject)
+        hits <- SGSeq:::matchSGFeatures(query, 
+            subject)
     }
     qH <- queryHits(hits)
     sH <- subjectHits(hits)
     for (option in c("tx", "gene")) {
         q_id <- factor(slot(query, "featureID"))
-        s_ann <- slot(subject, paste0(option, "Name"))
-        id_ann <- SGSeq:::splitCharacterList(s_ann[sH], q_id[qH])
-        q_ann <- setNames(id_ann[match(q_id, names(id_ann))], NULL)
+        s_ann <- slot(subject, paste0(option, 
+            "Name"))
+        id_ann <- SGSeq:::splitCharacterList(s_ann[sH], 
+            q_id[qH])
+        q_ann <- setNames(id_ann[match(q_id, 
+            names(id_ann))], NULL)
         slot(query, paste0(option, "Name")) <- q_ann
     }
     if (is(query, "SGFeatures")) {
@@ -3172,27 +3893,40 @@ annotateFeatures2 <- function(query, subject) {
     return(query)
 }
 #' @rdname InternalFunctions
-mergeExonsTerminal2 <- function(features, min_n_sample = 1) {
-    # features <- subject[i] min_n_sample <- 1
-    index <- which(type(features) %in% c("F", "L"))
+mergeExonsTerminal2 <- function(features, 
+    min_n_sample = 1) {
+    # features <- subject[i] min_n_sample <-
+    # 1
+    index <- which(type(features) %in% c("F", 
+        "L"))
     if (length(index) > 0) {
         features <- features[index]
-        splicesite <- SGSeq:::feature2name(features, collapse_terminal = FALSE)  #here is where is merged the starts and ends.
-        # collapse_terminal = TRUE y ahora es FALSE
+        splicesite <- SGSeq:::feature2name(features, 
+            collapse_terminal = FALSE)
+        # here is where is merged the starts and
+        # ends.  collapse_terminal = TRUE y ahora
+        # es FALSE
         splicesite_n <- table(splicesite)
-        i <- which(splicesite %in% names(which(splicesite_n >= min_n_sample)))
+        i <- which(splicesite %in% names(which(splicesite_n >= 
+            min_n_sample)))
         features <- features[i]
         splicesite <- splicesite[i]
         splicesite <- factor(splicesite)
-        splicesite_i <- split(seq_along(features), splicesite)
-        splicesite_w <- split(width(features), splicesite)
-        splicesite_i <- mapply(function(i, w) {
+        splicesite_i <- split(seq_along(features), 
+            splicesite)
+        splicesite_w <- split(width(features), 
+            splicesite)
+        splicesite_i <- mapply(function(i, 
+            w) {
             i[which.max(w)]
-        }, i = splicesite_i, w = splicesite_w, SIMPLIFY = TRUE)
+        }, i = splicesite_i, w = splicesite_w, 
+            SIMPLIFY = TRUE)
         exons <- features[splicesite_i]
         for (ann in c("txName", "geneName")) {
-            exons_ann <- SGSeq:::splitCharacterList(slot(features, ann), splicesite)
-            slot(exons, ann) <- setNames(exons_ann, NULL)
+            exons_ann <- SGSeq:::splitCharacterList(slot(features, 
+                ann), splicesite)
+            slot(exons, ann) <- setNames(exons_ann, 
+                NULL)
         }
     } else {
         si <- seqinfo(features)
@@ -3202,42 +3936,52 @@ mergeExonsTerminal2 <- function(features, min_n_sample = 1) {
     return(exons)
 }
 
-############################################################################## function for the bootstrap statistic
+########### function for the bootstrap statistic
 
 
 
 
 #' @rdname InternalFunctions
-get_beta <- function(combboots, incrPSI_original, ncontrastes) {
-    
-    newcombboots <- rep(list(matrix(NA, dim(combboots[[1]])[1], dim(combboots[[1]])[2])), 
-        ncontrastes)
+get_beta <- function(combboots, incrPSI_original, 
+    ncontrastes) {
+    newcombboots <- rep(list(matrix(NA, dim(combboots[[1]])[1], 
+        dim(combboots[[1]])[2])), ncontrastes)
     
     newcombboots <- lapply(combboots, function(X) {
-        return((1 + X)/2)  #Make values between 0-1
+        return((1 + X)/2)  # Make values between 0-1
     })
     
     # Data for beta distribution
     rmedia <- sapply(newcombboots, rowMeans)
-    rvar <- sapply(newcombboots, rowVars) + 1e-05
-    alpha <- ((1 - rmedia) * (rmedia^2)/rvar) - rmedia
+    rvar <- sapply(newcombboots, rowVars) + 
+        1e-05
+    alpha <- ((1 - rmedia) * (rmedia^2)/rvar) - 
+        rmedia
     beta <- alpha * (1 - rmedia)/rmedia
     
-    # Example of plots of an event (any event) ---- n<-391 #Index of event
-    # hist(newcombboots[[1]][n,],seq(0,1,by = 0.01),freq = F,main = paste('Histogram
-    # of increase in PSI'), xlab = expression(paste('Increase in PSI'))) #Histogram x
-    # <- seq(0,1, by =.001) lines(x,dbeta(x,alpha[n],beta[n]),type ='l', lwd = 1, col
-    # ='orange') #Density function with calculated alpha and beta
-    # lines(density(newcombboots[[1]][n,]), type ='l', lwd = 1, col ='purple')
+    # Example of plots of an event (any
+    # event) ---- n<-391 #Index of event
+    # hist(newcombboots[[1]][n,],seq(0,1,by =
+    # 0.01),freq = F, main = paste('Histogram
+    # of increase in PSI'), xlab =
+    # expression(paste('Increase in PSI')))
+    # Histogram x <- seq(0,1, by =.001)
+    # lines(x,dbeta(x,alpha[n],beta[n]),type
+    # ='l', lwd = 1, col ='orange') #Density
+    # function with calculated alpha and beta
+    # lines(density(newcombboots[[1]][n,]),
+    # type ='l', lwd = 1, col ='purple')
     # #Empirical density function
     
     # Obtain p-values for all events ----
     deltaPSI <- t(incrPSI_original)
-    pvalues <- matrix(NA, nrow = dim(deltaPSI)[1], ncol = dim(deltaPSI)[2])
+    pvalues <- matrix(NA, nrow = dim(deltaPSI)[1], 
+        ncol = dim(deltaPSI)[2])
     
     pvalues <- pbeta(deltaPSI, alpha, beta)
     positionMa <- which(pvalues > 0.5)
-    pvalues[positionMa] <- pbeta(deltaPSI[positionMa], alpha[positionMa], beta[positionMa], 
+    pvalues[positionMa] <- pbeta(deltaPSI[positionMa], 
+        alpha[positionMa], beta[positionMa], 
         lower.tail = FALSE)
     pvalues <- pvalues * 2
     
@@ -3249,49 +3993,72 @@ get_beta <- function(combboots, incrPSI_original, ncontrastes) {
 }
 
 #' @rdname InternalFunctions
-get_table <- function(PSI_arrayP, nevents, totchunk, chunk, nsamples, incrPSI_original, 
+get_table <- function(PSI_arrayP, nevents, 
+    totchunk, chunk, nsamples, incrPSI_original, 
     V, nboot, nbootin, ncontrastes) {
     
-    # Obtain the part of the incrPSI_original needed for the minichunk and its length
-    indexincr <- match(rownames(PSI_arrayP), colnames(incrPSI_original))
-    incrPSI_originalChunk <- incrPSI_original[, indexincr, drop = FALSE]
-    l <- length(indexincr)  #Length of the minichunk
+    # Obtain the part of the incrPSI_original
+    # needed for the minichunk and its length
+    indexincr <- match(rownames(PSI_arrayP), 
+        colnames(incrPSI_original))
+    incrPSI_originalChunk <- incrPSI_original[, 
+        indexincr, drop = FALSE]
+    l <- length(indexincr)  # Length of the minichunk
     
-    combboots <- rep(list(matrix(NA, l, nboot * nbootin)), ncontrastes)  #Intialize matrix for the increase in PSI
+    combboots <- rep(list(matrix(NA, l, nboot * 
+        nbootin)), ncontrastes)
+    # Intialize matrix for the increase in
+    # PSI
     
     I <- as.integer(rep(seq_len(l), nsamples))
-    J <- as.integer(rep(seq_len(nsamples), each = l))
-    CTEind <- I + (J - 1L) * l - 1L * nsamples * l  #Constant needed for function get_YB
+    J <- as.integer(rep(seq_len(nsamples), 
+        each = l))
+    CTEind <- I + (J - 1L) * l - 1L * nsamples * 
+        l
+    # Constant needed for function get_YB
     output <- matrix(NA, l, ncontrastes)
     gc()
     for (boot in seq_len(nboot)) {
-        Yb <- get_YB(PSI_arrayP, l, nsamples, I, J, CTEind)  #Obtain the combination of bootstraps, the matrix contains the values of PSI
+        Yb <- get_YB(PSI_arrayP, l, nsamples, 
+            I, J, CTEind)
+        # Obtain the combination of bootstraps,
+        # the matrix contains the values of PSI
         
         for (boot2 in seq_len(nbootin)) {
-            Yb1 <- Yb[, sample(ncol(Yb), replace = TRUE)]  #Samples the Yb (mixes data)
-            output <- tcrossprod(V, Yb1)  #Obtain the increase in PSI
+            Yb1 <- Yb[, sample(ncol(Yb), 
+                replace = TRUE)]
+            # Samples the Yb (mixes data)
+            output <- tcrossprod(V, Yb1)  # Obtain the increase in PSI
             for (boot3 in seq_len(ncontrastes)) {
-                combboots[[boot3]][, boot2 + nbootin * (boot - 1)] <- output[boot3, 
-                  ]  #Fills matrix of increase in PSI
+                combboots[[boot3]][, boot2 + 
+                  nbootin * (boot - 1)] <- output[boot3, 
+                  ]  # Fills matrix of increase in PSI
             }
         }
     }
     
-    # Obtain p-values and table of the minichunks
-    table <- get_beta(combboots, incrPSI_originalChunk, ncontrastes)
-    # matplot(t(PSI_original[order(pvalues)[1:30],]), type='b') #Plot of events with
-    # small p-value
+    # Obtain p-values and table of the
+    # minichunks
+    table <- get_beta(combboots, incrPSI_originalChunk, 
+        ncontrastes)
+    # matplot(t(PSI_original[order(pvalues)[1:30],]),
+    # type='b') Plot of events with # small
+    # p-value
     
     
     return(table)
 }
 
 #' @rdname InternalFunctions
-get_YB <- function(PSI_arrayS, l, nsamples, I, J, CTEind) {
-    K <- rep(sample(dim(PSI_arrayS)[3], nsamples, replace = TRUE), l)
+get_YB <- function(PSI_arrayS, l, nsamples, 
+    I, J, CTEind) {
+    K <- rep(sample(dim(PSI_arrayS)[3], nsamples, 
+        replace = TRUE), l)
     
-    # Formula to obtain the index of the PSI_arrayS
-    IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[c(1, 2)])
+    # Formula to obtain the index of the
+    # PSI_arrayS
+    IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[c(1, 
+        2)])
     
     Yb <- PSI_arrayS[IndiceIJK]
     attr(Yb, "dim") <- c(l, nsamples)
@@ -3300,22 +4067,15 @@ get_YB <- function(PSI_arrayS, l, nsamples, I, J, CTEind) {
 
 #' @rdname InternalFunctions
 getInfo <- function(table, ncontrast) {
-    
     if (class(table$LocalFDR) == "list") {
-        data <- data.frame(deltaPSI = table$deltaPSI[, ncontrast], Pvalues = table$Pvalues[, 
+        data <- data.frame(deltaPSI = table$deltaPSI[, 
+            ncontrast], Pvalues = table$Pvalues[, 
             ncontrast], LocalFDR = table$LocalFDR[[ncontrast]]$lfdr2)
     } else {
-        data <- data.frame(deltaPSI = table$deltaPSI[, ncontrast], Pvalues = table$Pvalues[, 
+        data <- data.frame(deltaPSI = table$deltaPSI[, 
+            ncontrast], Pvalues = table$Pvalues[, 
             ncontrast], LocalFDR = table$LocalFDR$lfdr2)
     }
     
     return(data)
-    
 }
-
-
-
-
-
-
-

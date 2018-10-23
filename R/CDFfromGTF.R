@@ -13,10 +13,10 @@
 #'                    ClariomD, RTA or MTA
 #'
 #' @return The function displays a progress bar to show the user the progress of the function.
-#' However, there is no value returned in R as the function creates three files that are used 
-#' later by other EventPointer functions.1) EventsFound.txt : Tab separated file with all the 
+#' However, there is no value returned in R as the function creates three files that are used
+#' later by other EventPointer functions.1) EventsFound.txt : Tab separated file with all the
 #' information of all the alternative splcing events found. 2) .flat file : Used to build the
-#' corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing 
+#' corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing
 #' pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
 #' recommended to have at least 1.5 GB of free space.
 #'
@@ -60,25 +60,35 @@
 #' @importFrom S4Vectors queryHits subjectHits
 
 
-CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, microarray = NULL) {
+CDFfromGTF <- function(input = "Ensembl", 
+    inputFile = NULL, PSR, Junc, PathCDF, 
+    microarray = NULL) {
     
-    # CDFfromGTF is the corresponding function to create a CDF file based on the GTF
-    # file provided that contains the 'reference' trasncriptome to be used to
+    # CDFfromGTF is the corresponding
+    # function to create a CDF file based on
+    # the GTF file provided that contains the
+    # 'reference' trasncriptome to be used to
     # identify alternative splicing events.
     
-    # Input Files: input -> GTF File of the transcriptome Dsource -> Information
-    # about the CDF (not required) PSR -> Txt file with the information of the PSRs
-    # of the array Junc -> Txt file with the information of junction probes in the
+    # Input Files: input -> GTF File of the
+    # transcriptome Dsource -> Information
+    # about the CDF (not required) PSR -> Txt
+    # file with the information of the PSRs
+    # of the array Junc -> Txt file with the
+    # information of junction probes in the
     # array
     
     
-    # Crate TxDB object that contains all the information contained in the gtf file
-    # that was given in the input, the function makeTxDbFromGFF corresponds to the
-    # GenomicFeatures R package
+    # Crate TxDB object that contains all the
+    # information contained in the gtf file
+    # that was given in the input, the
+    # function makeTxDbFromGFF corresponds to
+    # the GenomicFeatures R package
     
     cat("Creating SG Information...")
     
-    # Possible Arrays: HTA-2_0, ClariomD, RTA and MTA
+    # Possible Arrays: HTA-2_0, ClariomD, RTA
+    # and MTA
     
     if (is.null(microarray)) {
         stop("Microarray field empty")
@@ -86,130 +96,135 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     
     if (microarray == "HTA-2_0") {
         if (input == "Ensembl") {
-            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
+            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "hsapiens_gene_ensembl", 
                 host = "grch37.ensembl.org")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else if (input == "UCSC") {
-            TxDb <- makeTxDbFromUCSC(genome = "hg19", tablename = "knownGene")
+            TxDb <- makeTxDbFromUCSC(genome = "hg19", 
+                tablename = "knownGene")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
-        } else if (input == "AffyGTF" | input == "CustomGTF") {
+        } else if (input == "AffyGTF" | input == 
+            "CustomGTF") {
             if (is.null(inputFile)) {
                 stop("inputFile parameter is empty")
             }
             
-            TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+            TxDb <- makeTxDbFromGFF(file = inputFile, 
+                format = "gtf", dataSource = "Custom GTF")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else {
-            
             stop("Unknown reference genome")
         }
-        
     } else if (microarray == "ClariomD") {
         if (input == "Ensembl") {
-            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl")
+            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "hsapiens_gene_ensembl")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else if (input == "UCSC") {
-            TxDb <- makeTxDbFromUCSC(genome = "hg38", tablename = "knownGene")
+            TxDb <- makeTxDbFromUCSC(genome = "hg38", 
+                tablename = "knownGene")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
-        } else if (input == "AffyGTF" | input == "CustomGTF") {
+        } else if (input == "AffyGTF" | input == 
+            "CustomGTF") {
             if (is.null(inputFile)) {
                 stop("inputFile parameter is empty")
             }
             
-            TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+            TxDb <- makeTxDbFromGFF(file = inputFile, 
+                format = "gtf", dataSource = "Custom GTF")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else {
-            
             stop("Unknown reference genome")
         }
     } else if (microarray == "RTA") {
         if (input == "Ensembl") {
-            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "rnorvegicus_gene_ensembl")
+            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "rnorvegicus_gene_ensembl")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else if (input == "UCSC") {
-            TxDb <- makeTxDbFromUCSC(genome = "rn6", tablename = "refGene")
+            TxDb <- makeTxDbFromUCSC(genome = "rn6", 
+                tablename = "refGene")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
-        } else if (input == "AffyGTF" | input == "CustomGTF") {
+        } else if (input == "AffyGTF" | input == 
+            "CustomGTF") {
             if (is.null(inputFile)) {
                 stop("inputFile parameter is empty")
             }
             
-            TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+            TxDb <- makeTxDbFromGFF(file = inputFile, 
+                format = "gtf", dataSource = "Custom GTF")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else {
-            
             stop("Unknown reference genome")
         }
     } else if (microarray == "MTA") {
         if (input == "Ensembl") {
-            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "mmusculus_gene_ensembl")
+            TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "mmusculus_gene_ensembl")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else if (input == "UCSC") {
-            TxDb <- makeTxDbFromUCSC(genome = "mm10", tablename = "knownGene")
+            TxDb <- makeTxDbFromUCSC(genome = "mm10", 
+                tablename = "knownGene")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
-        } else if (input == "AffyGTF" | input == "CustomGTF") {
+        } else if (input == "AffyGTF" | input == 
+            "CustomGTF") {
             if (is.null(inputFile)) {
                 stop("inputFile parameter is empty")
             }
             
-            TxDb <- makeTxDbFromGFF(file = inputFile, format = "gtf", dataSource = "Custom GTF")
+            TxDb <- makeTxDbFromGFF(file = inputFile, 
+                format = "gtf", dataSource = "Custom GTF")
             TranscriptFeatures <- convertToTxFeatures(TxDb)
             SplicingGraphFeatures <- convertToSGFeatures(TranscriptFeatures)
-            
         } else {
-            
             stop("Unknown reference genome")
         }
-        
     } else {
-        
         stop("Microarray should be: HTA-2_0, ClariomD, MTA or RTA")
     }
     
-    # Read Information for the probes in the array
+    # Read Information for the probes in the
+    # array
     cat("\nReading Information On Probes...")
     
     stopifnot(!is.null(PSR) & !is.null(Junc))
     # Read ProbeSets TXT
-    ProbeSets <- read.delim(file = PSR, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+    ProbeSets <- read.delim(file = PSR, sep = "\t", 
+        header = TRUE, stringsAsFactors = FALSE)
     
-    # Arrange the information in the txt file to have the information in the way the
+    # Arrange the information in the txt file
+    # to have the information in the way the
     # algorithm needs it
     
-    ProbeSets <- PrepareProbes(ProbeSets, "PSR")
+    ProbeSets <- PrepareProbes(ProbeSets, 
+        "PSR")
     
     # Read Junctions TXT
-    Junctions <- read.delim(file = Junc, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+    Junctions <- read.delim(file = Junc, 
+        sep = "\t", header = TRUE, stringsAsFactors = FALSE)
     
-    # Arrange the information in the txt file to have the information in the way the
+    # Arrange the information in the txt file
+    # to have the information in the way the
     # algorithm needs it
     
-    Junctions <- PrepareProbes(Junctions, "Junction")
+    Junctions <- PrepareProbes(Junctions, 
+        "Junction")
     
     
-    if (input == "Ensembl" | input == "UCSC" | input == "CustomGTF") {
+    if (input == "Ensembl" | input == "UCSC" | 
+        input == "CustomGTF") {
         Junc <- makeGRangesFromDataFrame(Junctions)
         PSRs <- makeGRangesFromDataFrame(ProbeSets)
         
@@ -217,7 +232,8 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
         seqlevelsStyle(PSRs) <- seqlevelsStyle(SplicingGraphFeatures)
         
         
-        Overlap_Junc <- findOverlaps(Junc, SplicingGraphFeatures)
+        Overlap_Junc <- findOverlaps(Junc, 
+            SplicingGraphFeatures)
         
         GeN <- geneName(SplicingGraphFeatures[subjectHits(Overlap_Junc)])
         GeN <- sapply(GeN, function(X) {
@@ -225,12 +241,15 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
             return(A)
         })
         
-        GeN_iix <- cbind(queryHits(Overlap_Junc), GeN)
+        GeN_iix <- cbind(queryHits(Overlap_Junc), 
+            GeN)
         GeN_iix <- unique(GeN_iix)
-        Junctions[as.numeric(GeN_iix[, 1]), "Gene"] <- GeN_iix[, 2]
+        Junctions[as.numeric(GeN_iix[, 1]), 
+            "Gene"] <- GeN_iix[, 2]
         
         
-        Overlap_PSR <- findOverlaps(PSRs, SplicingGraphFeatures)
+        Overlap_PSR <- findOverlaps(PSRs, 
+            SplicingGraphFeatures)
         
         GeN <- geneName(SplicingGraphFeatures[subjectHits(Overlap_PSR)])
         GeN <- sapply(GeN, function(X) {
@@ -238,43 +257,52 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
             return(A)
         })
         
-        GeN_iix <- cbind(queryHits(Overlap_PSR), GeN)
+        GeN_iix <- cbind(queryHits(Overlap_PSR), 
+            GeN)
         GeN_iix <- unique(GeN_iix)
-        ProbeSets[as.numeric(GeN_iix[, 1]), "Gene"] <- GeN_iix[, 2]
-        
+        ProbeSets[as.numeric(GeN_iix[, 1]), 
+            "Gene"] <- GeN_iix[, 2]
     }
     
     cat("Done")
     
-    # Get genes with probes and index them to get locations in Junctions and Probes
+    # Get genes with probes and index them to
+    # get locations in Junctions and Probes
     
     cat("\nIndexing Genes and Probes...")
     
-    # Obtain the genenames('TCXXXX.hg') and geneIDs (1,2...) for all the genes in the
-    # transcriptome used
+    # Obtain the genenames('TCXXXX.hg') and
+    # geneIDs (1,2...) for all the genes in
+    # the transcriptome used
     
     geneIds <- geneID(SplicingGraphFeatures)
     Genes <- as.list(geneName(SplicingGraphFeatures))
     
-    # As certain genes share geneID we repeat each geneID as many times it is used by
+    # As certain genes share geneID we repeat
+    # each geneID as many times it is used by
     # a gene
     LLs <- unlist(lapply(Genes, length))
     geneIds <- rep(geneIds, LLs)
     Genes <- unlist(Genes)
     
-    # Create a matrix with both Gene Names and Gene IDs
+    # Create a matrix with both Gene Names
+    # and Gene IDs
     GeneIndex <- cbind(Genes, geneIds)
     
-    # Get Genes with Junctions probes, PSR probes and already located in the
+    # Get Genes with Junctions probes, PSR
+    # probes and already located in the
     # GeneIndex matrix
-    KeptGenes <- intersect(GeneIndex[, 1], intersect(Junctions[, "Gene"], ProbeSets[, 
-        "Gene"]))
+    KeptGenes <- intersect(GeneIndex[, 1], 
+        intersect(Junctions[, "Gene"], ProbeSets[, 
+            "Gene"]))
     
-    # Order GeneIndex as the genes in KeptGenes
+    # Order GeneIndex as the genes in
+    # KeptGenes
     iix <- match(KeptGenes, GeneIndex[, 1])
     GeneIndex <- GeneIndex[iix, , drop = FALSE]
     
-    # For the probe variables, we only keep the genes that appear in KeptGenes
+    # For the probe variables, we only keep
+    # the genes that appear in KeptGenes
     ii.P <- match(ProbeSets[, "Gene"], KeptGenes)
     ii.P <- which(!is.na(ii.P))
     ProbeSets <- ProbeSets[ii.P, , drop = FALSE]
@@ -283,45 +311,59 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     ii.J <- which(!is.na(ii.J))
     Junctions <- Junctions[ii.J, , drop = FALSE]
     
-    # Order all the variables in the same way, so the genes in different variables
-    # have the same 'index'
+    # Order all the variables in the same
+    # way, so the genes in different
+    # variables have the same 'index'
     Ord <- order(KeptGenes)
     GeneIndex <- GeneIndex[Ord, , drop = FALSE]
     KeptGenes <- KeptGenes[Ord]
-    ProbeSets <- ProbeSets[order(ProbeSets[, "Gene"]), , drop = FALSE]
-    Junctions <- Junctions[order(Junctions[, "Gene"]), , drop = FALSE]
+    ProbeSets <- ProbeSets[order(ProbeSets[, 
+        "Gene"]), , drop = FALSE]
+    Junctions <- Junctions[order(Junctions[, 
+        "Gene"]), , drop = FALSE]
     
-    # With rle we get how many times a certain value appears in the variable this way
-    # we can get the indices that correspond to the probes for a particular gene.
+    # With rle we get how many times a
+    # certain value appears in the variable
+    # this way we can get the indices that
+    # correspond to the probes for a
+    # particular gene.
     
-    # For example, with the indices we can now that a gene X has PSR probes between
-    # lines 235 and 312 of the variable.
+    # For example, with the indices we can
+    # now that a gene X has PSR probes
+    # between lines 235 and 312 of the
+    # variable.
     
     Junc_rle <- rle(Junctions[, "Gene"])
     PS_rle <- rle(ProbeSets[, "Gene"])
     
     indexE_Junc <- cumsum(Junc_rle$lengths)
-    indexS_Junc <- c(1, indexE_Junc[seq_len((length(indexE_Junc) - 1))] + 1)
+    indexS_Junc <- c(1, indexE_Junc[seq_len((length(indexE_Junc) - 
+        1))] + 1)
     
     indexE_PS <- cumsum(PS_rle$lengths)
-    indexS_PS <- c(1, indexE_PS[seq_len((length(indexE_PS) - 1))] + 1)
+    indexS_PS <- c(1, indexE_PS[seq_len((length(indexE_PS) - 
+        1))] + 1)
     
     cat("Done")
     
-    # Main loop to apply functions to all the genes in the GTF
+    # Main loop to apply functions to all the
+    # genes in the GTF
     
-    # The list Result will contain all the information of the Events found
+    # The list Result will contain all the
+    # information of the Events found
     
     Result <- vector("list", length = length(KeptGenes))
     Flat <- vector("list", length = length(KeptGenes))
     
-    # Set a progress bar to track the overall progress
+    # Set a progress bar to track the overall
+    # progress
     gc()
     
     cat("\nFinding Events...")
     cat("\n")
     
-    pb <- txtProgressBar(min = 0, max = nrow(GeneIndex), style = 3)
+    pb <- txtProgressBar(min = 0, max = nrow(GeneIndex), 
+        style = 3)
     
     for (jj in seq_len(nrow(GeneIndex))) {
         
@@ -329,26 +371,36 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
         setTxtProgressBar(pb, jj)
         Gene <- GeneIndex[jj, 1]
         
-        # Obtain the required information to build the SG, the Exons correspond to Nodes
-        # while Junctions correspond to edges. It is important to take into account that
-        # the Exons are already 'divided' into subexons, non overlapping regions between
-        # transcripts
+        # Obtain the required information to
+        # build the SG, the Exons correspond to
+        # Nodes while Junctions correspond to
+        # edges. It is important to take into
+        # account that the Exons are already
+        # 'divided' into subexons, non
+        # overlapping regions between transcripts
         
         
         SG_Gene <- SplicingGraphFeatures[unlist(geneID(SplicingGraphFeatures)) == 
             GeneIndex[jj, 2]]
         
-        # Get the number of transcripts that appear for the gene that is being analyzed
+        # Get the number of transcripts that
+        # appear for the gene that is being
+        # analyzed
         
-        Txx <- unique(unlist(as.data.frame(SG_Gene)[, "txName"]))
+        Txx <- unique(unlist(as.data.frame(SG_Gene)[, 
+            "txName"]))
         
-        # In order to have alternative splicing a gene must have at least more than one
+        # In order to have alternative splicing a
+        # gene must have at least more than one
         # exon and more than one transcript
         
-        if (nrow(as.data.frame(SG_Gene)) != 1 & length(Txx) != 1) {
-            # Function to obtain the information of the SG, the information returned
-            # Corresponds to the Edges, Adjacency matrix and Incidence Matrix of the SG that
-            # is being analyzed
+        if (nrow(as.data.frame(SG_Gene)) != 
+            1 & length(Txx) != 1) {
+            # Function to obtain the information of
+            # the SG, the information returned
+            # Corresponds to the Edges, Adjacency
+            # matrix and Incidence Matrix of the SG
+            # that is being analyzed
             
             # SG <- SG_Info(SG_Gene)
             
@@ -356,88 +408,113 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
             
             SG <- SG_creation_RNASeq(SG_Gene)
             
-            # Using Ax=b with A the incidence matrix and b=0, we solve to obtain the null
-            # space and obtain the flux through each edge if we relate the SG with an
+            # Using Ax=b with A the incidence matrix
+            # and b=0, we solve to obtain the null
+            # space and obtain the flux through each
+            # edge if we relate the SG with an
             # hydraulic installation
             
-            # The new parameter (ncol) is used to generate 10 fluxes to ensure that the
-            # eventdetection is exaclty the same every step.
+            # The new parameter (ncol) is used to
+            # generate 10 fluxes to ensure that the
+            # eventdetection is exaclty the same
+            # every step.
             
-            randSol <- getRandomFlow(SG$Incidence, ncol = 10)
+            randSol <- getRandomFlow(SG$Incidence, 
+                ncol = 10)
             
-            # To find events, we need to have fluxes different from 1 in different edges
+            # To find events, we need to have fluxes
+            # different from 1 in different edges
             
             if (any(round(randSol) != 1)) {
-                # Identify the alternative splicing events using the fluxes obtained previously.
-                # The number of fluxes correspond to the number of edges so we can relate events
-                # with edges
+                # Identify the alternative splicing
+                # events using the fluxes obtained
+                # previously.  The number of fluxes
+                # correspond to the number of edges so we
+                # can relate events with edges
                 
                 Events <- findTriplets(randSol)
                 
-                # There should be at least one event to continue the algorithm
+                # There should be at least one event to
+                # continue the algorithm
                 
-                if (nrow(Events$triplets) > 0) {
-                  twopaths <- which(rowSums(Events$triplets != 0) == 3)
-                  # Transform events into triplets, related with edges to the corresponding paths.
-                  # Also the edges are divided into Path 1, Path 2 and Reference
+                if (nrow(Events$triplets) > 
+                  0) {
+                  twopaths <- which(rowSums(Events$triplets != 
+                    0) == 3)
+                  # Transform events into triplets, related
+                  # with edges to the corresponding paths.
+                  # Also the edges are divided into Path 1,
+                  # Path 2 and Reference
                   
-                  Events <- getEventPaths(Events, SG)
+                  Events <- getEventPaths(Events, 
+                    SG)
                   
-                  # Condition to ensure that there is at least one event
+                  # Condition to ensure that there is at
+                  # least one event
                   
                   if (length(Events) > 0) {
-                    # Get PSRs that map to the gene that is being used
+                    # Get PSRs that map to the gene that is
+                    # being used
                     
-                    PSR_Gene <- ProbeSets[indexS_PS[jj]:indexE_PS[jj], ]
+                    PSR_Gene <- ProbeSets[indexS_PS[jj]:indexE_PS[jj], 
+                      ]
                     
-                    # Get junctions that map to the gene that is being used
+                    # Get junctions that map to the gene that
+                    # is being used
                     
-                    Junc_Gene <- Junctions[indexS_Junc[jj]:indexE_Junc[jj], ]
+                    Junc_Gene <- Junctions[indexS_Junc[jj]:indexE_Junc[jj], 
+                      ]
                     
-                    # Classify the events into canonical categories using the adjacency matrix
+                    # Classify the events into canonical
+                    # categories using the adjacency matrix
                     
-                    Events <- ClassifyEvents(SG, Events, twopaths)
+                    Events <- ClassifyEvents(SG, 
+                      Events, twopaths)
                     
-                    # Obtain the corresponding PSRs/JunctionProbes for each of the paths of every
-                    # event
+                    # Obtain the corresponding
+                    # PSRs/JunctionProbes for each of the
+                    # paths of every event
                     
-                    Events <- annotateEvents(Events, PSR_Gene, Junc_Gene, GeneIndex[jj, 
-                      1])
+                    Events <- annotateEvents(Events, 
+                      PSR_Gene, Junc_Gene, 
+                      GeneIndex[jj, 1])
                     
                     Result[[jj]] <- Events[[1]]
                     Flat[[jj]] <- Events[[2]]
                   }
-                  
                 }
-                
-                
             }
-            
         }
-        
     }
     
     close(pb)
     
-    # Create .flat file used in flat2CDF function
+    # Create .flat file used in flat2CDF
+    # function
     
     cat("\nCreating .flat ...")
     Result <- Filter(Negate(is.null), Result)
     Result <- do.call(rbind, Result)
-    colnames(Result) <- c("Affy Gene Id", "Gene Name", "Event Number", "Event Type", 
-        "Genomic Position", "Path 1", "Path 2", "Path Reference", "Probes P1", "Probes P2", 
+    colnames(Result) <- c("Affy Gene Id", 
+        "Gene Name", "Event Number", "Event Type", 
+        "Genomic Position", "Path 1", "Path 2", 
+        "Path Reference", "Probes P1", "Probes P2", 
         "Probes Ref")
     
     # if(input=='GTF') {
     # GeneNames<-read.delim(file=paste(GeneNamesFile,sep=''),sep='\t',header=T)
-    # iix<-match(Result[,1],GeneNames[,1]) Nmb<-as.vector(GeneNames[iix,2])
-    # Result[,2]<-Nmb }else if(input=='Ensembl' | input=='UCSC') {
+    # iix<-match(Result[,1],GeneNames[,1])
+    # Nmb<-as.vector(GeneNames[iix,2])
+    # Result[,2]<-Nmb }else
+    # if(input=='Ensembl' | input=='UCSC') {
     # Result[,2]<-Result[,1] }
     
     
     Flat <- Filter(Negate(is.null), Flat)
     Flat <- do.call(rbind, Flat)
-    colnames(Flat) <- c("Probe_ID", "X", "Y", "Probe_Sequence", "Group_ID", "Unit_ID")
+    colnames(Flat) <- c("Probe_ID", "X", 
+        "Y", "Probe_Sequence", "Group_ID", 
+        "Unit_ID")
     
     
     # tag<-'r'
@@ -447,15 +524,20 @@ CDFfromGTF <- function(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF, 
     
     cat("Done")
     
-    write.table(Result, file = paste(PathCDF, "/EventsFound_", microarray, ".txt", 
-        sep = ""), sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
+    write.table(Result, file = paste(PathCDF, 
+        "/EventsFound_", microarray, ".txt", 
+        sep = ""), sep = "\t", quote = FALSE, 
+        col.names = TRUE, row.names = FALSE)
     
-    write.table(Flat, file = paste(PathCDF, "/", microarray, ".flat", sep = ""), 
-        sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
+    write.table(Flat, file = paste(PathCDF, 
+        "/", microarray, ".flat", sep = ""), 
+        sep = "\t", quote = FALSE, col.names = TRUE, 
+        row.names = FALSE)
     
-    # Cant change wd during BioCCheck setwd(PathCDF)
+    # Cant change wd during BioCCheck
+    # setwd(PathCDF)
     
-    flat2Cdf(file = paste(PathCDF, "/", microarray, ".flat", sep = ""), chipType = microarray, 
+    flat2Cdf(file = paste(PathCDF, "/", microarray, 
+        ".flat", sep = ""), chipType = microarray, 
         rows = ROWS, cols = COLS, Directory = PathCDF)
-    
 }
