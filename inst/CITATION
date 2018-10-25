@@ -18,4 +18,27 @@ bibentry(bibtype = "article",
                              "of alternative splicing events using junction arrays. BMC Genomics 17(1): 467.",
                              "doi:10.1186/s12864-016-2816-x"))
 
+bibentry(bibtype = "article",
+         title = "Comparison of RNA-seq and microarray platforms for splice event detection using a cross-platform algorithm",
+         author = personList(
+           as.person("Juan P. Romero"),
+           as.person("Maria Ortiz-Estevez"),
+           as.person("Ander Muniategui"),
+           as.person("Soraya Carrancio"),
+           as.person("Fernando J de Miguel"),
+           as.person("Fernando Carazo"),
+           as.person("Luis M Montuenga"),
+           as.person("Remco Loos"),
+           as.person("Ruben Pio"),
+           as.person("Matthew WB Trotter"),
+           as.person("Angel Rubio")),
+         year = 2018,
+         journal = "{BMC Genomics}",
+         volume = "19",
+         number = "1",
+         pages = "703",
+         doi = "10.1186/s12864-018-5082-2",
+         textVersion = paste("Romero, Juan P., et al. "Comparison of RNA-seq and microarray platforms for splice event detection using a 
+         					  cross-platform algorithm." BMC genomics 19.1 (2018): 703.","doi:10.1186/s12864-018-5082-2"))
+
 
