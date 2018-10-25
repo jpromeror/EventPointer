@@ -1,20 +1,22 @@
- Version 1.0
+Changes in Version 1.0
  ------------------
- * Compatibility with Affymetrix Clariom, HTA 2.0, MTA and RTA arrays
- * Dropbox URL updated with required files for all arrays
- * RNASeq pipeline stable
+ + Compatibility with Affymetrix Clariom, HTA 2.0, MTA and RTA arrays
+ + Dropbox URL updated with required files for all arrays
+ + RNASeq pipeline stable
 
- Version 1.2
+ Changes in Version 1.2
  ------------------
- * Minor bugs fixed
- * Any Custom GTF is now usable with EventPointer
- * EventsFound located in Dropbox URL now contains gene names.
+ + Minor bugs fixed
+ + Any Custom GTF is now usable with EventPointer
+ + EventsFound located in Dropbox URL now contains gene names.
 
- Version 2.0
+ Changes in Version 2.0
  ------------------
- * Bug Fixed (ClassifyEvents)
- * Calculation the relative error associated with the calculation of PSI
- * Events statistical analysis by using PSI and the associated relative error
- * New pipeline for RNA-Seq based on data quantified using reference transcriptome
- * Multi-path events detection
+ + Minor bugs fixed (ClassifyEvents)
+ + Relative error is now obtained when obtaining PSI 
+ + New statistical analysis based on PSI and the associated relative error
+ + New pipeline for RNA-Seq based on quantification using a reference transcriptome
+ + Multi-path events detection
+ 	o Events with more than two alternative paths are detected
+  	
  
