@@ -38,7 +38,6 @@ bibentry(bibtype = "article",
          number = "1",
          pages = "703",
          doi = "10.1186/s12864-018-5082-2",
-         textVersion = paste("Romero, Juan P., et al. "Comparison of RNA-seq and microarray platforms for splice event detection using a 
-         					  cross-platform algorithm." BMC genomics 19.1 (2018): 703.","doi:10.1186/s12864-018-5082-2"))
+         textVersion = paste("Romero, Juan P., et al. Comparison of RNA-seq and microarray platforms for splice event detection using",                                "cross-platform algorithm. BMC genomics 19.1 (2018): 703.","doi:10.1186/s12864-018-5082-2"))
 
 
