@@ -1,7 +1,7 @@
 # EventPointer
 
-[![platforms](http://bioconductor.org/shields/availability/3.8/EventPointer.svg)](http://bioconductor.org/packages/devel/bioc/html/EventPointer.html)
-[![build](http://bioconductor.org/shields/build/devel/bioc/EventPointer.svg)](http://bioconductor.org/packages/devel/bioc/html/EventPointer.html)
+[![platforms](http://bioconductor.org/shields/availability/3.8/EventPointer.svg)](http://bioconductor.org/packages/release/bioc/html/EventPointer.html)
+[![build](http://bioconductor.org/shields/build/devel/bioc/EventPointer.svg)](http://bioconductor.org/packages/release/bioc/html/EventPointer.html)
 
 *EventPointer* is an R package to identify alternative splicing events 
 		that involve either simple (case-control experiment) or complex experimental designs 
