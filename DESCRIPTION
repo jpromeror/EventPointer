@@ -2,7 +2,7 @@ Package: EventPointer
 Type: Package
 Title: An effective identification of alternative splicing events
 	   using junction arrays and RNA-Seq data
-Version: 2.0.0
+Version: 2.0.1
 Author: Juan Pablo Romero, Juan Ferrer-Bonsoms, Ander Muniategui, Fernando Carazo, Ander Aramburu, Angel Rubio
 Maintainer: Juan Pablo Romero <jpromero@ceit.es>
 Description: EventPointer is an R package to identify alternative splicing events 
@@ -54,7 +54,7 @@ Suggests:
 License: Artistic-2.0
 LazyData: true
 RoxygenNote: 6.1.0
-biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse
+biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse, ImmunoOncology
 VignetteBuilder: knitr
 Url: https://github.com/jpromeror/EventPointer
 BugReports: https://github.com/jpromeror/EventPointer/issues
