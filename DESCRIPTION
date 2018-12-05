@@ -54,7 +54,7 @@ Suggests:
 License: Artistic-2.0
 LazyData: true
 RoxygenNote: 6.1.0
-biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse
+biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse, ImmunoOncology
 VignetteBuilder: knitr
 Url: https://github.com/jpromeror/EventPointer
 BugReports: https://github.com/jpromeror/EventPointer/issues
