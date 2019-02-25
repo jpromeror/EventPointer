@@ -384,7 +384,8 @@ EventPointer_IGV <- function(Events, input,
         SG_Gene <- SplicingGraphFeatures[unlist(geneID(SplicingGraphFeatures)) == 
             GeneIndex[jj, 2]]
         
-        SG_Edges <- SG_Info(SG_Gene)$Edges
+        #SG_Edges <- SG_Info(SG_Gene)$Edges
+        SG_Edges <- SG_creation_RNASeq(SG_Gene)$Edges
         
         if (SG_Edges[1, "Strand"] == "") {
             SG_Edges[, 6] <- gsub("", "-", 
