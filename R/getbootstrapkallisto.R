@@ -1,4 +1,7 @@
-#' Author: JF
+#' getbootstrapkallisto
+#' 
+#' Return from the output of kallisto the data with the bootstrap information.
+#' 
 #' @description  Function to load the values of the bootstrap
 #'
 #' Inputs:

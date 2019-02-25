@@ -36,7 +36,6 @@
 \alias{filterimagine}
 \alias{transfromedge}
 \alias{sacartranscritos}
-\alias{comprobaciontranscritos2}
 \alias{convertToSGFeatures2}
 \alias{processFeatures2}
 \alias{annotate2}
@@ -46,6 +45,29 @@
 \alias{get_table}
 \alias{get_YB}
 \alias{getInfo}
+\alias{PrimerSequenceGeneral}
+\alias{PrimerSequenceTwo}
+\alias{ProbesSequence}
+\alias{sort.exons}
+\alias{all_simple_paths2}
+\alias{callPrimer3}
+\alias{callPrimer3probes}
+\alias{CreateSequenceforProbe}
+\alias{findPotencialExons}
+\alias{fullExons}
+\alias{includeaexons}
+\alias{genreverse}
+\alias{getDistanceseachPath}
+\alias{getDominants2}
+\alias{getDominantsFor}
+\alias{getDominantsRev}
+\alias{getExonsFullSignal}
+\alias{getFinalExons}
+\alias{getgeneraldata}
+\alias{getrankexons}
+\alias{getranksequence}
+\alias{PrimerSequenceCommonFor}
+\alias{PrimerSequenceCommonRev}
 \title{EventPointer Internal Functions}
 \usage{
 annotateEvents(Events, PSR_Gene, Junc_Gene, Gxx)
@@ -119,8 +141,6 @@ transfromedge(SG, SG_Gene)
 
 sacartranscritos(edgetr, events)
 
-comprobaciontranscritos2(Result)
-
 convertToSGFeatures2(x, coerce = FALSE, merge = FALSE)
 
 processFeatures2(features, coerce = FALSE, merge = FALSE)
@@ -139,12 +159,82 @@ get_table(PSI_arrayP, nevents, totchunk, chunk, nsamples, incrPSI_original,
 get_YB(PSI_arrayS, l, nsamples, I, J, CTEind)
 
 getInfo(table, ncontrast)
+
+PrimerSequenceGeneral(taqman, FinalExons, generaldata, SG, Dir, nPrimers,
+  Primer3Path = Sys.which("primer3_core"), maxLength, minsep, wminsep,
+  valuethreePpenalty, wnpaths, qualityfilter)
+
+PrimerSequenceTwo(FinalExons, SG, generaldata, n, thermo.param,
+  Primer3Path, settings)
+
+ProbesSequence(SG, FinalSeq, generaldata, Dir,
+  Primer3Path = Sys.which("primer3_core"), nProbes)
+
+sort.exons(namesPath, decreasing = FALSE)
+
+all_simple_paths2(wg, from, to, ...)
+
+callPrimer3(seq, threeprimers = FALSE, pr, reverse = FALSE,
+  size_range = "150-500", Tm = c(57, 59, 62), name = "Primer1",
+  Primer3Path = "primer3-2.3.7/bin/primer3_core",
+  thermo.param = "primer3-2.3.7/src/primer3_config/",
+  sequence_target = NULL,
+  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+
+callPrimer3probes(seq, name = "Primer1",
+  Primer3Path = "primer3-2.3.7/bin/primer3_core",
+  thermo.param = "primer3-2.3.7/src/primer3_config/",
+  sequence_target = NULL,
+  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+
+CreateSequenceforProbe(SG, Exons, FinalSeq, n)
+
+findPotencialExons(D, namesPath, maxLength, SG, minexonlength)
+
+fullExons(namesPath)
+
+includeaexons(Forward)
+
+genreverse(FinalInfo)
+
+getDistanceseachPath(Exon1, Exon2, generaldata, distinPrimers, SG)
+
+getDominants2(PrimersTwo, Primers1, commonForward, commonReverse, namesRef,
+  D, numberOfPaths, nprimerstwo, ED, wNpaths = 1000, wP12inRef = 1000)
+
+getDominantsFor(Primers1, Primers2, commonForward, namesRef, D,
+  numberOfPaths, Event, ncommonForward, ED, wNpaths = 1000,
+  wP12inRef = 1000)
+
+getDominantsRev(Primers1, Primers2, commonReverse, namesRef, D,
+  numberOfPaths, Event, ncommonReverse, ED, wNpaths = 1000,
+  wP12inRef = 1000)
+
+getExonsFullSignal(namesPath, SG)
+
+getFinalExons(generaldata, maxLength, nPrimerstwo, ncommonForward,
+  ncommonReverse, nExons, minsep, wminsep, valuethreePpenalty,
+  minexonlength)
+
+getgeneraldata(SG, Event, shortdistpenalty)
+
+getrankexons(SG, Dominants, nt, wg, items, minsep, wminsep,
+  valuethreePpenalty, D)
+
+getranksequence(taqman, Fdata, maxLength, minsep, wminsep,
+  valuethreePpenalty, wnpaths, qualityfilter)
+
+PrimerSequenceCommonFor(FinalExons, SG, generaldata, n, thermo.param,
+  Primer3Path, settings)
+
+PrimerSequenceCommonRev(FinalExons, SG, generaldata, n, thermo.param,
+  Primer3Path, settings)
 }
 \value{
 Internal outputs
 }
 \description{
-Internal functions used by EventPointer in the different 
+Internal functions used by EventPointer in the different
 steps of the algorithm
 }
 \keyword{internal}

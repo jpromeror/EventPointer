@@ -23,6 +23,8 @@ output:
 library(knitr)
 opts_chunk$set(error = FALSE)
 library(EventPointer)
+library(dplyr)
+library(kableExtra)
 ```
 
 ```{r style, echo = FALSE, results = 'asis'}
@@ -440,7 +442,7 @@ Once the process is completed the GTF file is generated in the specified directo
 
 
 
-## Event From Transcriptome Reference
+## Analysis From Transcriptome Reference
 
 The idea of this pipeline is to apply a statistical analysis to the alternative splicing by using quantification data obtained from *kallisto*. For this purpose we have to follow the pipeline described in figure 7.
 
@@ -484,7 +486,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 * **EventsFound_<Transcriptome>.txt** A .txt file with the information of the events.
 * **paths_RNASeq.gtf** A .GTF file with the information of the events required to be visualized in IGV.
 
-This function also returns a list containing four elements: three sparce matrices that relate which isoforms build up the paths (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: only appear the name of the transcript.
+This function also returns a list containing five elements: three sparce matrices that relate which isoforms build up the paths (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: only appear the name of the transcript. The final element is SG_List: a list with the information of the graph of each gene, this variable is necesary for Primers design step.
 
 ```{r GTFfGTFnames, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -509,6 +511,8 @@ This function also needs that the reference annotation used in *Kallisto* and in
 
 In this example we have applied *kallisto* to the samples ERR315326, ERR315400, ERR315407 and ERR315494 using the same reference used before. These samples have been download from *EMBL-EBI* dataset.
 
+The following code shows an example of how to read the kallisto output and prepare it to run the main function.
+
 ```{r PSI_Statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
 
 #first: load data from kallisto output
@@ -524,6 +528,7 @@ for (n in 2:length(dirtoload)){
 rownames(RNASeq)<-RNASeq[,1]
 RNASeq<-RNASeq[,-1]
 colnames(RNASeq) <- filesnames
+
 
 #second: the annotation of the transcript names must be equal in RNASeq and PathsxTranscript
 
@@ -567,17 +572,153 @@ Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC"
 
 The output of this function is a data.frame with the information of the names of the event, its p.values and the corresponding z.value. If there is more than one contrast, the function returns as many data.frames as number of contrast and all these data.frame are sotred in an unique list.
 
-```{r getInfo2, echo=FALSE}
+```{r EP_TranRef_Res_Table, echo=FALSE}
 kable(Fit,digits=5,row.names=TRUE,align="c",caption = "Table 3: PSI_Statistic results")
 ```
 
+
+# Primers Design
+
+EventPointer can also be used to design primers for PCR validation. The aim of *FindPrimers* function is the design of PCR primers and TaqMan probes for detection and quantification of alternative splicing. Depending on the assay we want to carry out the the algorithm will design the primers for a conventional PCR or the primers and TaqMan probes if we are performing a TaqMan assay. In the case of a conventional PCR we will be able to detect the alternative splicing event. Besides, the algorithm gives as an output the length of the PCR bands that are going to appear. In the case of a TaqMan assay, we will not only detect but also quantify alternative splicing.
+<br>
+The Primers Design step has been developed with *Primer3* software and works with versions >= 2.3.6. In order to use this option you need to install this sofware.
+You can download from <a href="https://sourceforge.net/projects/primer3/" target="_blank">sourceforge</a> (for Windows, Mac OSX or Unix/Linux) or from <a href="https://github.com/primer3-org/primer3/" target="_blank">github</a> (for Mac OSX or Unix/Linux).
+<br>
+To work with Primer Design option you also need to add *Primer3* to your environment PATH. For Windows you can add environment variables in:
+<br>
+Control Panel -> System and Security -> System -> Advanced system settings -> Environment Variables...
+<br>
+For Unix/Linux or Max you need to add the path to *Primer3* to the variable PATH using terminal.
+<br>
+Then, as is explained below, one of the input variables for the main function is **Primer3Path** which is a string variable with the complete path where primer3_core.exe is placed. As we have added this path to the environment variable we can set down this variable with the following command as is shown later in the example:
+
+```{r pathprimer3, eval=FALSE, warning=FALSE, collapse=TRUE}
+
+Primer3Path <- Sys.which("primer3_core")
+
+```
+
+The function requires the following main parameters:
+
+- **SG**: Information of the graph of the gene where the selected event belongs.This information is available in the output of EventsGTFfromTranscriptomeGTF function.
+- **EventNum**: Specific information of the required event. Basically, each event is composed of two exclusive paths and a common reference for both paths.
+- **Primer3Path**: Complete path where primer3_core.exe is placed.
+- **Dir**: Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are placed.
+- **taqman**: 1 if you want to get probes and primers for TaqMan. 0 if you want to get primers for conventional PCR.
+
+Other required parameters that have a default value but can be modified by user:
+
+- **nProbes**: Number of probes for TaqMan experiments. By default 1.
+- **nPrimerstwo**: Number of potential exon locations for primers using two primers (one forward and one reverse). By default 3.
+- **ncommonForward**: Number of potential exon locations for primers using one primer in forward and two in reverse. By default 3.
+- **ncommonReverse**: Number of potential exon locations for primers using two primer in forward and one in reverse. By default 3.
+- **nExons**: Number of combinations of ways to place primers in exons to interrogate an event after sorting. By default 5.
+- **nPrimers**: Once the exons are selected, number of primers combination sequences to search within the whole set of potential sequences.By default 5.
+- **shortdistpenalty**: Penalty for short exons following an exponential function. By default 2000.
+- **maxLength**: Max length of exons that are between primers and for paths once we have calculated the sequence.By default 1000.
+- **minsep**: Distance from which it is penalized primers for being too close. By default 100.
+- **wminsep**: Weigh of the penalization to primers for being too close. By default 200.
+- **valuethreePenalty**: penalization for cases that need three primers instead of 2. By default 1000.
+- **minexonlength**: Minimum length that a exon has to have to be able to contain a primer. By default 25.
+- **wnpaths**: Penalty for each existing path. By default 200.
+- **qualityfilter**: Results will show as maximum 3 combinations with a punctuation higher than qualityfilter.By default 5000.
+
+
+The following example shows how to design primers and TaqMan probes for a specific alternative splicing event:
+
+
+```{r FindPrimers, eval=FALSE, warning=FALSE, collapse=TRUE}
+
+data("EventXtrans")
+#From the output of EventsGTFfromTranscriptomeGTF we take the splicing graph information
+SG_list <- EventXtrans$SG_List
+#SG_list contains the information of the splicing graphs for each gene
+#Let's supone we want to design primers for the event 5 of the gene ENSG00000185252.17
+
+#We take the splicing graph information of the required gene
+SG <- SG_list$ENSG00000254709.7 
+
+#We point the event number
+EventNum <- 1
+
+#Define rest of variables:
+Primer3Path <- Sys.which("primer3_core")
+Dir <- "C:\\PROGRA~2\\primer3\\"
+
+MyPrimers_taqman <- FindPrimers(SG = SG,
+                        EventNum = EventNum,
+                        Primer3Path = Primer3Path,
+                        Dir = Dir,
+                        taqman = 1,
+                        nProbes=1,
+                        nPrimerstwo=4,
+                        ncommonForward=4,
+                        ncommonReverse=4,
+                        nExons=10, 
+                        nPrimers =5,
+                        maxLength = 1200) 
+
+```
+
+
+*FindPrimers* return a data.frame. Either for conventional PCR and taqman option the data.frame has the following columns:
+
+- **For1Seq**: Sequence of the first forward primer.
+- **For2Seq**: Sequence of the second forward primer in case it is needed.
+- **Rev1Seq**: Sequence of the first reverse primer.
+- **Rev2Seq**: Sequence of the second reverse primer in case it is needed.
+- **For1Exon**: Name of the exon of the first forward primer.
+- **For2Exon**: Name of the exon of the second forward primer in case it is needed.
+- **Rev1Exon**: Name of the exon of the first reverse primer.
+- **Rev2Exon**: Name of the exon of the second reverse primer in case it is needed.
+- **FINALvalue**: Final punctuation for that combination of exons and sequences. The lower it is this score, the better it is the combination.
+- **DistPath1**: Distances of the bands, in base pairs, that interrogate Path1 when we perform the conventional PCR experiment.
+- **DistPath2**: Distances of the bands, in base pairs, that interrogate Path2 `when we perform the conventional PCR experiment.
+- **DistNoPath**: Distances of the bands, in base pairs, that they do not interrogate any of the two paths when we perform the conventional PCR experiment.
+
+
+
+```{r EP_DesiCP_Res_Table, eval=TRUE, warning=FALSE, collapse=TRUE,echo=FALSE}
+data("MyPrimers")
+kable(MyPrimers[1:5,],digits=5,row.names=FALSE,align="c",caption = "Table 4: Data.frame output of FindPrimers for conventional PCR") %>%
+  kable_styling() %>%
+  scroll_box(width ="660px")
+
+```
+
+
+
+For the tacman option, the data.frame contains three additional columns:
+
+- **SeqProbeRef**: Sequence of the TaqMan probe placed in the Reference.
+- **SeqProbeP1**: Sequence of the TaqMan probe placed in the Path1.
+- **SeqProbeP2**: Sequence of the TaqMan probe placed in the Path2.
+
+
+```{r EP_DesiTP_Res_Table, eval=TRUE, warning=FALSE, collapse=TRUE,echo=FALSE}
+data("MyPrimers_taqman")
+kable(MyPrimers_taqman[1:5,],digits=5,row.names=FALSE,align="c",caption = "Table 5: Data.frame output of FindPrimers for conventional PCR") %>%
+  kable_styling() %>%
+  scroll_box(width ="660px")
+
+```
+
+
+
+## IGV primers and probes visualization
+
+From the output data.frame we get the sequence of the primers and probes if it is needed. We can visualize the result in IGV using the *Find Motif* tool.
+
+Forward primers are represented in blue whilst reverse primers are represented in red as long as the gene is transcribed from the forward strand. Otherwise the colors we will be swapped. TaqMan probes will always have the color of the forward primers.
+
+![**Figure 8.** Transcriptome, paths and primers visualization using IGV. ](Figure11.png)
 
 
 # Multi-Path Events
 
 EventPointer can also identify Multi-Path events. The multi-path events are composed of more elements than a triplet where the concentration of the reference path should be equal to the sum of the concentration of the rest of paths. This is depicted in Figure 8.
 
-![**Figure 8.** Multi-Path alternative splicing events for EventPointer ](Figure10.png)
+![**Figure 9.** Multi-Path alternative splicing events for EventPointer ](Figure10.png)
 
 EventPointer identify Multi-Path events and estimate the  percent spliced in value $\Psi$.
 
@@ -586,7 +727,7 @@ EventPointer identify Multi-Path events and estimate the  percent spliced in val
 The function *CDFfromGTF_Multipath* generates the CDF file used afterwards in the aroma.affymetrix preprocesing pipeline. This function is equivalent to the function *CDFfromGTF*.
 
 
-The required input for the function is described below:
+The function requires the following parameters:
 
 
 - **input** : Reference transcriptome. Available options are : "Ensembl","UCSC" , "AffyGTF" and "CustomGTF".
@@ -667,7 +808,7 @@ EventPointer provides three different statistical tests that can be used to dete
 
 In Table 5, the most relevatn coefficients from the statistical and events information point of view are shown
 
-![**Table 5.** Coefficients of the linear model used to detect alternative splicing ](Figure9.png)
+![**Table 6.** Coefficients of the linear model used to detect alternative splicing ](Figure9.png)
 
 There are a number of alternatives to detect AS using these coefficients. Either of $\beta_4$ , $\beta_5$ , $\beta_4$ + $\beta_5$ is theoretically able to detect AS events. Some of them are more sensitive than others depending on the relative concentrations of the isoforms. For example, if isoform 2 is much more highly expressed than isoform 1 in both conditions, $\beta_4$ will be more sensitive than $\beta_4$ + $\beta_5$ since in the latter case, the numerator and denominator of the logarithms of both terms are similar, and hence their logs are close to zero. 
 
@@ -735,7 +876,7 @@ Residuals_multipath_RNASeq <- PSI_MP_RNASeq_list$Residuals
 ```
 
 
-We can apply the function *PSI_Statistic* described in *section 4.2.2* to the values of $\Psi$ (only for two-paths events).
+We can apply the function *PSI_Statistic* to the values of $\Psi$ (only for two-paths events). This function takes as input the values of PSI and performs a statistical analysis based on permutation test.
 
 ```{r PSI_ADV2, eval=TRUE, collapse=TRUE}
 
@@ -770,12 +911,16 @@ for (jj in 1:ncol(Cmatrix)) {
 
 
 ```
+
+
+
 # References
 
 * Romero, Juan P., et al. "EventPointer: an effective identification of alternative splicing events using junction arrays." BMC genomics 17.1 (2016): 467. 
 * Romero, Juan P., et al. "Comparison of RNA-seq and microarray platforms for splice event detection using a cross-platform algorithm." BMC genomics 19.1 (2018): 703.
 * Goldstein, Leonard D., et al. "Prediction and Quantification of Splice Events from RNA-Seq Data." PloS one 11.5 (2016): e0156132.
 * Seshagiri, Somasekar, Eric W Stawiski, Steffen Durinck, Zora Modrusan, Elaine E Storm, Caitlin B Conboy, Subhra Chaudhuri, et al. 2012. “Recurrent R-spondin fusions in colon cancer.” Nature 488 (7413): 660–64.
+*Untergasser, A., Cutcutache, I., Koressaar, T., Ye, J., Faircloth, B. C., Remm, M., & Rozen, S. G. (n.d.). Primer3-new capabilities and interfaces. https://doi.org/10.1093/nar/gks596
 
 # Session Information
 ```{r}

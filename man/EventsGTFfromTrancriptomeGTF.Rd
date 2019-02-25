@@ -17,22 +17,23 @@ EventsGTFfromTrancriptomeGTF(inputFile = NULL, Transcriptome = NULL,
 \item{PathGTF}{Directory where the output will be saved}
 }
 \value{
-a list containing four elements: three sparce matrices that relate which isoforms build up the paths 
-(path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: 
-only appear the name of the transcript.
+a list containing five elements: three sparce matrices that relate which isoforms build up the paths
+(path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation:
+only appear the name of the transcript. The final element is SG_List: a list with the information of the graph
+of each gene, this variable is necesary for Primers design step.
 }
 \description{
-Events .gtf from trancriptome .gtf
+Finds the alternative splicing events given a reference transcriptome.
 }
 \examples{
-   PathFiles<-system.file("extdata",package="EventPointer")
-   inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
-   Transcriptome <- "Gencode24_2genes"
+   PathFiles<-system.file('extdata',package='EventPointer')
+   inputFile <- paste(PathFiles,'/gencode.v24.ann_2genes.gtf',sep='')
+   Transcriptome <- 'Gencode24_2genes'
    Pathtxt <- tempdir()
    PathGTF <- tempdir()
-   
-   # Run the function 
-   
+
+   # Run the function
+
    EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,
                                                Transcriptome = Transcriptome,
                                                Pathtxt=Pathtxt,PathGTF=PathGTF)

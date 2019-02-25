@@ -21,15 +21,15 @@ The output of these functions is a list containing: two data.frame (deltaPSI and
 }
 \description{
 Statistical analysis of the alternative splicing events. This function takes as input the values of PSI.
-Perform a statistical analysis using the bootstrap method
+Perform a statistical analysis based on permutation test
 }
 \examples{
    data(PSIss)
    Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
    Contrast <- matrix(c(0,1),nrow=1)
-   
+
    # Statistical analysis:
-   
+
    table <- PSI_Statistic(PSIss$PSI,Design = Design, Contrast = Contrast, nboot = 50)
 
 }

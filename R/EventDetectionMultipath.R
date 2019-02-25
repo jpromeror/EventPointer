@@ -1,6 +1,6 @@
-#' Detect splicing events using EventPointer methodology
+#' Detect splicing multipath events using EventPointer methodology
 #'
-#' Identification of all the alternative splicing events in the splicing graphs
+#' Identification of all the multipath alternative splicing events in the splicing graphs
 #'
 #' @param Input Output of the PrepareBam_EP function
 #' @param cores Number of cores used for parallel processing

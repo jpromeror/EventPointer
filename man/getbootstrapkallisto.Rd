@@ -2,7 +2,7 @@
 % Please edit documentation in R/getbootstrapkallisto.R
 \name{getbootstrapkallisto}
 \alias{getbootstrapkallisto}
-\title{Author: JF}
+\title{getbootstrapkallisto}
 \usage{
 getbootstrapkallisto(pathValues = NA, nb)
 }
@@ -19,13 +19,16 @@ Function to load the values of the bootstrap
 
 Inputs:
 }
+\details{
+Return from the output of kallisto the data with the bootstrap information.
+}
 \examples{
-   
+
    PathFiles <- system.file('extdata',package='EventPointer')
    PathFiles <- dir(paste0(PathFiles,'/output'),full.names = TRUE)
-   
+
    #load the data
-   
+
    mydatab <- getbootstrapkallisto(pathValues = PathFiles,nb = 20)
 
 
