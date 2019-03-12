@@ -35,7 +35,7 @@ getbootstrapkallisto <- function(pathValues = NA,
     }
     
     
-    if (is.na(pathValues)) {
+    if (any(is.na(pathValues))) {
         stop("not pathValues")
     }
     
