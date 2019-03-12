@@ -16,7 +16,9 @@
 #' 
 #' @param SG Information of the graph of the gene where the selected event belongs.
 #'  This information is avaible in the output of EventsGTFfromTranscriptomeGTF function.
-#' @param EventNum The "Event Number" of the selected Event.
+#' @param EventNum The "EventNum" variable can be found in the returned .txt file from
+#'  the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or in the output of  EventPointer_RNASeq_TranRef,
+#'  the number after the "_" character of the 'Event_ID'.  
 #' @param Primer3Path Complete path where primer3_core.exe is placed.
 #' @param Dir Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are stored.
 #' @param taqman 1 if you want to get probes and primers for taqman. 0 if you want to get primers for conventional PCR.
@@ -90,7 +92,7 @@
 #' SG_list <- EventXtrans$SG_List
 #' #SG_list contains the information of the splicing graphs for each gene
 #'
-#' #Let's supone we want to design primers for the event 5 of the gene ENSG00000185252.17
+#' #Let's supone we want to design primers for the event 1 of the gene ENSG00000254709.7 
 #' 
 #' #We take the splicing graph information of the required gene
 #' SG <- SG_list$ENSG00000254709.7 

@@ -573,23 +573,23 @@ Fit <- EventPointer_RNASeq_TranRef(Count_Matrix = Expression,Statistic = "LogFC"
 The output of this function is a data.frame with the information of the names of the event, its p.values and the corresponding z.value. If there is more than one contrast, the function returns as many data.frames as number of contrast and all these data.frame are sotred in an unique list.
 
 ```{r EP_TranRef_Res_Table, echo=FALSE}
-kable(Fit,digits=5,row.names=TRUE,align="c",caption = "Table 3: PSI_Statistic results")
+kable(Fit,digits=5,row.names=FALSE,align="c",caption = "Table 3: PSI_Statistic results")
 ```
 
 
 # Primers Design
 
 EventPointer can also be used to design primers for PCR validation. The aim of *FindPrimers* function is the design of PCR primers and TaqMan probes for detection and quantification of alternative splicing. Depending on the assay we want to carry out the the algorithm will design the primers for a conventional PCR or the primers and TaqMan probes if we are performing a TaqMan assay. In the case of a conventional PCR we will be able to detect the alternative splicing event. Besides, the algorithm gives as an output the length of the PCR bands that are going to appear. In the case of a TaqMan assay, we will not only detect but also quantify alternative splicing.
-<br>
+<br><br>
 The Primers Design step has been developed with *Primer3* software and works with versions >= 2.3.6. In order to use this option you need to install this sofware.
 You can download from <a href="https://sourceforge.net/projects/primer3/" target="_blank">sourceforge</a> (for Windows, Mac OSX or Unix/Linux) or from <a href="https://github.com/primer3-org/primer3/" target="_blank">github</a> (for Mac OSX or Unix/Linux).
-<br>
+<br><br>
 To work with Primer Design option you also need to add *Primer3* to your environment PATH. For Windows you can add environment variables in:
-<br>
+<br><br>
 Control Panel -> System and Security -> System -> Advanced system settings -> Environment Variables...
-<br>
+<br><br>
 For Unix/Linux or Max you need to add the path to *Primer3* to the variable PATH using terminal.
-<br>
+<br><br>
 Then, as is explained below, one of the input variables for the main function is **Primer3Path** which is a string variable with the complete path where primer3_core.exe is placed. As we have added this path to the environment variable we can set down this variable with the following command as is shown later in the example:
 
 ```{r pathprimer3, eval=FALSE, warning=FALSE, collapse=TRUE}
@@ -598,10 +598,10 @@ Primer3Path <- Sys.which("primer3_core")
 
 ```
 
-The function requires the following main parameters:
+The main function of this step is called `Find_Primers` and requires the following main parameters:
 
 - **SG**: Information of the graph of the gene where the selected event belongs.This information is available in the output of EventsGTFfromTranscriptomeGTF function.
-- **EventNum**: Specific information of the required event. Basically, each event is composed of two exclusive paths and a common reference for both paths.
+- **EventNum**: The "EventNum" variable can be found in the returned .txt file from the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or in the output of  EventPointer_RNASeq_TranRef, the number after the "_" character of the 'Event_ID'.
 - **Primer3Path**: Complete path where primer3_core.exe is placed.
 - **Dir**: Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are placed.
 - **taqman**: 1 if you want to get probes and primers for TaqMan. 0 if you want to get primers for conventional PCR.
@@ -633,7 +633,7 @@ data("EventXtrans")
 #From the output of EventsGTFfromTranscriptomeGTF we take the splicing graph information
 SG_list <- EventXtrans$SG_List
 #SG_list contains the information of the splicing graphs for each gene
-#Let's supone we want to design primers for the event 5 of the gene ENSG00000185252.17
+#Let's supone we want to design primers for the event 1 of the gene ENSG00000254709.7 
 
 #We take the splicing graph information of the required gene
 SG <- SG_list$ENSG00000254709.7 

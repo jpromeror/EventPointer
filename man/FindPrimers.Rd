@@ -15,7 +15,9 @@ FindPrimers(SG, EventNum, Primer3Path, Dir, taqman = NA, nProbes = 1,
 \item{SG}{Information of the graph of the gene where the selected event belongs.
 This information is avaible in the output of EventsGTFfromTranscriptomeGTF function.}
 
-\item{EventNum}{The "Event Number" of the selected Event.}
+\item{EventNum}{The "EventNum" variable can be found in the returned .txt file from
+the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or after the "_"
+character of the 'Event_ID' (it can be found in the output of  EventPointer_RNASeq_TranRef).}
 
 \item{Primer3Path}{Complete path where primer3_core.exe is placed.}
 
