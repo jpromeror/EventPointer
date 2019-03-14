@@ -36,7 +36,6 @@
 \alias{filterimagine}
 \alias{transfromedge}
 \alias{sacartranscritos}
-\alias{comprobaciontranscritos2}
 \alias{convertToSGFeatures2}
 \alias{processFeatures2}
 \alias{annotate2}
@@ -119,8 +118,6 @@ transfromedge(SG, SG_Gene)
 
 sacartranscritos(edgetr, events)
 
-comprobaciontranscritos2(Result)
-
 convertToSGFeatures2(x, coerce = FALSE, merge = FALSE)
 
 processFeatures2(features, coerce = FALSE, merge = FALSE)
@@ -144,7 +141,7 @@ getInfo(table, ncontrast)
 Internal outputs
 }
 \description{
-Internal functions used by EventPointer in the different 
+Internal functions used by EventPointer in the different
 steps of the algorithm
 }
 \keyword{internal}

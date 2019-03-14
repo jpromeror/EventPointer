@@ -21,10 +21,10 @@ EventPointer(Design, Contrast, ExFit, Eventstxt, Filter = TRUE,
 
 \item{Qn}{Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).}
 
-\item{Statistic}{Statistical test to identify differential splicing events, 
+\item{Statistic}{Statistical test to identify differential splicing events,
 must be one of : LogFC, Dif_LogFC or DRS.}
 
-\item{PSI}{Boolean variable to indicate if Delta PSI should be calculated 
+\item{PSI}{Boolean variable to indicate if Delta PSI should be calculated
 for every splicing event.}
 }
 \value{

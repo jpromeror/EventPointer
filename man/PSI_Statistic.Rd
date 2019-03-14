@@ -27,9 +27,9 @@ Perform a statistical analysis using the bootstrap method
    data(PSIss)
    Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
    Contrast <- matrix(c(0,1),nrow=1)
-   
+
    # Statistical analysis:
-   
+
    table <- PSI_Statistic(PSIss$PSI,Design = Design, Contrast = Contrast, nboot = 50)
 
 }

@@ -26,7 +26,7 @@ ClariomD, RTA or MTA}
 }
 \value{
 The function displays a progress bar to show the user the progress of the function.
-However, there is no value returned in R as the function creates three files that are used 
+However, there is no value returned in R as the function creates three files that are used
 later by other EventPointer functions. 1) EventsFound.txt : Tab separated file with all
 the information of all the alternative splcing events found. 2) .flat file : Used to build
 the corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing

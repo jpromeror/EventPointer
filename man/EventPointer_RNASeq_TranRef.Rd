@@ -8,10 +8,10 @@ EventPointer_RNASeq_TranRef(Count_Matrix, Statistic = "LogFC", Design,
   Contrast)
 }
 \arguments{
-\item{Count_Matrix}{The list containing the expression data taken from 
+\item{Count_Matrix}{The list containing the expression data taken from
 the ouput of GetPSI_FromTranRef}
 
-\item{Statistic}{The type of statistic to apply. 
+\item{Statistic}{The type of statistic to apply.
 Default = 'LogFC' (can be 'logFC, 'Dif_LogFC','DRS')}
 
 \item{Design}{The design matrix of the experiment.}

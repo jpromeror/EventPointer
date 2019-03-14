@@ -9,7 +9,7 @@ GetPSI_FromTranRef(PathsxTranscript, Samples, Filter = TRUE, Qn = 0.25)
 \arguments{
 \item{PathsxTranscript}{the outpu of EventGTFfromTrancriptomeGTF}
 
-\item{Samples}{the samples (in the rowname of the samples must be written 
+\item{Samples}{the samples (in the rowname of the samples must be written
 only the name of the transcript)}
 
 \item{Filter}{Boolean variable to indicate if an expression filter is applied. Defaul T}
@@ -17,12 +17,12 @@ only the name of the transcript)}
 \item{Qn}{Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).}
 }
 \value{
-The output of the function is a list containing two elements: a matrix with the 
-values of PSI  and a list containing as many matrices as number of events. 
+The output of the function is a list containing two elements: a matrix with the
+values of PSI  and a list containing as many matrices as number of events.
 In each matrix is stored the expression of the different paths of an event along the samples.
 }
 \description{
-Get the values of PSI.A filer expresion is applied if 
+Get the values of PSI.A filer expresion is applied if
 the user select the option of filter.
 }
 \examples{
@@ -41,11 +41,11 @@ the user select the option of filter.
    colnames(RNASeq) <- filesnames
    rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),'\\\\|'),function(X) return(X[1]))
    RNASeq<-as.matrix(RNASeq) #must be a matrix variable
-   
+
    #Obtain values of PSI
-   
+
    PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
-   
+
    PSI <- PSIss$PSI
    Expression <- PSIss$ExpEvs
 

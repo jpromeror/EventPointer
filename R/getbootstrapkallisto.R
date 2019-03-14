@@ -1,5 +1,5 @@
-#' Author: JF
-#' @description  Function to load the values of the bootstrap
+#' GetbootstrapKallisto
+#' @description  Function to load the values of the bootstrap returned by kallisto pipeline
 #'
 #' Inputs:
 #' @param pathValues A vector with the complete directory to the folder of the output of kallisto
