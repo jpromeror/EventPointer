@@ -1832,7 +1832,7 @@ getEventMultiPaths <- function(Events, SG,
 
 #' @rdname InternalFunctions
 GetIGVPaths <- function(EventInfo, SG_Edges) {
-    browser()
+    
     Gene <- as.vector(EventInfo[1, 1])
     
     Path1 <- matrix(unlist(strsplit(as.vector(EventInfo[, 
