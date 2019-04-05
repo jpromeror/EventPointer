@@ -17,16 +17,10 @@ EventsGTFfromTrancriptomeGTF(inputFile = NULL, Transcriptome = NULL,
 \item{PathGTF}{Directory where the output will be saved}
 }
 \value{
-<<<<<<< HEAD
-a list containing four elements: three sparce matrices that relate which isoforms build up the paths
-(path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation:
-only appear the name of the transcript.
-=======
 a list containing five elements: three sparce matrices that relate which isoforms build up the paths
 (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation:
 only appear the name of the transcript. The final element is SG_List: a list with the information of the graph
 of each gene, this variable is necesary for Primers design step.
->>>>>>> primersdesign
 }
 \description{
 Finds the alternative splicing events given a reference transcriptome.

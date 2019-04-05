@@ -16,8 +16,8 @@ FindPrimers(SG, EventNum, Primer3Path, Dir, taqman = NA, nProbes = 1,
 This information is avaible in the output of EventsGTFfromTranscriptomeGTF function.}
 
 \item{EventNum}{The "EventNum" variable can be found in the returned .txt file from
-the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or after the "_"
-character of the 'Event_ID' (it can be found in the output of  EventPointer_RNASeq_TranRef).}
+the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or in the output of  EventPointer_RNASeq_TranRef,
+the number after the "_" character of the 'Event_ID'.}
 
 \item{Primer3Path}{Complete path where primer3_core.exe is placed.}
 
@@ -121,7 +121,7 @@ data("EventXtrans")
 SG_list <- EventXtrans$SG_List
 #SG_list contains the information of the splicing graphs for each gene
 
-#Let's supone we want to design primers for the event 5 of the gene ENSG00000185252.17
+#Let's supone we want to design primers for the event 1 of the gene ENSG00000254709.7 
 
 #We take the splicing graph information of the required gene
 SG <- SG_list$ENSG00000254709.7 
