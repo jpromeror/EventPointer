@@ -1,6 +1,6 @@
-#' CDF file creation for EventPointer
+#' CDF file creation for EventPointer (MultiPath)
 #'
-#' Generates the CDF file to be used under the aroma.affymetrix framework
+#' Generates the CDF file to be used under the aroma.affymetrix framework.
 #'
 #' @param input Reference transcriptome used to build the CDF file. Must be one of Ensembl,
 #'              UCSC or GTF.

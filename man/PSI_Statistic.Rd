@@ -21,7 +21,7 @@ The output of these functions is a list containing: two data.frame (deltaPSI and
 }
 \description{
 Statistical analysis of the alternative splicing events. This function takes as input the values of PSI.
-Perform a statistical analysis using the bootstrap method
+Perform a statistical analysis based on permutation test
 }
 \examples{
    data(PSIss)

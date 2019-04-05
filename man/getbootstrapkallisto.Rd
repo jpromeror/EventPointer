@@ -2,7 +2,11 @@
 % Please edit documentation in R/getbootstrapkallisto.R
 \name{getbootstrapkallisto}
 \alias{getbootstrapkallisto}
+<<<<<<< HEAD
 \title{GetbootstrapKallisto}
+=======
+\title{getbootstrapkallisto}
+>>>>>>> primersdesign
 \usage{
 getbootstrapkallisto(pathValues = NA, nb)
 }
@@ -18,6 +22,9 @@ A list containing the quantification data and with the bootrap information.
 Function to load the values of the bootstrap returned by kallisto pipeline
 
 Inputs:
+}
+\details{
+Return from the output of kallisto the data with the bootstrap information.
 }
 \examples{
 

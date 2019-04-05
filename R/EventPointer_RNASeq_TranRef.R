@@ -1,5 +1,6 @@
-
-#' Statistical analysis with the output of GetPSI_FromTranRef
+#' EventPointer_RNASeq_TranRef
+#' 
+#' Statistical analysis of alternative splicing events with the output of GetPSI_FromTranRef
 #'
 #' @param Count_Matrix The list containing the expression data taken from
 #' the ouput of GetPSI_FromTranRef

@@ -2,7 +2,7 @@
 % Please edit documentation in R/CDFfromGTF_Multipath.R
 \name{CDFfromGTF_Multipath}
 \alias{CDFfromGTF_Multipath}
-\title{CDF file creation for EventPointer}
+\title{CDF file creation for EventPointer (MultiPath)}
 \usage{
 CDFfromGTF_Multipath(input = "Ensembl", inputFile = NULL, PSR, Junc,
   PathCDF, microarray = NULL, paths = 2)
@@ -34,7 +34,7 @@ pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard
 recommended to have at least 1.5 GB of free space.
 }
 \description{
-Generates the CDF file to be used under the aroma.affymetrix framework
+Generates the CDF file to be used under the aroma.affymetrix framework.
 }
 \examples{
    PathFiles<-system.file('extdata',package='EventPointer')

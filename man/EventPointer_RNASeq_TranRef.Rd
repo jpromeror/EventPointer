@@ -2,7 +2,7 @@
 % Please edit documentation in R/EventPointer_RNASeq_TranRef.R
 \name{EventPointer_RNASeq_TranRef}
 \alias{EventPointer_RNASeq_TranRef}
-\title{Statistical analysis with the output of GetPSI_FromTranRef}
+\title{EventPointer_RNASeq_TranRef}
 \usage{
 EventPointer_RNASeq_TranRef(Count_Matrix, Statistic = "LogFC", Design,
   Contrast)
@@ -25,7 +25,7 @@ one contrast, the function returns as many data.frames as number
 of contrast and all these data.frame are sotred in an unique list.
 }
 \description{
-Statistical analysis with the output of GetPSI_FromTranRef
+Statistical analysis of alternative splicing events with the output of GetPSI_FromTranRef
 }
 \examples{
    data(EventXtrans)

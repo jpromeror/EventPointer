@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 #' GetbootstrapKallisto
 #' @description  Function to load the values of the bootstrap returned by kallisto pipeline
+=======
+#' getbootstrapkallisto
+#' 
+#' Return from the output of kallisto the data with the bootstrap information.
+#' 
+#' @description  Function to load the values of the bootstrap
+>>>>>>> primersdesign
 #'
 #' Inputs:
 #' @param pathValues A vector with the complete directory to the folder of the output of kallisto

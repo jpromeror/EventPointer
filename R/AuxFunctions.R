@@ -3937,7 +3937,7 @@ mergeExonsTerminal2 <- function(features,
     return(exons)
 }
 
-########### function for the bootstrap statistic
+########### function for the bootstrap statistic----
 
 
 
@@ -4080,3 +4080,1611 @@ getInfo <- function(table, ncontrast) {
     
     return(data)
 }
+
+
+
+########### function for primers design ----
+
+#' @rdname InternalFunctions
+PrimerSequenceGeneral <- function(taqman,FinalExons,
+                                  generaldata, SG,Dir,
+                                  nPrimers,
+                                  Primer3Path=Sys.which("primer3_core"),
+                                  maxLength,
+                                  minsep,wminsep,
+                                  valuethreePpenalty,
+                                  wnpaths,qualityfilter)
+  {
+  thermo.param = file.path(Dir, "primer3_config")
+  settings = file.path(Dir,"primer3web_v4_0_0_default_settings.txt")
+  PrimersFound <- 0
+  n <- 0
+  Fdata <- data.frame()
+  if (class(FinalExons)!="character"){
+    while ((nrow(Fdata) < nPrimers )& (n<nrow(FinalExons))){
+      n <- n+1
+      # 1) Use only two primers
+      if(FinalExons[n,5]==0){
+        
+        Fdata1 <-PrimerSequenceTwo(FinalExons,SG,generaldata,n,thermo.param,
+                                   Primer3Path,settings)
+        Fdata <- rbind(Fdata, Fdata1)
+        
+        # 2) Use common FW primer and two Reverse primers
+      } else if (FinalExons[n,5]==1){
+        Fdata1 <- PrimerSequenceCommonFor(FinalExons,SG,generaldata,n,
+                                          thermo.param,Primer3Path,
+                                          settings)
+        Fdata <- rbind(Fdata, Fdata1)
+        
+        
+        # 3) Use common reverse primer and two FW primers    
+      } else if (FinalExons[n,5]==2){
+        Fdata1 <- PrimerSequenceCommonRev(FinalExons,SG,generaldata,n,
+                                          thermo.param,Primer3Path,
+                                          settings)
+        Fdata <- rbind(Fdata, Fdata1)
+      }
+    }
+    if (dim(Fdata)[1]!=0){
+      # Sorting results taking into account sequences:
+      RankedFdata <- getranksequence(taqman, Fdata,maxLength,minsep,
+                                     wminsep,valuethreePpenalty,wnpaths,
+                                     qualityfilter)
+    }else{
+      RankedFdata <- "Not possible to place primers due to the structure of the Event."
+      
+    }
+  } else{
+    RankedFdata <- "Not possible to place primers due to the structure of the Event."
+  }
+  return(RankedFdata)
+}
+
+
+#' @rdname InternalFunctions
+PrimerSequenceTwo <-function(FinalExons,SG,
+                             generaldata,n,
+                             thermo.param,
+                             Primer3Path,settings)
+  {
+  Fdata1<- data.frame()
+  # Get the ID for each exon where Primers are placed
+  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+  # Get de sequence of each exon:
+  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+  FExonSeq <- getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1]))
+  RExonSeq <- getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1]))
+  
+  # Build input sequence for Primer3
+  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq)))+1
+  seq <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq),sep="")
+  maxlength <- str_length(seq)
+  # Call Primer3 
+  p1 <- callPrimer3(seq, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                    name = "Primer1", Primer3Path = Primer3Path,
+                    thermo.param = thermo.param,
+                    sequence_target = 110+minlength,
+                    settings = settings)
+  
+  # Build Output binding with new Sequence info and knowed Exon info
+  if(is.null(dim(p1))==FALSE){
+    for (s in 1: dim(p1)[1]) {
+      For1Exon <- FinalExons[n,1]
+      Rev1Exon <- FinalExons[n,3]
+      For1Seq <- p1[s,2]
+      Rev1Seq <- p1[s,3]
+      LastPosFor1 <-  p1[s,6]+ p1[s,7] - 1
+      LastPosFor2 <- NA
+      FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+      FirstPosRev2 <- NA
+      distinPrimers <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+      Info <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers,SG)
+      
+      paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+      
+      # Distances from any path:
+      DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+      # Distances from path1:
+      DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+      # Distances from path2
+      DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+      Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+      names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+      PrSeq <- data.frame(For1Seq,NA,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+      colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+      Fdata1<-cbind(PrSeq , FinalExons[n,-6],Distances)
+    }
+  }   
+  return(Fdata1)
+}
+
+
+#' @rdname InternalFunctions
+ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
+                           ,Primer3Path=Sys.which("primer3_core"),
+                           nProbes)
+  {
+  if (class(FinalSeq)!="character"){
+    thermo.param = file.path(Dir, "primer3_config")
+    settings = file.path(Dir,"primer3web_v4_0_0_default_settings.txt")
+    # The Probe will be in the reference and in one of the two paths:
+    ProbesSeq<- data.frame(cbind(rep(NA,nrow(FinalSeq)),rep(NA,nrow(FinalSeq)),rep(NA,nrow(FinalSeq))))
+    names(ProbesSeq) <- c("SeqProbeRef","SeqProbeP1","SeqProbeP2")
+    nProbescount<- 0
+    n <- 0
+    while (n<nrow(FinalSeq) && nProbescount<nProbes){
+      n <- n + 1
+      
+      # We put a probe in the reference:
+      ExonsRef <- generaldata$exonsPathsandRef$Reference
+      seqref <- CreateSequenceforProbe(SG,ExonsRef,FinalSeq,n)
+      probesref <- callPrimer3probes(seqref, name = "Primer1", 
+                                     Primer3Path = Primer3Path,
+                                     thermo.param = thermo.param,
+                                     sequence_target = 20,
+                                     settings = settings)
+      if (length(probesref)>32){
+        ProbesSeq[n,1] <-  probesref[16,2]
+        
+        # We put a probe in the path1:
+        
+        ExonsPath1 <- generaldata$exonsPathsandRef$Path1
+        seqPath1 <- CreateSequenceforProbe(SG,ExonsPath1,FinalSeq,n)
+        probesPath1 <- callPrimer3probes(seqPath1,name = "Primer1",
+                                         Primer3Path = Primer3Path,
+                                         thermo.param = thermo.param,
+                                         sequence_target = 20,
+                                         settings = settings)
+        if (nrow(probesPath1)>24){
+          ProbesSeq[n,2] <-  probesPath1[16,2]
+          nProbescount <- nProbescount + 1
+        }else{
+          # We try to put a probe in the path2:
+          ExonsPath2 <- generaldata$exonsPathsandRef$Path2
+          seqPath2 <- CreateSequenceforProbe(SG,ExonsPath2,FinalSeq,n)
+          probesPath2 <- callPrimer3probes(seqPath2,name = "Primer1",
+                                           Primer3Path = Primer3Path,
+                                           thermo.param = thermo.param,
+                                           sequence_target = 20,
+                                           settings = settings)
+          if (nrow(probesPath2)>24){
+            ProbesSeq[n,3] <-  probesPath2[16,2]
+            nProbescount <- nProbescount + 1
+          }
+        }
+      }
+    }
+  }else{
+    ProbesSeq <- "Not possible to place probes due to the structure of the Event."
+  }
+  return(ProbesSeq)
+}
+
+
+#' @rdname InternalFunctions
+sort.exons <- function(namesPath, decreasing = FALSE)
+  {
+  Indices <- order(as.numeric(unlist(strsplit(namesPath,".", fixed=TRUE))[c(TRUE,FALSE)]),
+                   decreasing = decreasing)
+  return(namesPath[Indices])
+}
+
+
+#' @rdname InternalFunctions
+all_simple_paths2 <- function(wg,from,to,...)
+  {
+  Adj <- as_adjacency_matrix(wg, attr="weight")
+  diag(Adj) <- 0.001
+  i1 <- match(from, colnames(Adj))
+  i2 <- match(to, colnames(Adj))
+  Adj <- Adj[i1:i2,i1:i2, drop = FALSE]
+  wg <- graph_from_adjacency_matrix(Adj, weighted=TRUE)
+  allPaths <- all_simple_paths(wg,from,to,...)
+  return(allPaths)
+}
+
+
+#' @rdname InternalFunctions
+callPrimer3 <- function (seq,threeprimers = FALSE,
+                         pr,reverse=FALSE ,size_range = "150-500",
+                         Tm = c(57, 59, 62), name = "Primer1", 
+                         Primer3Path = "primer3-2.3.7/bin/primer3_core",
+                         thermo.param = "primer3-2.3.7/src/primer3_config/", 
+                         sequence_target = NULL,
+                         settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+{
+  if (sum(file.exists(Primer3Path, thermo.param, settings)) != 
+      3) {
+    message("Please check your Primer3 paths!")
+    return(NULL)
+  }
+  
+  #"/" needed to be added at the end of thermo.param so windows could detect it
+  thermo.param <- paste(thermo.param,"/",sep="")
+  p3.input = tempfile()
+  p3.output = tempfile()
+  if (threeprimers==TRUE){
+    if (reverse==TRUE)
+    {
+      cmmd <- paste(sprintf("SEQUENCE_ID=%s\n", name), sprintf("SEQUENCE_TEMPLATE=%s\n", 
+                                                               as.character(seq)),sprintf("SEQUENCE_PRIMER_REVCOMP=%s\n", 
+                                                                                          as.character(pr)), "PRIMER_TASK=pick_detection_primers\n", 
+                    "PRIMER_PICK_LEFT_PRIMER=1\n", "PRIMER_PICK_INTERNAL_OLIGO=0\n", 
+                    "PRIMER_PICK_RIGHT_PRIMER=1\n", "PRIMER_EXPLAIN_FLAG=1\n", 
+                    "PRIMER_PAIR_MAX_DIFF_TM=5\n", sprintf("PRIMER_MIN_TM=%s\n", 
+                                                           Tm[1]), sprintf("PRIMER_OPT_TM=%s\n", Tm[2]), sprintf("PRIMER_MAX_TM=%s\n", 
+                                                                                                                 Tm[3]), sprintf("PRIMER_PRODUCT_SIZE_RANGE=%s\n", 
+                                                                                                                                 size_range), sprintf("PRIMER_THERMODYNAMIC_PARAMETERS_PATH=%s\n", 
+                                                                                                                                                      thermo.param), "=", sep = "")
+    }else{
+      cmmd <- paste(sprintf("SEQUENCE_ID=%s\n", name), sprintf("SEQUENCE_TEMPLATE=%s\n", 
+                                                               as.character(seq)),sprintf("SEQUENCE_PRIMER=%s\n", 
+                                                                                          as.character(pr)), "PRIMER_TASK=pick_detection_primers\n", 
+                    "PRIMER_PICK_LEFT_PRIMER=1\n", "PRIMER_PICK_INTERNAL_OLIGO=0\n", 
+                    "PRIMER_PICK_RIGHT_PRIMER=1\n", "PRIMER_EXPLAIN_FLAG=1\n", 
+                    "PRIMER_PAIR_MAX_DIFF_TM=5\n", sprintf("PRIMER_MIN_TM=%s\n", 
+                                                           Tm[1]), sprintf("PRIMER_OPT_TM=%s\n", Tm[2]), sprintf("PRIMER_MAX_TM=%s\n", 
+                                                                                                                 Tm[3]), sprintf("PRIMER_PRODUCT_SIZE_RANGE=%s\n", 
+                                                                                                                                 size_range), sprintf("PRIMER_THERMODYNAMIC_PARAMETERS_PATH=%s\n", 
+                                                                                                                                                      thermo.param), "=", sep = "")
+    }
+    
+  }else if(threeprimers == FALSE){
+    cmmd <- paste(sprintf("SEQUENCE_ID=%s\n", name), sprintf("SEQUENCE_TEMPLATE=%s\n", 
+                                                             as.character(seq)), "PRIMER_TASK=pick_detection_primers\n", 
+                  "PRIMER_PICK_LEFT_PRIMER=1\n", "PRIMER_PICK_INTERNAL_OLIGO=0\n", 
+                  "PRIMER_PICK_RIGHT_PRIMER=1\n", "PRIMER_EXPLAIN_FLAG=1\n", 
+                  "PRIMER_PAIR_MAX_DIFF_TM=5\n", sprintf("PRIMER_MIN_TM=%s\n", 
+                                                         Tm[1]), sprintf("PRIMER_OPT_TM=%s\n", Tm[2]), sprintf("PRIMER_MAX_TM=%s\n", 
+                                                                                                               Tm[3]), sprintf("PRIMER_PRODUCT_SIZE_RANGE=%s\n", 
+                                                                                                                               size_range), sprintf("PRIMER_THERMODYNAMIC_PARAMETERS_PATH=%s\n", 
+                                                                                                                                                    thermo.param), "=", sep = "")
+    if (!is.null(sequence_target)) {
+      cmmd <- paste(sprintf("SEQUENCE_TARGET=%s,2\n", sequence_target), 
+                    cmmd)
+    }
+  }
+  write(cmmd, p3.input)
+  if(Sys.info()[1]=="Windows") {
+    #In Windows only shell worked properly at calling the system 
+    shell(paste(Primer3Path," ", p3.input, " -p3_settings_file \"", settings, "\" > ", p3.output, sep =""))
+  } else {
+    #system worked properly on Mac or linux
+    system(paste(Primer3Path," ", p3.input, " -p3_settings_file \"", settings, "\" > ", p3.output, sep =""))
+  }  
+  out <- read.delim(p3.output, sep = "=", header = FALSE)
+  unlink(c(p3.input, p3.output))
+  returned.primers = as.numeric(as.vector(out[out[, 1] == "PRIMER_PAIR_NUM_RETURNED", 
+                                              ][, 2]))
+  if (length(returned.primers) == 0) {
+    warning("primers not detected for ", name, call. = FALSE)
+    return(NA)
+  }
+  if ((returned.primers) == 0) {
+    warning("primers not detected for ", name, call. = FALSE)
+    return(NA)
+  }
+  if (returned.primers > 0) {
+    designed.primers = data.frame()
+    for (i in seq(0, returned.primers - 1, 1)) {
+      id = sprintf("PRIMER_LEFT_%i_SEQUENCE", i)
+      PRIMER_LEFT_SEQUENCE = as.character(out[out[, 1] == 
+                                                id, ][, 2])
+      id = sprintf("PRIMER_RIGHT_%i_SEQUENCE", i)
+      PRIMER_RIGHT_SEQUENCE = as.character(out[out[, 1] == 
+                                                 id, ][, 2])
+      id = sprintf("PRIMER_LEFT_%i", i)
+      PRIMER_LEFT = as.numeric(unlist(strsplit(as.vector((out[out[, 
+                                                                  1] == id, ][, 2])), ",")))
+      id = sprintf("PRIMER_RIGHT_%i", i)
+      PRIMER_RIGHT = as.numeric(unlist(strsplit(as.vector((out[out[, 
+                                                                   1] == id, ][, 2])), ",")))
+      id = sprintf("PRIMER_LEFT_%i_TM", i)
+      PRIMER_LEFT_TM = as.numeric(as.vector((out[out[, 
+                                                     1] == id, ][, 2])), ",")
+      id = sprintf("PRIMER_RIGHT_%i_TM", i)
+      PRIMER_RIGHT_TM = as.numeric(as.vector((out[out[, 
+                                                      1] == id, ][, 2])), ",")
+      res = out[grep(i, out[, 1]), ]
+      extra.inf = t(res)[2, , drop = FALSE]
+      colnames(extra.inf) = sub(paste("_", i, sep = ""), 
+                                "", res[, 1])
+      extra.inf = extra.inf[, -c(4:9), drop = FALSE]
+      extra.inf = apply(extra.inf, 2, as.numeric)
+      primer.info = data.frame(i, PRIMER_LEFT_SEQUENCE, 
+                               PRIMER_RIGHT_SEQUENCE, PRIMER_LEFT_TM, PRIMER_RIGHT_TM, 
+                               PRIMER_LEFT_pos = PRIMER_LEFT[1], PRIMER_LEFT_len = PRIMER_LEFT[2], 
+                               PRIMER_RIGHT_pos = PRIMER_RIGHT[1], PRIMER_RIGHT_len = PRIMER_RIGHT[2], 
+                               t(data.frame(extra.inf)), stringsAsFactors = FALSE)
+      rownames(primer.info) = NULL
+      designed.primers = rbind(designed.primers, primer.info)
+    }
+  }
+  return(designed.primers)
+}
+
+#' @rdname InternalFunctions
+callPrimer3probes <- function (seq, name = "Primer1",
+                               Primer3Path = "primer3-2.3.7/bin/primer3_core",
+                               thermo.param = "primer3-2.3.7/src/primer3_config/", 
+                               sequence_target = NULL, 
+                               settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+{
+  if (sum(file.exists(Primer3Path, thermo.param, settings)) != 3) {
+    message("Please check your Primer3 paths!")
+    return(NULL)
+  }
+  
+  #"/" needed to be added at the end of thermo.param so windows could detect it
+  thermo.param <- paste(thermo.param,"/",sep="")
+  p3.input = tempfile()
+  p3.output = tempfile()
+  
+  cmmd <- paste(sprintf("SEQUENCE_ID=%s\n", name), 
+                sprintf("SEQUENCE_TEMPLATE=%s\n", as.character(seq)),  "PRIMER_TASK=generic\n",
+                "PRIMER_PICK_LEFT_PRIMER=0\n", "PRIMER_PICK_INTERNAL_OLIGO=1\n", 
+                "PRIMER_PICK_RIGHT_PRIMER=0\n" ,"PRIMER_NUM_RETURN=2\n", 
+                sprintf("PRIMER_THERMODYNAMIC_PARAMETERS_PATH=%s\n",thermo.param),"=", sep = "")
+  if (!is.null(sequence_target)) {
+    cmmd <- paste(sprintf("SEQUENCE_TARGET=%s,2\n", sequence_target), 
+                  cmmd)
+  }
+  
+  write(cmmd, p3.input)
+  if(Sys.info()[1]=="Windows") {
+    #In Windows only shell worked properly at calling the system 
+    shell(paste(Primer3Path," ", p3.input, " -p3_settings_file \"", settings, "\" > ", p3.output, sep =""))
+  } else {
+    #system worked properly on Mac or linux
+    system(paste(Primer3Path," ", p3.input, " -p3_settings_file \"", settings, "\" > ", p3.output, sep =""))
+  }  
+  out <- read.delim(p3.output, sep = "=", header = FALSE)
+  unlink(c(p3.input, p3.output))
+  
+  out <- as.matrix(out)
+  return(out)
+}
+
+
+#' @rdname InternalFunctions
+CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
+  {
+  if (isEmpty(Exons)){
+    Exons=""}
+  seq <- ""
+  seqinicio <- ""
+  seqfin <- ""
+  # We need to take into account that the probe has to be between primers:
+  # We compre with For1Exon:
+  compare <- match(Exons,as.character(FinalSeq[n,9]))
+  if (length(which(compare==1))>0){
+    if (length(Exons) ==which(as.logical(compare))){
+      Exons <- ""
+    }else {
+      Exons=Exons[(which(as.logical(compare))+1) :length(Exons)]
+    }
+    # If there is a primer in an exon we need to put only the part of the sequence 
+    # after that primer:
+    ExonID <- match(FinalSeq[n,9], SG$Edges$From)
+    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- unlist(strsplit(ExonSeq,""))
+    seqinicio <- paste(ExonSeq[(FinalSeq[n,5]+1):length(ExonSeq)],collapse = "") 
+  }
+  # We compre with For2Exon:
+  compare <- match(Exons,as.character(FinalSeq[n,10]))
+  if (length(which(compare==1))>0){
+    if (length(Exons)==which(as.logical(compare))){
+      Exons <- ""
+    }else {
+      Exons=Exons[(which(as.logical(compare))+1) :length(Exons)]
+    }
+    # If there is a primer in an exon we need to put only the part of the sequence 
+    # after that primer:
+    ExonID <- match(FinalSeq[n,10], SG$Edges$From)
+    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- unlist(strsplit(ExonSeq,""))
+    seqinicio <- paste(ExonSeq[(FinalSeq[n,6]+1):length(ExonSeq)],collapse = "") 
+  }
+  # We compre with Rev1Exon:
+  compare <- match(Exons,FinalSeq[n,11])
+  if (length(which(compare==1))>0){
+    if (1==which(as.logical(compare))){
+      Exons <- ""
+    }else {
+      Exons=Exons[0:(which(as.logical(compare))-1)]
+    }
+    # If there is a primer in an exon we need to put only the part of the sequence 
+    # after that primer:
+    ExonID <- match(FinalSeq[n,11], SG$Edges$From)
+    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- unlist(strsplit(ExonSeq,""))
+    seqfin <- paste(ExonSeq[0:(FinalSeq[n,7]-1)],collapse = "") 
+  }
+  # We compre with Rev2Exon:
+  compare <- match(Exons,FinalSeq[n,12])
+  if (length(which(compare==1))>0){
+    if (1==which(as.logical(compare))){
+      Exons <- ""
+    }else {
+      Exons=Exons[(which(as.logical(compare))+1) :length(Exons)]
+    }
+    # If there is a primer in an exon we need to put only the part of the sequence 
+    # after that primer:
+    ExonID <- match(FinalSeq[n,12], SG$Edges$From)
+    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- unlist(strsplit(ExonSeq,""))
+    seqfin <- paste(ExonSeq[0:(FinalSeq[n,8]-1)],collapse = "") 
+  }
+  # Now we can build the sequence seqinicio, seqfinal and the exons in Exons
+  # As we dont put probes in juntions we put Ns between sequence of different exons:
+  seq=paste(seq,seqinicio,sep="")
+  for (i in 1:length(Exons)){
+    # Get the ID for each exon:
+    ExonID <- match(Exons[i], SG$Edges$From)
+    # Get de sequence of that exon
+    if (is.na(ExonID)==FALSE){
+      ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+      # Build input sequence for Primer3
+      seq <- paste(seq,paste(rep("N",21),collapse = ""),ExonSeq, sep="")
+    }else {
+      ExonSeq <- ""   
+    }
+  }
+  seq=paste(seq,paste(rep("N",21),collapse = ""),seqfin,sep="")
+  
+}
+
+#' @rdname InternalFunctions
+findPotencialExons <- function(D, namesPath,
+                               maxLength, SG,
+                               minexonlength)
+  {
+  
+  # TODO: using the trick of the QP find out the nodes (in fact, the edges) 
+  # that have a greater than or equal flux to the interrogated ones.
+  
+  # In order to do that, it is necessary to get the incidence matrix of the graph.
+  # This code makes the trick
+  # library(intergraph)
+  # library(network)
+  # as.matrix(asNetwork(wg),matrix.type="incidence")
+  
+  # The library to perform the QP is LowRankQP
+  
+  exonLengths <- diag(D[c(TRUE,FALSE),c(FALSE,TRUE)])
+  names(exonLengths) <- rownames(D[c(TRUE,FALSE),c(FALSE,TRUE)])
+  longExons <- names(which(exonLengths > minexonlength))
+  fullsignalExons <- getExonsFullSignal(namesPath, SG)
+  
+  Reverse <- names(which(D[sort.exons(namesPath,decreasing = TRUE)[1],]<maxLength))
+  Reverse <- union(fullExons(namesPath), Reverse)
+  Reverse <- union(Reverse,includeaexons(Reverse))
+  Reverse <- intersect(Reverse, longExons)
+  Reverse <- intersect(Reverse, fullsignalExons)
+  Reverse <- sort.exons(unique(Reverse))
+  
+  Forward <- names(which(D[,sort.exons(namesPath)[1]]<maxLength))
+  Forward <- union(Forward,includeaexons(Forward))
+  Forward <- union(fullExons(namesPath), Forward)
+  Forward <- intersect(Forward, longExons)
+  Forward <- intersect(Forward, fullsignalExons)
+  Forward <- sort.exons(unique(Forward))
+  
+  return(list(Reverse=Reverse, Forward = Forward))
+}
+#' @rdname InternalFunctions
+fullExons <- function(namesPath)
+  {
+  exonNumbers <- unlist(strsplit(namesPath,".", fixed=TRUE))[c(TRUE,FALSE)]
+  if(length(which(duplicated(exonNumbers)))==0)
+    return(NULL)
+  exonNames <- paste(exonNumbers[which(duplicated(exonNumbers))],".a",sep="")
+  return(exonNames)
+}
+#' @rdname InternalFunctions
+includeaexons <- function(Forward)
+  {
+  exonNumbers <- unlist(strsplit(Forward,".", fixed=TRUE))[c(TRUE,FALSE)]
+  exonNumbers <- unique(exonNumbers)
+  exonNames <- paste(exonNumbers,".a",sep="")
+  return(exonNames)
+}
+
+#' @rdname InternalFunctions
+genreverse <- function(FinalInfo)
+  {
+  names <- names(FinalInfo)
+  NewFinal <- FinalInfo
+  # We aplly the reverse and complement to probes:
+  rev <- function(x) {
+    if (is.na(x))
+    {return(NA)}
+    else
+    {return(as.character(reverseComplement(DNAString(x))))}}
+  
+  for (i in 13:15){
+    x <- sapply(FinalInfo[,i],FUN = rev)
+    NewFinal[,i] <- x
+  }
+  # We swap forward and reverse columns keeping names:
+  NewFinal[,1:8] <- cbind(NewFinal[,c(3,4,1,2,7,8,5,6)])
+  names(NewFinal) <- names
+  return(NewFinal)
+}
+
+
+#' @rdname InternalFunctions
+getDistanceseachPath<-function(Exon1,Exon2,
+                               generaldata,
+                               distinPrimers,
+                               SG)
+  {
+  Event <- generaldata$Event
+  nt<- generaldata$nt
+  ntexons <- nt[SG$Edges$Type == "E"]
+  Exon1 <- as.character(Exon1)
+  Exon2 <- as.character(Exon2)
+  namesP1 <- as.matrix(Event$P1[,1:2])
+  namesP2 <- as.matrix(Event$P2[,1:2])
+  Exon2mod <- str_replace(Exon2,"a","b")
+  ways <- all_simple_paths2(generaldata$wg,Exon1,Exon2mod)
+  listmatrixways <- list()
+  # Convert each way to matrix of pairs of nodes which form juntions
+  for(n in seq(1,length(ways)))
+  {
+    way <- names(unlist(ways[n]))
+    modway <- c(way[1:length(way)-1],way[2:length(way)])
+    matrixway<- matrix(modway,ncol = 2,byrow = FALSE)
+    colnames(matrixway) <- colnames(as.matrix(Event$P1[,1:2])) 
+    listmatrixways[[n]] <- matrixway
+  }
+  names(ntexons) <- SG$Edges$From[SG$Edges$Type == "E"]
+  Info <- vector()
+  
+  for(i in seq(1,length(ways)))
+  {
+    # sum of exons that are in the path without primers
+    entirexons <- names(unlist(ways[i]))[c(TRUE,FALSE)]
+    if (entirexons[1]==Exon1){
+      entirexons <- entirexons[-1]
+    }
+    if (entirexons[length(entirexons)]==Exon2){
+      entirexons <- entirexons[-length(entirexons)]
+    }
+    a <- sum(ntexons[match(entirexons,names(ntexons))])
+    Suma <- a + distinPrimers
+    
+    # There are 3 possibilities:
+    # -Path1->1
+    # -Path2->2
+    # -No interrogate any path->0
+    classPath <- "p0"
+    
+    if(sum(as.numeric(apply(listmatrixways[[i]],1, function(x)apply(namesP1,1,function(y) identical(y,x)))))>0){
+      classPath <- "p1"
+    } 
+    if(sum(as.numeric(apply(listmatrixways[[i]],1, function(x)apply(namesP2,1,function(y) identical(y,x)))))>0){
+      classPath <- "p2"
+    }
+    Info <- c(Info,Suma,classPath)
+    
+  }
+  return(Info)
+}
+
+#' @rdname InternalFunctions
+getDominants2<- function(PrimersTwo,Primers1,
+                         commonForward,commonReverse,
+                         namesRef,D,numberOfPaths,
+                         nprimerstwo, ED,
+                         wNpaths = 1000,
+                         wP12inRef =1000)
+  {
+  
+  # Use common references
+  Primers1$Forwardfortwo  <- commonForward
+  Primers1$Reversefortwo  <- commonReverse
+  
+  # Different measures
+  NP1 <- numberOfPaths[Primers1$Forwardfortwo, Primers1$Reversefortwo,drop=FALSE]
+  D1 <- D[Primers1$Forwardfortwo, Primers1$Reversefortwo,drop=FALSE]
+  ED1 <- ED[Primers1$Forwardfortwo, Primers1$Reversefortwo,drop=FALSE]
+  P1FinRef <- rownames(NP1) %in% namesRef
+  names(P1FinRef) <- rownames(NP1)
+  P1RinRef <- colnames(NP1) %in% namesRef
+  names(P1RinRef) <- colnames(NP1)
+  P1inRef <- outer(P1FinRef,P1RinRef,"+")
+  # Matrix that measure the quality of the primers
+  W1 <-  (NP1-2) * wNpaths + (2-P1inRef) * wP12inRef + D1 +ED1
+  W1 <-  as.matrix(W1)
+  size<-dim(W1)
+  size<-size[1]*size[2]
+  
+  # Initializing the dataframe
+  cols <- min(size,nprimerstwo)
+  position<-matrix(ncol=2,nrow=cols)
+  names<-matrix(ncol=5,nrow=cols)
+  names[,5]<-rep(0,cols)
+  value<-rep(0,cols)
+  FINALvalue<-rep(0,cols)
+  
+  c=0
+  for (n in 1:nprimerstwo) {
+    
+    a=which(W1 == min(W1), arr.ind = TRUE)
+    if (n + c > nprimerstwo || n + c > size){
+      break
+    }else if (dim(a)[1]>1){
+      for(m in 1:dim(a)[1]){
+        position[n+c+m-1,]<-a[m,]
+        value[n+c+m-1]=min(W1)*2
+        W1[position[n+c+m-1,1],position[n+m+c-1,2]]=Inf
+        names[n+c+m-1,1] <- rownames(W1)[position[n+c+m-1,1]]
+        names[n+c+m-1,3] <- colnames(W1)[position[n+c+m-1,2]]
+        if (n + c + m - 1>= nprimerstwo || n + c + m - 1 >= size){
+          break
+        }
+      }
+      
+      c = c+dim(a)[1]-1
+      
+    }else{
+      position[n+c,] <- a 
+      value[n+c] = min(W1)*2
+      W1[position[n+c,1],position[n,2]] = Inf
+      names[n+c,1]<-rownames(W1)[position[n+c,1]]
+      names[n+c,3]<- colnames(W1)[position[n+c,2]]
+    }
+    if (n + c >= nprimerstwo || n + c >= size){
+      break
+    }
+    
+  }
+  position1 <- data.frame(names,value,FINALvalue)
+  return(position1)
+}
+
+#' @rdname InternalFunctions
+getDominantsFor <- function(Primers1,Primers2,
+                            commonForward,namesRef,
+                            D,numberOfPaths,Event,
+                            ncommonForward,ED,
+                            wNpaths = 1000, 
+                            wP12inRef =1000)
+  {
+  
+  # Use common references in the case of Forward, in Reverse just change the name
+  
+  Primers1$ForwardforcommForw <- Primers2$ForwardforcommForw <- commonForward
+  Primers1$ReverseforcommForw <- Primers1$Reverse
+  Primers2$ReverseforcommForw <- Primers2$Reverse
+  
+  # Adding exons in Paths to the PotencialPrimers in Reverse in the case of commonForward
+  # Getting exons in path 1 and path 2
+  
+  exonsp1 <- unique( as.vector(as.matrix(Event$P1[,c(1,2)]))[grep("a",as.vector(as.matrix(Event$P1[,c(1,2)])))])
+  exonsp2 <- unique( as.vector(as.matrix(Event$P2[,c(1,2)]))[grep("a",as.vector(as.matrix(Event$P2[,c(1,2)])))])
+  
+  # Adding those exons in Potencial Primers for Reverse
+  Primers1$ReverseforcommForw <- unique(c(Primers1$ReverseforcommForw,exonsp1))
+  Primers2$ReverseforcommForw <- unique(c(Primers2$ReverseforcommForw,exonsp2))
+  
+  # Different measures
+  NP1 <- numberOfPaths[Primers1$ForwardforcommForw, Primers1$ReverseforcommForw,drop=FALSE]
+  D1 <- D[Primers1$ForwardforcommForw, Primers1$ReverseforcommForw,drop=FALSE]
+  ED1 <- ED[Primers1$ForwardforcommForw, Primers1$ReverseforcommForw,drop=FALSE]
+  P1FinRef <- rownames(NP1) %in% namesRef
+  names(P1FinRef) <- rownames(NP1)
+  P1RinRef <- colnames(NP1) %in% namesRef
+  names(P1RinRef) <- colnames(NP1)
+  P1inRef <- outer(P1FinRef,P1RinRef,"+")
+  
+  NP2 <- numberOfPaths[Primers2$ForwardforcommForw, Primers2$ReverseforcommForw,drop=FALSE]
+  D2 <- D[Primers2$ForwardforcommForw, Primers2$ReverseforcommForw,drop=FALSE]
+  ED2 <- ED[Primers2$ForwardforcommForw, Primers2$ReverseforcommForw,drop=FALSE]
+  P2FinRef <- rownames(NP2) %in% namesRef
+  names(P2FinRef) <- rownames(NP2)
+  P2RinRef <- colnames(NP2) %in% namesRef
+  names(P2RinRef) <- colnames(NP2)
+  P2inRef <- outer(P2FinRef,P2RinRef,"+")
+  
+  # There are three matrices that measure the quality of the primers.
+  W1 <-  (NP1-1) * wNpaths + (2-P1inRef) * wP12inRef + D1 +ED1
+  W2 <-  (NP2-1) * wNpaths + (2-P2inRef) * wP12inRef + D2 +ED2
+  
+  sizeW1<-dim(W1)
+  numberW1<-sizeW1[1]*sizeW1[2]
+  sizeW2<-dim(W2)
+  numberW2<-sizeW2[1]*sizeW2[2]
+  
+  Sum <-matrix(nrow=length(commonForward),ncol=sizeW1[2]*sizeW2[2])
+  
+  positionW1<-matrix(ncol=2,nrow=ncommonForward)
+  valueW1=rep(0,ncommonForward)
+  namesW1<-matrix(ncol=2,nrow=ncommonForward)
+  
+  positionW2<-matrix(ncol=2,nrow=ncommonForward)
+  valueW2=rep(0,ncommonForward)
+  namesW2<-matrix(ncol=2,nrow=ncommonForward)
+  
+  positioncommonForward<-matrix(ncol=2,nrow=ncommonForward)
+  value <- rep(0,ncommonForward)
+  FINALvalue <- rep(0,ncommonForward)
+  namescommonForward<-matrix(ncol=5,nrow=ncommonForward)
+  namescommonForward[,5]<-rep(1,ncommonForward)
+  
+  c=0
+  d=0
+  e=0
+  
+  for (j in 1:sizeW1[2]) 
+  {
+    Sum[,(j-1)*sizeW2[2]+1:sizeW2[2]]=  as.matrix(as.numeric(W1[commonForward,j ]) + W2[commonForward,,drop=FALSE])
+  }
+  
+  for (n in 1:ncommonForward) 
+  {
+    c=which(Sum == min(Sum), arr.ind = TRUE)
+    if (n+e>ncommonForward )
+    {
+      break
+    }else if (dim(c)[1]>1){
+      for(m in 1:dim(c)[1])
+      {
+        positioncommonForward[n+e+m-1,]<-c[m,]
+        value[n+e+m-1]=min(Sum)
+        Sum[positioncommonForward[n+e+m-1,1],positioncommonForward[n+e+m-1,2]]=Inf
+        namescommonForward[n+e+m-1,1]<-rownames(W1)[positioncommonForward[n+m-1,1]]
+        namescommonForward[n+e+m-1,3]<-colnames(W1)[ceiling(positioncommonForward[n+e+m-1,2]/sizeW2[2])]
+        namescommonForward[n+e+m-1,4]<-colnames(W2)[positioncommonForward[n+e+m-1,2]-ceiling(positioncommonForward[n+e+m-1,2]/sizeW2[2])*sizeW2[2]+sizeW2[2]]
+        if (n+e+m-1>=ncommonForward ){
+          break
+        }
+      }
+      e=e+dim(c)[1]-1
+      
+    }else{
+      positioncommonForward[n+e,] <- c
+      value[n+e] = min(Sum)
+      Sum[positioncommonForward[n+e,1],positioncommonForward[n+e,2]]=Inf
+      namescommonForward[n+e,1] <- rownames(W1)[positioncommonForward[n+e,1]]
+      namescommonForward[n+e,3] <- colnames(W1)[ceiling(positioncommonForward[n+e,2]/sizeW2[2])]
+      namescommonForward[n+e,4] <- colnames(W2)[positioncommonForward[n+e,2]-ceiling(positioncommonForward[n+e,2]/sizeW2[2])*sizeW2[2]+sizeW2[2]]
+    }
+  }
+  position<-data.frame(namescommonForward,value, FINALvalue)
+  return(position)
+}
+
+#' @rdname InternalFunctions
+getDominantsRev<- function(Primers1,Primers2,
+                           commonReverse,namesRef,
+                           D,numberOfPaths,Event,
+                           ncommonReverse,ED,
+                           wNpaths = 1000,
+                           wP12inRef =1000)
+  {
+  # Use common references in the case of Reverse, in Forward just change the name
+  
+  Primers1$ForwardforcommRevw <- Primers1$Forward
+  Primers2$ForwardforcommRevw <- Primers2$Forward
+  Primers1$ReverseforcommRevw <- Primers2$ReverseforcommRevw<- commonReverse
+  
+  # Adding exons in Paths to the PotencialPrimers in Forward in the case of commonReverse
+  # Getting exons in path 1 and path 2
+  exonsp1 <- unique( as.vector(as.matrix(Event$P1[,c(1,2)]))[grep("a",as.vector(as.matrix(Event$P1[,c(1,2)])))])
+  exonsp2 <- unique( as.vector(as.matrix(Event$P2[,c(1,2)]))[grep("a",as.vector(as.matrix(Event$P2[,c(1,2)])))])
+  # Adding those exons in Potencial Primers for Reverse
+  Primers1$ReverseforcommRev <- unique(c(Primers1$ReverseforcommRev,exonsp1))
+  Primers2$ReverseforcommRev <- unique(c(Primers2$ReverseforcommRev,exonsp2))
+  
+  # Different measures
+  NP1 <- numberOfPaths[Primers1$ForwardforcommRevw, Primers1$ReverseforcommRevw,drop=FALSE]
+  D1 <- D[Primers1$ForwardforcommRevw, Primers1$ReverseforcommRevw,drop=FALSE]
+  ED1 <- ED[Primers1$ForwardforcommRevw, Primers1$ReverseforcommRevw,drop=FALSE]
+  P1FinRef <- rownames(NP1) %in% namesRef
+  names(P1FinRef) <- rownames(NP1)
+  P1RinRef <- colnames(NP1) %in% namesRef
+  names(P1RinRef) <- colnames(NP1)
+  P1inRef <- outer(P1FinRef,P1RinRef,"+")
+  
+  NP2 <- numberOfPaths[Primers2$ForwardforcommRevw, Primers2$ReverseforcommRevw,drop=FALSE]
+  D2 <- D[Primers2$ForwardforcommRevw, Primers2$ReverseforcommRevw,drop=FALSE]
+  ED2 <- ED[Primers2$ForwardforcommRevw, Primers2$ReverseforcommRevw,drop=FALSE]
+  
+  P2FinRef <- rownames(NP2) %in% namesRef
+  names(P2FinRef) <- rownames(NP2)
+  P2RinRef <- colnames(NP2) %in% namesRef
+  names(P2RinRef) <- colnames(NP2)
+  P2inRef <- outer(P2FinRef,P2RinRef,"+")
+  
+  # There are three matrices that measure the quality of the primers.
+  W1 <-  (NP1-1) * wNpaths + (2-P1inRef) * wP12inRef + D1 +ED1
+  W2 <-  (NP2-1) * wNpaths + (2-P2inRef) * wP12inRef + D2 +ED2
+  
+  
+  W1<-t(W1)
+  W2<-t(W2)
+  sizeW1<-dim(W1)
+  numberW1<-sizeW1[1]*sizeW1[2]
+  sizeW2<-dim(W2)
+  numberW2<-sizeW2[1]*sizeW2[2]
+  
+  Sum  <-matrix(nrow=length(commonReverse),ncol=sizeW1[2]*sizeW2[2])
+  
+  positionW1<-matrix(ncol=2,nrow=ncommonReverse)
+  valueW1=rep(0,ncommonReverse)
+  namesW1<-matrix(ncol=2,nrow=ncommonReverse)
+  
+  positionW2<-matrix(ncol=2,nrow=ncommonReverse)
+  valueW2=rep(0,ncommonReverse)
+  namesW2<-matrix(ncol=2,nrow=ncommonReverse)
+  
+  positioncommonReverse<-matrix(ncol=2,nrow=ncommonReverse)
+  value=rep(0,ncommonReverse)
+  FINALvalue <- rep(0,ncommonReverse)
+  namescommonReverse<-matrix(ncol=5,nrow=ncommonReverse)
+  namescommonReverse[,5]<-rep(2,ncommonReverse)
+  
+  c=0
+  d=0
+  e=0
+  
+  for (j in 1:sizeW1[2]) {
+    Sum[,(j-1)*sizeW2[2]+1:sizeW2[2]]= as.numeric(W1[commonReverse,j]) + 
+      as.matrix(W2[commonReverse,,drop= FALSE])
+  }
+  for (n in 1:ncommonReverse) {
+    c=which(Sum == min(Sum), arr.ind = TRUE)
+    if (n+e>ncommonReverse ){
+      break
+      
+    }else if (dim(c)[1]>1){
+      for(m in 1:dim(c)[1]){
+        positioncommonReverse[n+e+m-1,]<-c[m,]
+        value[n+e+m-1]=min(Sum)
+        Sum[positioncommonReverse[n+e+m-1,1],positioncommonReverse[n+e+m-1,2]]=Inf
+        namescommonReverse[n+e+m-1,3]<-rownames(W1)[positioncommonReverse[n+m-1,1]]
+        namescommonReverse[n+e+m-1,1]<-colnames(W1)[ceiling(positioncommonReverse[n+e+m-1,2]/sizeW2[2])]
+        namescommonReverse[n+e+m-1,2]<-colnames(W2)[positioncommonReverse[n+e+m-1,2]-ceiling(positioncommonReverse[n+e+m-1,2]/sizeW2[2])*sizeW2[2]+sizeW2[2]]
+        
+        if (n+e+m-1>=ncommonReverse ){
+          break
+        }
+      }
+      e = e + dim(c)[1]-1
+      
+    }else{
+      positioncommonReverse[n+e,] <- c
+      value[n+e] = min(Sum)
+      Sum[positioncommonReverse[n + e,1],positioncommonReverse[n + e,2]] = Inf
+      namescommonReverse[n + e,3] <- rownames(W1)[positioncommonReverse[n + e,1]]
+      namescommonReverse[n + e,1] <- colnames(W1)[ceiling(positioncommonReverse[n+e,2]/sizeW2[2])]
+      namescommonReverse[n + e,2] <- colnames(W2)[positioncommonReverse[n + e,2]-ceiling(positioncommonReverse[n+e,2]/sizeW2[2])*sizeW2[2]+sizeW2[2]]
+      
+    }
+    
+  }
+  position <- data.frame(namescommonReverse,value,FINALvalue)
+  
+  return(position)
+}
+
+#' @rdname InternalFunctions
+getExonsFullSignal <- function(namesPath, SG)
+  {
+  # This function finds out the exons whose expression is larger than the 
+  # concentration path under study for any isoform expression distribution.
+  
+  # It is solved by using quadratic programming:
+  # min |v|^2
+  # s.t.
+  # A v_(-i) = 0
+  # v_i = 1
+  
+  # The solution of this optimization problem will be a distribution of fluxes in which, the fluxes that are 
+  # bigger or equal than the flux under study will be close to one.
+  
+  # Input: SG, splicing graph (igraph object).
+  # namesPath: set of nodes under study in the path.
+  
+  # Get the incidence matrix that corresponds to the splicing graph
+  A <- SG$Incidence
+  # Remove Start and End nodes.
+  A <- A[-match(c("S","E"),rownames(A)),]
+  
+  # Find the flow that must be one
+  # Index <- which(A[namesPath[grep("b",namesPath)],,drop=FALSE]==1, arr.ind = TRUE)[1,2]
+  Index <- as.vector(which(colSums(abs(A[namesPath,]))>=2))[1]
+  # Note: I look only in the "b" nodes. The corresponding row of the incidence matrix must 
+  # have one 1 (and only one) for these nodes. I keep the first one (any of them would 
+  # be OK by construction).
+  A <- rbind(A,0)
+  A[nrow(A),Index] <- 1
+  b <- rep(0, nrow(A))
+  b[nrow(A)] <- 1
+  b<- c(b,rep(0,dim(A)[2]))
+  A <- rbind(A,diag(dim(A)[2])*1e-5)
+  # ---
+  Output <- nnls(A,b)
+  flows <- which(abs(Output$x - 1) < 1e-5)
+  nodes <- rownames(which(abs(A[1:(nrow(A)-1),flows])==1, arr.ind = TRUE))
+  # ---
+  # capture.output(Sol <- LowRankQP(diag(ncol(A)),rep(0,ncol(A)),A,b,
+  #                  uvec=rep(1e4,ncol(A)),method="CHOL", verbose=FALSE))
+  # # Get the flows (and the corresponding nodes)
+  # flows <- which(abs(Sol$alpha - 1) < 1e-5)
+  # nodes <- rownames(which(abs(A[1:(nrow(A)-1),flows])==1, arr.ind = TRUE))
+  # ---
+  return(unique(nodes))
+}
+
+#' @rdname InternalFunctions
+getFinalExons<- function(generaldata,maxLength,
+                         nPrimerstwo,ncommonForward,
+                         ncommonReverse,nExons,
+                         minsep,wminsep,
+                         valuethreePpenalty,
+                         minexonlength)
+  {
+  # gen info
+  SG<-generaldata[[1]]
+  # Splicing Event
+  Event<-generaldata[[2]]
+  nt<-generaldata[[3]]
+  # weighted splicing graph
+  wg<-generaldata[[4]]
+  # Distance matrix
+  D<-generaldata[[5]]
+  # Number of paths connecting two nodes in the graph
+  numberOfPaths<-generaldata[[6]]
+  # exons length penalty
+  ED <- generaldata[[7]]
+  # Ref nodes
+  exonsPathsandRef <- generaldata[[8]]
+  namesRef <- exonsPathsandRef$Reference
+  
+  
+  # Potential primers based only on distances to Paths 1 and 2
+  
+  namesP1 <- unique(as.vector(as.matrix(Event$P1[,1:2])))
+  namesP1 <- namesP1[namesP1 %in% colnames(D)]
+  Primers1 <- findPotencialExons(D, namesP1, maxLength, SG=SG,minexonlength)
+  Primers1$Reverse  <- Primers1$Reverse[grep("a",Primers1$Reverse)]
+  Primers1$Forward  <- Primers1$Forward[grep("a",Primers1$Forward)]
+  
+  
+  namesP2 <- unique(as.vector(as.matrix(Event$P2[,1:2])))
+  namesP2 <- namesP2[namesP2 %in% colnames(D)]
+  Primers2 <- findPotencialExons(D, namesP2, maxLength, SG=SG,minexonlength)
+  Primers2$Reverse  <- Primers2$Reverse[grep("a",Primers2$Reverse)]
+  Primers2$Forward  <- Primers2$Forward[grep("a",Primers2$Forward)]
+  
+  # Check for three primers: both forward and/or both reverse must have nodes that overlap
+  commonForward <- intersect(Primers1$Forward, Primers2$Forward)
+  commonReverse <- intersect(Primers1$Reverse, Primers2$Reverse)
+  
+  # Initializing for using rbind later
+  PrimersTwo<- PrimersFor<- PrimersRev<-matrix(ncol=7,nrow=0)
+  
+  
+  if(length(Primers1$Forward)==0 || length(Primers1$Reverse)==0 || length(Primers2$Forward)==0 || length(Primers2$Reverse)==0  )
+  {
+    FinalExons<-"Not possible to place primers due to the structure of the Event."
+  }else{
+    
+    # If two primers are sufficient there are three possible cases:
+    # 1) Use only two primers
+    # 2) Use common FW primer and two Reverse primers
+    # 3) Use commong reverse primer and two FW primers
+    
+    # 1) Use only two primers
+    # Check if two primers could be sufficient
+    
+    if ((length(commonReverse) >0) &  (length(commonForward) >0) & (nPrimerstwo!=0)) 
+    {
+      PrimersTwo<-getDominants2(PrimersTwo,Primers1,commonForward,commonReverse,namesRef,D,numberOfPaths,nPrimerstwo,ED)
+    }
+    
+    # 2) Using common Forward
+    # Check if it is possible three primers in common Forward
+    
+    if (length(commonForward) >0 & (ncommonForward!=0)) 
+    {
+      PrimersFor<-getDominantsFor(Primers1,Primers2,commonForward,namesRef,D,numberOfPaths,Event,ncommonForward,ED)
+      # We get in order to delete the identical
+      # With PrimersFor
+      PrimersFor[,3] <- as.character(PrimersFor[,3])
+      PrimersFor[,4] <- as.character(PrimersFor[,4])
+      PrimersFor[which(t(apply(PrimersFor[,3:4],1,FUN=order))[,1]==2),3:4] <- PrimersFor[which(t(apply(PrimersFor[,3:4],1,FUN=order))[,1]==2),4:3]
+      PrimersFor[,3] <- as.factor(PrimersFor[,3])
+      PrimersFor[,4] <- as.factor(PrimersFor[,4])
+    }
+    
+    # 3) Using common Reverse
+    # Check if it is possible three primers in common Reverse
+    if (length(commonReverse) >0 & (ncommonReverse!=0)) 
+    {
+      PrimersRev<-getDominantsRev(Primers1,Primers2,commonReverse,namesRef,D,numberOfPaths,Event,ncommonReverse,ED)
+      # We get in order to delete the identical
+      # With PrimersRev
+      PrimersRev[,1] <- as.character(PrimersRev[,1])
+      PrimersRev[,2] <- as.character(PrimersRev[,2])
+      PrimersRev[which(t(apply(PrimersRev[,1:2],1,FUN=order))[,1]==2),1:2] <- PrimersRev[which(t(apply(PrimersRev[,1:2],1,FUN=order))[,1]==2),2:1]
+      PrimersRev[,1] <- as.factor(PrimersRev[,1])
+      PrimersRev[,2] <- as.factor(PrimersRev[,2])
+    }
+    
+    colnames(PrimersTwo)<-colnames(PrimersFor)<-colnames(PrimersRev)<-c("For1Exon","For2Exon","Rev1Exon","Rev2Exon","3Primers","value","Finalvalue")
+    
+    # Getting results together
+    Dominants<- rbind(PrimersTwo,PrimersFor,PrimersRev)
+    Dominants <- Dominants[rownames(unique(Dominants[,1:4])),]
+    BadOnes <- which(as.character(Dominants$For1Exon)==as.character(Dominants$For2Exon))
+    if(length(BadOnes)>0) Dominants <- Dominants[-BadOnes,]
+    BadOnes <- which(as.character(Dominants$Rev1Exon)==as.character(Dominants$Rev2Exon))
+    if(length(BadOnes)>0) Dominants <- Dominants[-BadOnes,]
+    # Order quality of Dominants with differences of distances and 3 or 2 primers
+    
+    if (nrow(Dominants)>0){
+      FinalExons<-getrankexons(SG,Dominants,nt,wg,nExons,minsep,wminsep,valuethreePpenalty,D)
+    }else{
+      FinalExons<-"Not possible to place primers due to the structure of the Event."
+    }
+  }
+  return(FinalExons)
+}
+
+
+#' @rdname InternalFunctions
+getgeneraldata <- function(SG, Event,shortdistpenalty)
+  {
+  
+  # Get adjacency matrix
+  Adj <- SG$Adjacency
+  
+  # Create a weighted adjacency matrix
+  WAdj <- Adj
+  nt <- abs(as.numeric(SG$Edges$End) - as.numeric(SG$Edges$Start))+1
+  nt[SG$Edges$Type == "J"] <- .001
+  WAdj[cbind(match(SG$Edges$From,rownames(Adj)),match(SG$Edges$To,colnames(Adj)))] <- nt
+  
+  
+  # Get weighted splicing graph
+  wg <- graph_from_adjacency_matrix(WAdj, weighted = TRUE)
+  
+  # Get Distance matrix
+  D <- distances(wg, mode = "out")
+  Keep <- !colnames(D) %in% c("S","E")
+  D <- D[Keep, Keep]
+  
+  # Get Distance of exons
+  exonlist <- SG$Edges[which(SG$Edges[["Type"]]=="E"),]
+  exonlength <-abs(as.numeric(exonlist$End) - as.numeric(exonlist$Start))+1
+  names(exonlength)<- exonlist$From
+  # Calculeta Penaltydistance for primers in exons
+  shortexonpenalty<- (shortdistpenalty/0.24)*exp(-0.04 *exonlength)
+  names(shortexonpenalty)<- exonlist$From
+  nexons<-length(shortexonpenalty)
+  # Create matrix ED with penalty of dexondistances
+  EDcol <- matrix(data = rep(shortexonpenalty,nexons),nrow = nexons,ncol = nexons,byrow = TRUE )
+  EDrow <- t(EDcol)
+  ED <- EDrow + EDcol
+  colnames(ED) <- rownames(ED) <- exonlist$From
+  
+  # Number of paths connecting two nodes in the graph
+  numberOfPaths <- solve(Diagonal(ncol(Adj))-Adj)
+  colnames(numberOfPaths) <- rownames(numberOfPaths) <- colnames(Adj)
+  Keep <- !colnames(numberOfPaths) %in% c("S","E")
+  numberOfPaths <- numberOfPaths[Keep, Keep]
+  
+  # Calculate vectors with exons of P1, P2 and reference:
+  Path1 <- Event$P1[which(Event$P1[,"Type"]=="E"),"From"]
+  Path2 <- Event$P2[which(Event$P2[,"Type"]=="E"),"From"]
+  Reference <- Event$Ref[which(Event$Ref[,"Type"]=="E"),"From"]
+  exonsPathsandRef <- list(Path1,Path2,Reference)
+  names(exonsPathsandRef) <- c("Path1","Path2","Reference")
+  
+  datalist <- list(SG,Event,nt, wg, D, numberOfPaths,ED,exonsPathsandRef)
+  names(datalist)<- c("SG","Event","nt", "wg", "D", "numberOfPaths","ED","exonsPathsandRef")
+  return (datalist)
+}
+
+
+#' @rdname InternalFunctions
+getrankexons<- function(SG,Dominants,nt,
+                        wg,items,minsep,
+                        wminsep,valuethreePpenalty,
+                        D)
+  {
+  #  puntuation using value,3 or 2 primers and difdistances.
+  # neccesary to calculate difdistancespenalty
+  nDominants<-dim(Dominants)[1]
+  items <- min(items,nDominants)
+  Dominants[,7]<-rep(0,nDominants)
+  
+  names(Dominants)[7]<-"FINALvalue"
+  # calculate exons distances
+  ntexons <- nt[SG$Edges$Type == "E"]
+  names(ntexons) <- SG$Edges$From[SG$Edges$Type == "E"]
+  
+  for (k in 1:nDominants) {
+    #  two possible cases:
+    # 1) Use only two primers
+    # 2) Use 3 primers
+    
+    # Calculate penalty with 3 primers
+    if (Dominants[k,5]!=0){
+      # There are two cases:
+      #   2.1)commonForward
+      #   2.2)commonReverse
+      if (Dominants[k,5]==1){
+        commonPrimer <- as.vector(Dominants[k,1]) 
+        path1Primer <- as.vector(Dominants[k,3])
+        path2Primer <- as.vector(Dominants[k,4])
+        path1firstdist <- D[commonPrimer,path1Primer]
+        path2firstdist <- D[commonPrimer,path2Primer]
+        path1secdist   <- path1firstdist + ntexons[Dominants[k,3]]
+        path2secdist   <- path2firstdist + ntexons[Dominants[k,4]]
+      }
+      
+      if (Dominants[k,5]==2){
+        commonPrimer <- as.vector(Dominants[k,3])
+        path1Primer <- as.vector(Dominants[k,1])
+        path2Primer <- as.vector(Dominants[k,2])
+        path1firstdist <- D[path1Primer,commonPrimer]
+        path2firstdist <- D[path2Primer,commonPrimer]
+        path1secdist   <- path1firstdist + ntexons[Dominants[k,1]]
+        path2secdist   <- path2firstdist + ntexons[Dominants[k,2]]
+      }
+      # Estimation with Uniform distribution of the mean of difdistances:
+      dar <- runif(1000,path1firstdist,path1secdist)
+      dbr <- runif(1000,path2firstdist,path2secdist)
+      DeltaABr <- abs(dar - dbr)
+      mindist <- mean(DeltaABr)
+    }
+    
+    # Calculate penalty with 2 primers
+    if (Dominants[k,5]==0){
+      a <- as.vector(Dominants[k,1])
+      b <- as.vector(Dominants[k,3])
+      allPaths <- all_simple_paths2(wg,from = a , to = b)
+      if (length(allPaths)==0)
+        distances <- 0
+      else
+        distances<-sapply(allPaths, FUN = function(x) {return(sum(ntexons[as_ids(x)[c(TRUE,FALSE)]]))})
+      distances<-sort(distances)
+      difdistances<-diff(distances)
+      mindist <- min(difdistances)
+    }
+    
+    # calculate difdistancespenalty with distances if they are lower than minsparation between distance
+    difdistancespenalty<-0
+    if (mindist < minsep) {
+      difdistancespenalty <- wminsep/1000*(mindist-minsep)^2
+    }
+    
+    threePrimerspenalty <- 0
+    if (as.numeric(as.vector(Dominants[k,5]))!= 0){
+      threePrimerspenalty <- 1
+    }
+    
+    # type of primers either two(0) or three(1) is in col=5
+    PreFinvalue <- Dominants[k,6] + threePrimerspenalty * valuethreePpenalty + difdistancespenalty
+    Dominants[k,7] <- PreFinvalue
+    # PreFinal value is in col=7
+  }
+  # Order and return of as many items as user wants:
+  X <- order(Dominants[,7])
+  Dominants <- Dominants[X,]
+  FinalExons<-Dominants[1:items,]
+  return (FinalExons)
+}
+
+
+#' @rdname InternalFunctions
+getranksequence<- function(taqman,Fdata,maxLength,minsep
+                           ,wminsep,valuethreePpenalty
+                           ,wnpaths,qualityfilter)
+  {
+  for (i in 1:dim(Fdata)[1]){
+    ValueForSequence <- 0
+    # Calculate penalty for primers:
+    # ExtractDistances:
+    DistPath1 <- as.character(Fdata[i,15])
+    DistPath1 <- as.integer(unlist(strsplit(DistPath1," - ")))
+    DistPath2 <- as.character(Fdata[i,16])
+    DistPath2 <- as.integer(unlist(strsplit(DistPath2," - ")))
+    DistNoPath <- as.character(Fdata[i,17])
+    DistNoPath <- as.integer(unlist(strsplit(DistNoPath," - ")))
+    
+    # First we apply common penalties:
+    # Penalty for number of primers:
+    if(Fdata[i,13]!= 0 ){
+      ValueForSequence <- ValueForSequence +  valuethreePpenalty
+    }
+    # Penlty for number of paths:
+    NPaths <- length(DistPath1)+length(DistPath2) + length(DistNoPath)
+    ValueForSequence <- ValueForSequence + wnpaths * NPaths
+    
+    # Penlty for long paths: penalty for each long path and if all paths are long we
+    # apply another penalty:
+    numberlongpaths <- sum( c(DistPath1, DistPath2) > maxLength)
+    length <- max(min(DistPath1),min(DistPath2))
+    ValueForSequence <- ValueForSequence + length
+    ValueForSequence <- ValueForSequence + numberlongpaths * wnpaths* 1.5
+    if (length > maxLength){
+      ValueForSequence <- ValueForSequence + 10000
+    }
+    
+    
+    # We apply specific penalties for taqman and conventional PCR:
+    if (taqman == 1){
+      longer <- max(c(min(DistPath1),min(DistPath2)))
+      ValueForSequence <- ValueForSequence + longer 
+      
+    }else{
+      # Penalty of diference of distances between all paths that are shorter than maxLenght
+      distances <- c(DistPath1,DistPath2)
+      distances[distances<maxLength]
+      distances<-sort(distances)
+      difdistances<-diff(distances)
+      mindist <- min(difdistances)
+      if (mindist<minsep) {
+        difdistancespenalty <- wminsep/1000*(mindist-minsep)^2
+        ValueForSequence <- ValueForSequence + difdistancespenalty
+      }
+    }
+    Fdata[i,14] <- ValueForSequence
+  }
+  # We order the data with the penalties
+  RankedFdata<- Fdata[order(Fdata[,14]),]
+  # We take only values lower than qualityfilter, if there are not good primers we take only first 3 primers:
+  RankedFdata <- unique(rbind(RankedFdata[1:3,],RankedFdata[RankedFdata[,14]<qualityfilter,]))
+  RankedFdata <- RankedFdata[is.na(RankedFdata)[,1]==FALSE,]
+  return(RankedFdata)
+}
+
+
+#' @rdname InternalFunctions
+PrimerSequenceCommonFor <-function(FinalExons,SG,
+                                   generaldata,n,
+                                   thermo.param,
+                                   Primer3Path,
+                                   settings)
+  {
+  Fdata1 <- data.frame()
+  # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
+  For1Exon <- FinalExons[n,1]
+  Rev1Exon <- FinalExons[n,3]
+  Rev2Exon <- FinalExons[n,4]
+  # Get the ID for each exon where Primers are placed
+  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+  ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
+  # Get de sequence of each exon
+  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+  FExonSeq  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+  RExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+  RExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
+  # Call primer3 with two the sequence of two of the exons:
+  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
+  seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
+  maxlength <- str_length(seq1) 
+  
+  p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
+                    name = "Primer1", Primer3Path = Primer3Path,
+                    thermo.param = thermo.param,
+                    sequence_target = 110,
+                    settings = settings)
+  # When a sequence is finded in first exon we look for de sequence in the other exon:
+  if(is.null(dim(p1))==FALSE){
+    for (s in 1: dim(p1)[1]) {
+      pr=p1[s,2]
+      minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
+      seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
+      maxlength2 <- str_length(seq2)
+      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                        name = "Primer1", Primer3Path = Primer3Path,
+                        thermo.param = thermo.param,
+                        sequence_target = 110+ minlength2,
+                        settings = settings)
+      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+      if(is.null(dim(p2))==FALSE){
+        for (d in 1: dim(p2)[1]) {
+          # We calculate primers positions in exons
+          For1Seq <- p1[s,2]
+          Rev1Seq <- p1[s,3]
+          Rev2Seq <- p2[d,3]
+          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+          LastPosFor2 <- NA
+          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+          FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
+          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
+          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
+          InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
+          Info <- c(InfoC1,InfoC2)
+          # Distances from any path:
+          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path1:
+          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path2
+          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+          colnames(FExons) <- colnames(FinalExons)[-6]
+          PrSeq<-data.frame(For1Seq,NA,Rev1Seq,Rev2Seq,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+        }
+      }
+    }
+  }
+  # 2ยบ Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
+  # For that reason we swap exons:
+  a <-  FinalExons[,3]
+  FinalExons[,3] <- FinalExons[,4]
+  FinalExons[,4] <- a
+  
+  For1Exon <- FinalExons[n,1]
+  Rev1Exon <- FinalExons[n,3]
+  Rev2Exon <- FinalExons[n,4]
+  # Get the ID for each exon where Primers are placed
+  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+  ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
+  # Get de sequence of each exon
+  FExonSeq  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+  RExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+  RExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
+  # Call primer3 with two the sequence of two of the exons:
+  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
+  seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
+  maxlength <- str_length(seq1) 
+  
+  p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
+                    name = "Primer1", Primer3Path = Primer3Path,
+                    thermo.param = thermo.param,
+                    sequence_target = 110,
+                    settings = settings)
+  # When a sequence is finded in first exon we look for de sequence in the other exon:
+  if(is.null(dim(p1))==FALSE){
+    for (s in 1: dim(p1)[1]) {
+      pr=p1[s,2]
+      minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
+      seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
+      maxlength2 <- str_length(seq2)
+      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                        name = "Primer1", Primer3Path = Primer3Path,
+                        thermo.param = thermo.param,
+                        sequence_target = 110+ minlength2,
+                        settings = settings)
+      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+      if(is.null(dim(p2))==FALSE){
+        for (d in 1: dim(p2)[1]) {
+          # We calculate primers positions in exons
+          For1Seq <- p1[s,2]
+          Rev1Seq <- p1[s,3]
+          Rev2Seq <- p2[d,3]
+          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+          LastPosFor2 <- NA
+          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+          FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
+          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
+          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
+          InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
+          Info <- c(InfoC1,InfoC2)
+          # Distances from any path:
+          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path1:
+          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path2
+          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,4],FinalExons[n,3],FinalExons[n,5],FinalExons[n,7])
+          colnames(FExons) <- colnames(FinalExons)[-6]
+          PrSeq<-data.frame(For1Seq,NA,Rev2Seq,Rev1Seq,LastPosFor1,LastPosFor2,FirstPosRev2,FirstPosRev1)
+          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+        }
+      }
+    }
+  }
+  return(unique(Fdata1))
+}
+
+
+#' @rdname InternalFunctions
+PrimerSequenceCommonRev <-function(FinalExons,SG,
+                                   generaldata,n,
+                                   thermo.param,
+                                   Primer3Path,
+                                   settings)
+  {
+  Fdata1 <- data.frame()
+  # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
+  For1Exon <- FinalExons[n,1]
+  For2Exon <- FinalExons[n,2]
+  Rev1Exon <- FinalExons[n,3]
+  # Get the ID for each exon where Primers are placed
+  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+  ExonF2 <- match(as.character(FinalExons[n,2]), SG$Edges$From)
+  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+  # Get de sequence of each exon
+  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+  FExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+  FExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
+  SeqExonR  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+  # Call primer3 with two the sequence of two of the exons:
+  minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
+  seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
+  maxlength <- str_length(seq1)
+  
+  p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                    name = "Primer1", Primer3Path = Primer3Path,
+                    thermo.param = thermo.param,
+                    sequence_target = 110,
+                    settings = settings)
+  # When a sequence is finded in first exon we look for de sequence in the other exon:
+  if(is.null(dim(p1))==FALSE){
+    for (s in 1: dim(p1)[1]) {
+      pr=p1[s,3]
+      minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
+      seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
+      maxlength2 <- str_length(seq2)
+      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                        name = "Primer1", Primer3Path = Primer3Path,
+                        thermo.param = thermo.param,
+                        sequence_target = 110+minlength2,
+                        settings = settings)
+      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+      if(is.null(dim(p2))==FALSE){
+        for (d in 1: dim(p2)[1]) {
+          # We calculate primers positions in exons
+          For1Seq <- p1[s,2]
+          For2Seq <- p2[d,2]
+          Rev1Seq <- p1[s,3]
+          # We calculate primers positions in exons
+          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+          LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
+          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
+          FirstPosRev2 <- NA
+          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] - minlength2
+          InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
+          Info <- c(InfoC1,InfoC2)
+          # Distances from any path:
+          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path1:
+          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path2
+          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+          colnames(FExons) <- colnames(FinalExons)[-6]
+          PrSeq<-data.frame(For1Seq,For2Seq,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+        }
+      }
+    }
+  }
+  # 2ยบ Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
+  # For that reason we swap exons:
+  a <-  FinalExons[,2]
+  FinalExons[,2] <- FinalExons[,1]
+  FinalExons[,1] <- a
+  
+  For1Exon <- FinalExons[n,1]
+  For2Exon <- FinalExons[n,2]
+  Rev1Exon <- FinalExons[n,3]
+  # Get the ID for each exon where Primers are placed
+  ExonF1 <- match(as.character(For1Exon), SG$Edges$From)
+  ExonF2 <- match(as.character(For2Exon), SG$Edges$From)
+  ExonR1 <- match(as.character(Rev1Exon), SG$Edges$From)
+  # Get de sequence of each exon
+  FExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+  FExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
+  SeqExonR  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+  # Call primer3 with two the sequence of two of the exons:
+  minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
+  seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
+  maxlength <- str_length(seq1)
+  
+  p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                    name = "Primer1", Primer3Path = Primer3Path,
+                    thermo.param = thermo.param,
+                    sequence_target = 110,
+                    settings = settings)
+  # When a sequence is finded in first exon we look for de sequence in the other exon:
+  if(is.null(dim(p1))==FALSE){
+    for (s in 1: dim(p1)[1]) {
+      pr=p1[s,3]
+      minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
+      seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
+      maxlength2 <- str_length(seq2)
+      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                        name = "Primer1", Primer3Path = Primer3Path,
+                        thermo.param = thermo.param,
+                        sequence_target = 110+minlength2,
+                        settings = settings)
+      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+      if(is.null(dim(p2))==FALSE){
+        for (d in 1: dim(p2)[1]) {
+          For1Seq <- p1[s,2]
+          For2Seq <- p2[d,2]
+          Rev1Seq <- p1[s,3]
+          # We calculate primers positions in exons
+          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+          LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
+          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
+          FirstPosRev2 <- NA
+          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] -minlength2
+          InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
+          Info <- c(InfoC1,InfoC2)
+          # Distances from any path:
+          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path1:
+          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+          # Distances from path2
+          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+          FExons <- data.frame(FinalExons[n,2],FinalExons[n,1],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+          colnames(FExons) <- colnames(FinalExons)[-6]
+          PrSeq<-data.frame(For2Seq,For1Seq,Rev1Seq,NA,LastPosFor2,LastPosFor1,FirstPosRev1,FirstPosRev2)
+          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+        }
+      }
+    }
+  }
+  return(unique(Fdata1))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

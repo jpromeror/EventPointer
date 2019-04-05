@@ -1,4 +1,6 @@
 #' Events .gtf from trancriptome .gtf
+#' 
+#' Finds the alternative splicing events given a reference transcriptome.
 #'
 #'
 #' @param inputFile If input is GTF, inputFile should point to the GTF file to be used.
@@ -6,9 +8,10 @@
 #' @param Transcriptome the name of the transcriptome
 #' @param Pathtxt Directory to save the .txt of the events founded
 #'
-#' @return a list containing four elements: three sparce matrices that relate which isoforms build up the paths
+#' @return a list containing five elements: three sparce matrices that relate which isoforms build up the paths
 #' (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation:
-#' only appear the name of the transcript.
+#' only appear the name of the transcript. The final element is SG_List: a list with the information of the graph
+#' of each gene, this variable is necesary for Primers design step.
 #'
 #' @examples
 #'    PathFiles<-system.file('extdata',package='EventPointer')
@@ -109,8 +112,8 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,
     # length(genes22))
     Result2 <- vector("list", length = numberofgenes)
     
-    SG_Edges <- vector("list", length = numberofgenes)
-    names(SG_Edges) <- genes22
+    SG_List <- vector("list", length = numberofgenes)
+    names(SG_List) <- genes22
     
     pb <- txtProgressBar(min = 0, max = numberofgenes, 
         style = 3)
@@ -162,7 +165,8 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,
             # SG <- SG_Info(SG_Gene)
             SG <- SG_creation_RNASeq(SG_Gene)
             
-            SG_Edges[[jj]] <- SG$Edges
+            # SG_Edges[[jj]] <- SG$Edges
+            SG_List[[jj]] <- SG
             
             # plot(ftM2graphNEL(as.matrix(SG$Edges[,1:2]),
             # edgemode='directed'))
@@ -305,9 +309,9 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,
     # 1:nrow(Result2)
     for (jj in seq_len(nrow(Result2))) {
         setTxtProgressBar(pb, jj)
-        
+      
         Gene <- Result2$GeneName[jj]
-        EvtEdg <- SG_Edges[[Gene]]
+        EvtEdg <- SG_List[[Gene]]$Edges
         
         if (unique(EvtEdg[, "Strand"]) == 
             "") {
@@ -390,7 +394,8 @@ EventsGTFfromTrancriptomeGTF <- function(inputFile = NULL,
     
     PathsxTranscript <- list(ExTP1 = ExTP1, 
         ExTP2 = ExTP2, ExTPRef = ExTPRef, 
-        transcritnames = transcritnames)
+        transcritnames = transcritnames,
+        SG_List=SG_List)
     
     cat("\n\n\t******FINISHED******\n")
     

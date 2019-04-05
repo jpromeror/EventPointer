@@ -2,7 +2,7 @@
 % Please edit documentation in R/EventDetectionMultipath.R
 \name{EventDetectionMultipath}
 \alias{EventDetectionMultipath}
-\title{Detect splicing events using EventPointer methodology}
+\title{Detect splicing multipath events using EventPointer methodology}
 \usage{
 EventDetectionMultipath(Input, cores, Path, paths = 2)
 }
@@ -20,7 +20,7 @@ list with all the events found for all the genes present in the experiment.
 It also generates a file called EventsFound_RNASeq.txt with the information each event.
 }
 \description{
-Identification of all the alternative splicing events in the splicing graphs
+Identification of all the multipath alternative splicing events in the splicing graphs
 }
 \examples{
   # Run EventDetection function
