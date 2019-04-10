@@ -101,7 +101,7 @@ test_FindPrimers <- function() {
   obs <- tryCatch(
     FindPrimers(SG = list(),
                 EventNum = 1,
-                Primer3Path = "C:\\PROGRA~2\\primer3\\PRIMER~1.EXE",
+                Primer3Path = "./",
                 Dir = "",
                 taqman = 1,
                 nProbes=1,
@@ -118,7 +118,7 @@ test_FindPrimers <- function() {
   obs <- tryCatch(
     FindPrimers(SG = list(),
                 EventNum = 1,
-                Primer3Path = "C:\\PROGRA~2\\primer3\\PRIMER~1.EXE",
+                Primer3Path = "./",
                 Dir = NULL,
                 taqman = 1,
                 nProbes=1,
@@ -133,7 +133,7 @@ test_FindPrimers <- function() {
   obs <- tryCatch(
     FindPrimers(SG = list(),
                 EventNum = 1,
-                Primer3Path = "C:\\PROGRA~2\\primer3\\PRIMER~1.EXE",
+                Primer3Path = "./",
                 Dir = "C:\\PROGRA~2\\primer3\\",
                 taqman = NA,
                 nProbes=1,

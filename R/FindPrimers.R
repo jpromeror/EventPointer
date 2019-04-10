@@ -158,14 +158,18 @@ FindPrimers<-function(SG,EventNum,Primer3Path,Dir,taqman = NA, nProbes=1, nPrime
     stop("EventNum field is empty or is not > 0")
   }
     
+ 
+  
   if (is.null(Primer3Path)){
     stop("Primer3Path field is empty")
   }
+  
   
   if(!file.exists(Primer3Path)){
     stop("Primer3Path field should point to the .exe of Primers3.
          Check in the vignette for more information")
   }
+  
   
   if (is.null(Dir)){
     stop("Dir field is empty")
@@ -174,8 +178,13 @@ FindPrimers<-function(SG,EventNum,Primer3Path,Dir,taqman = NA, nProbes=1, nPrime
   if(length(dir(Dir))==0){
     stop("Dir = Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are stored")
   }
-
   
+ 
+  
+
+
+
+    
   
   randSol <- getRandomFlow(SG$Incidence, ncol = 10)
   Events <- findTriplets(randSol)
