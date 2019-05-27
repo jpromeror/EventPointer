@@ -15,8 +15,6 @@ test_FindPrimers <- function() {
   
   checkIdentical("SG field is empty", obs)
   
-
-
   obs <- tryCatch(
     FindPrimers(SG = list(),
                 EventNum = 0,
