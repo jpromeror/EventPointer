@@ -96,21 +96,21 @@ test_FindPrimers <- function() {
   
   
   
-  obs <- tryCatch(
-    FindPrimers(SG = list(),
-                EventNum = 1,
-                Primer3Path = "./inst/extdata/DONSON.gtf",
-                Dir = "",
-                taqman = 1,
-                nProbes=1,
-                nPrimerstwo=4,
-                ncommonForward=4,
-                ncommonReverse=4,
-                nExons=10,
-                nPrimers =5,
-                maxLength = 1200), error=conditionMessage)
-  checkIdentical("Dir = Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are stored", obs)
-  
+  # obs <- tryCatch(
+  #   FindPrimers(SG = list(),
+  #               EventNum = 1,
+  #               Primer3Path = "./inst/extdata/DONSON.gtf",
+  #               Dir = "",
+  #               taqman = 1,
+  #               nProbes=1,
+  #               nPrimerstwo=4,
+  #               ncommonForward=4,
+  #               ncommonReverse=4,
+  #               nExons=10,
+  #               nPrimers =5,
+  #               maxLength = 1200), error=conditionMessage)
+  # checkIdentical("Dir = Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are stored", obs)
+  # 
   
   
   obs <- tryCatch(
