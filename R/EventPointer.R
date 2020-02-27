@@ -49,8 +49,7 @@ EventPointer <- function(Design, Contrast,
     # Perform statistical test depending on
     # the selection of the user
     
-    if (class(Design) != "matrix" | class(Contrast) != 
-        "matrix") {
+    if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
         stop("Wrong Design and/or Contrast matrices")
     }
     
