@@ -47,9 +47,8 @@ EventPointer_RNASeq <- function(Events, Design,
         psi_m <- " Delta PSI will be calculated"
     }
     
-    if (class(Design) != "matrix" | class(Contrast) != 
-        "matrix") {
-        stop("Wrong Design and/or Contrast matrices")
+    if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
+      stop("Wrong Design and/or Contrast matrices")
     }
     
     TimeS <- paste(format(Sys.time(), "%X"), 
