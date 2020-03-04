@@ -53,10 +53,10 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,
         stop("Wrong statistical test given")
     }
     
-    if (class(Design) != "matrix" | class(Contrast) != 
-        "matrix") {
+    if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
         stop("Wrong Design and/or Contrast matrices")
     }
+    
     
     
     
