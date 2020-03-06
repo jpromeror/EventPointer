@@ -38,10 +38,9 @@ PSI_Statistic <- function(PSI, Design, Contrast,
         stop("PSI field is empty")
     }
     
-    if (class(Design) != "matrix" | class(Contrast) != 
-        "matrix") {
-        stop("Wrong Design and/or Contrast matrices")
-    }
+  if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
+    stop("Wrong Design and/or Contrast matrices")
+  }
     
     if (is.null(nboot)) {
         stop("nboot field is empty")
