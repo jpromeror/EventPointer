@@ -26,7 +26,8 @@ EventDetectionMultipath <- function(Input,
         stop("Input field is empty")
     }
     
-    if (class(cores) != "numeric") {
+    # if (classsss(cores) != "numeric") {
+    if (!is(cores,"numeric")) {
         stop("Number of cores incorrect")
     }
     

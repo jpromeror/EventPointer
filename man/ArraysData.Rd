@@ -3,9 +3,11 @@
 \name{ArraysData}
 \alias{ArraysData}
 \title{Preprocessed arrays data}
-\format{A \code{data.frame} with preprocessed arrays data.
+\format{
+A \code{data.frame} with preprocessed arrays data.
 The preprocessing was done using \code{aroma.affymetrix}.
-See the package vignette for the preprocessing pipeline}
+See the package vignette for the preprocessing pipeline
+}
 \usage{
 data(ArraysData)
 }

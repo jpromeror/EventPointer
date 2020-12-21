@@ -3,8 +3,10 @@
 \name{MyPrimers}
 \alias{MyPrimers}
 \title{Data frame with primers design for conventional PCR}
-\format{A \code{data.frame} object displays the relative
-information for primers design for conventional PCR}
+\format{
+A \code{data.frame} object displays the relative
+information for primers design for conventional PCR
+}
 \usage{
 data(MyPrimers)
 }

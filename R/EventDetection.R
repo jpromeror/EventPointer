@@ -26,7 +26,8 @@ EventDetection <- function(Input, cores,
         stop("Input field is empty")
     }
     
-    if (class(cores) != "numeric") {
+    # if (classssss(cores) != "numeric") {
+    if (!is(cores,"numeric")) {
         stop("Number of cores incorrect")
     }
     

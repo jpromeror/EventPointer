@@ -9,10 +9,10 @@ test_EventDetectionMultipath <- function() {
   obs <- tryCatch(EventDetectionMultipath(Input="Test",cores=1,Path=NULL,paths=2), error=conditionMessage)
   checkIdentical("Path field is empty", obs)
   
-  data(SG_RNASeq)
-  TxtPath<-tempdir()
-  AllEvents_RNASeq_MP_2<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths = 3)
-  data("AllEvents_RNASeq_MP")
-  checkIdentical(AllEvents_RNASeq_MP_2,AllEvents_RNASeq_MP)
+  # data(SG_RNASeq)
+  # TxtPath<-tempdir()
+  # AllEvents_RNASeq_MP_2<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths = 3)
+  # data("AllEvents_RNASeq_MP")
+  # checkIdentical(AllEvents_RNASeq_MP_2,AllEvents_RNASeq_MP)
   
 }

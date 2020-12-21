@@ -1,6 +1,6 @@
 ---
 title: "EventPointer: An effective identification of alternative splicing events using junction arrays and RNA-Seq data"
-author: "Juan P. Romero"
+author: "Juan P. Romero & Juan A. Ferrer-Bonsoms"
 date: "`r BiocStyle::doc_date()`"
 abstract: >
   *EventPointer* is an R package to identify alternative splicing events that involve either simple (case-control experiment) or complex experimental designs such as time course experiments and studies including paired-samples. The algorithm can be used to analyze data from either junction arrays (Affymetrix Arrays) or sequencing data (RNA-Seq). 
@@ -291,10 +291,10 @@ Once the process is completed two GTF files are generated in the specified direc
 
 
 ```
-## Domain Enrichment
-The [EventPointer paper](http://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2816-x) states that the algorithm provides a function to identify the protein domains that are affected by alternative splicing using an enrichment analysis.
+<!-- ## Domain Enrichment -->
+<!-- The [EventPointer paper](http://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-2816-x) states that the algorithm provides a function to identify the protein domains that are affected by alternative splicing using an enrichment analysis. -->
 
-As we have updated the algorithm, we are currently working on the implementation of this feature in the newer version. As soon as it is implemented, it will be uploaded along with the vignette to show its use.
+<!-- As we have updated the algorithm, we are currently working on the implementation of this feature in the newer version. As soon as it is implemented, it will be uploaded along with the vignette to show its use. -->
 
 # RNA-Seq analysis
 
@@ -444,23 +444,23 @@ Once the process is completed the GTF file is generated in the specified directo
 
 ## Analysis From Transcriptome Reference
 
-The idea of this pipeline is to apply a statistical analysis to the alternative splicing by using quantification data obtained from *kallisto*. For this purpose we have to follow the pipeline described in figure 7.
+In this pipeline alternative splicng events are detected from a reference transcriptome without finding novel events as do the method above explained in section 4.1. The events quantification relies on isoform expression estimate from pseudo-alignment process such as *Kallisto* or *Salmon*. Besides, we provide a function to leverage the bootstrap data from *kallisto* or *salmon*. Preveous statistical analysis have also been adapted to this data. Further, Primers design for PCR validation and protein domain enrichment analysis can be performed. Figure 7 shows an overview of this branch of EventPointer.
 
 
-![**Figure 7.** Analysis of RNA-Seq data with kallisto output ](Esquema_bis.png)
+![**Figure 7.** Analysis of RNA-Seq data with kallisto output ](Figure7_2.png)
 
 
 ### Event Detection
 
-We use *EventGTFfromTrancriptomeGTF* to identify and classify alternative splicing events of a given reference transcriptome. The required parameters are:
+We use *EventDetection_transcriptome* to identify and classify alternative splicing events of a given reference transcriptome. The required parameters are:
 
 * **inputFile** = inputFile should point to the GTF file to be used.
 * **Transcriptome** = the name of the transcriptome.
 * **Pathtxt** = Directory to save the .txt file of the events found.
-* **PathGTF** = Directory to save the .GTF file of the events found.
+* **cores** = Number of cores using in the parallel processing (by default = 1).
 
 
-Following code shows how to apply *EventGTFfromTrancriptomeGTF* function using the Gencode 24 transcriptome (GRCH 38) as reference annotation. In this example we do not use the full reference but only two genes (ENSG00000185252.17 and ENSG00000254709.7). 
+Following code shows how to apply *EventDetection_transcriptome* function using the Gencode 24 transcriptome (GRCH 38) as reference annotation. In this example we do not use the full reference but only two genes (ENSG00000185252.17 and ENSG00000254709.7). 
 
 ```{r GTFfGTF, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -470,21 +470,19 @@ PathFiles<-system.file("extdata",package="EventPointer")
 inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
 Transcriptome <- "Gencode24_2genes"
 Pathtxt <- tempdir()
-PathGTF <- tempdir()
+
 
 # Run the function
-EventXtrans <- EventsGTFfromTrancriptomeGTF(inputFile = inputFile,
-                                           Transcriptome = Transcriptome,
-                                           Pathtxt=Pathtxt,
-                                           PathGTF=PathGTF)
+
+EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
+                                             Transcriptome = Transcriptome,
+                                             Pathtxt=Pathtxt,
+                                             cores=1)
 
 ```
 
 
-This function takes a couple of hours to complete (depending on the computer), and creates the following files:
-
-* **EventsFound_<Transcriptome>.txt** A .txt file with the information of the events.
-* **paths_RNASeq.gtf** A .GTF file with the information of the events required to be visualized in IGV.
+This function takes a couple of hours to complete (depending on the computer), and creates a file called **EventsFound_<Transcriptome>.txt**: a .txt file with the information of the events. This .txt file will be used as an input in further functions.
 
 This function also returns a list containing five elements: three sparce matrices that relate which isoforms build up the paths (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: only appear the name of the transcript. The final element is SG_List: a list with the information of the graph of each gene, this variable is necesary for Primers design step.
 
@@ -495,60 +493,129 @@ names(EventXtrans)
 ```
 
 
-### Quantification 
+### Get expression and PSI ($\Psi$)
 
 
-Given the output of *EventGTFfromTrancriptomeGTF* we can quantify the expression of the alternative splicing events in our experiment as long as the quantification ot the experiment was done in *Kallisto* using the reference annotation used in *EventGTFfromTrancriptomeGTF*.
+Given (I) the output of *EventDetection_transcriptome*, which contains events information and (II) the result of pseudo-alignment, EventPointer is able to get the expression of the path of each event and also to compute the PSI value.
 
-The function *GetPSI_FromTranRef* obtains the values of $\Psi$ and needs the following parameters:
-
-* **PathsxTranscript** the outpu of EventGTFfromTrancriptomeGTF.
-* **Samples** A matrix containing the isoform quantification.
-* **Filter** Boolean variable to indicate if an expression filter is applied. Defaul T.
-* **Qn** Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).
-
-This function also needs that the reference annotation used in *Kallisto* and in the function *EventGTFfromTrancriptomeGTF* must be the same. Also in the variable *Samples* the type of annotation used must be equal to the one used in the variable *PathsxTranscript*.
+To first step is to load the data from pseudo-alignment. EventPointer works with both *Kallisto* and *Salmon* methods. 
 
 In this example we have applied *kallisto* to the samples ERR315326, ERR315400, ERR315407 and ERR315494 using the same reference used before. These samples have been download from *EMBL-EBI* dataset.
 
-The following code shows an example of how to read the kallisto output and prepare it to run the main function.
+EventPointer offers the option to take advantage of bootstraps that return both Kallisto and Salmon. In case we want to leverage the Bootstrap data we have to use the function *getbootstrapdata*:
 
-```{r PSI_Statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r getbootstrpdata, eval=TRUE, warning=FALSE, collapse=TRUE}
 
-#first: load data from kallisto output
+PathSamples<-system.file("extdata",package="EventPointer")
+PathSamples <- paste0(PathSamples,"/output")
+PathSamples <- dir(PathSamples,full.names = TRUE)
+
+data_exp <- getbootstrapdata(PathSamples = PathSamples,type = "kallisto")
+
+```
+
+*getbootstrapdata* returns a list containing the quantification data with the bootstrap information. The list is of length equal to the number of samples. Each element of the list storage a matrix where the number of rows is equal to the number of transcripts and the number of columns is equal to the number of bootstrats + 1. (the first column corresponds to the maximum likelihood expression and the rest to the bootstrap data).
+
+
+In case **you don't want to use the bootstrap returned by the pseudo-alignmnet step (or is no available)**, you should load a matrix with the expression of the transcripts. The following code chunk shown an example of how to do this:
+
+```{r getdata_nb, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+# this code chunk is an example of how to load the data from kallisto output.
+# the expression of the isoforms are counts
 
 PathFiles <- system.file("extdata",package="EventPointer")
 filesnames <- dir(paste0(PathFiles,"/output"))
 PathFiles <- dir(paste0(PathFiles,"/output"),full.names = TRUE)
 dirtoload <- paste0(PathFiles,"/","abundance.tsv")
-RNASeq <- read.delim(dirtoload[1],sep = "\t", colClasses = c(NA,"NULL","NULL","NULL",NA))
+RNASeq <- read.delim(dirtoload[1],sep = "\t", colClasses = c(NA,"NULL","NULL",NA,"NULL"))
 for (n in 2:length(dirtoload)){
-  RNASeq[,n+1] <- read.delim(dirtoload[n],sep = '\t', colClasses = c('NULL','NULL','NULL','NULL',NA))
+  RNASeq[,n+1] <- read.delim(dirtoload[n],sep = '\t', colClasses = c('NULL','NULL','NULL',NA,'NULL'))
 }
 rownames(RNASeq)<-RNASeq[,1]
 RNASeq<-RNASeq[,-1]
 colnames(RNASeq) <- filesnames
 
 
-#second: the annotation of the transcript names must be equal in RNASeq and PathsxTranscript
+```
 
+
+Once we have the expression of the isoforms loaded, the next step is to compute the PSI value. For both cases (with or withuot bootstrap data from psudoaligment) EventPointer provides the function *GetPSI_FromTranRef* for this purpose.
+
+The function *GetPSI_FromTranRef* returns the values of $\Psi$ and the expression of the paths of each events. This functions requires the following inputs:
+
+* **PathsxTranscript** The output of EventDetection_transcriptome.
+* **Samples** A matrix or list containing the expression of the samples.
+* **Bootstrap** Boolean variable to indicate if bootstrap data from pseudo-alignment is used.
+* **Filter** Boolean variable to indicate if an expression filter is applied. Defaul TRUE.
+* **Qn** Quantile used to filter the events (Bounded between 0-1, Q1 would be 0.25).
+
+This function also requires that the same reference transcriptome have been used in both the pseudo-alignment and event detections steps. Besides, in the variable *Samples* the type of annotation used must be equal to the one used in the variable *EventXtrans*.
+
+
+**Get psi if no bootstrap from pseudo-alignmnet is used**
+
+First step is to verify if same annotation is used in *RNASeq* and *EventXtrans*:
+
+```{r check_ann_nb, eval=TRUE, warning=FALSE, collapse=TRUE}
+rownames(RNASeq)[1:5]
+EventXtrans$transcritnames[1:5]
+```
+
+We need to change the rownames of RNASeq variable before applying *GetPSI_FromTranRef* function:
+
+```{r PSI_Statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+#change rownames of RNASeq variable
 rownames(RNASeq) <- sapply(strsplit(rownames(RNASeq),"\\|"),function(X) return(X[1]))
 RNASeq<-as.matrix(RNASeq) #must be a matrix variable
 
-#third: Obtain values of PSI
-PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,Samples = RNASeq,Filter = FALSE)
 
-PSI <- PSIss$PSI
-Expression <- PSIss$ExpEvs
+PSIss_nb <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,
+                            Samples = RNASeq,
+                            Bootstrap = FALSE,
+                            Filter = FALSE)
+
+PSI <- PSIss_nb$PSI
+Expression <- PSIss_nb$ExpEvs
 
 ```
 
-The output of the function is a list containing two elements: a matrix with the values of $\Psi$ and a list containing as many matrices as number of events. In each matrix is stored the expression of the different paths of an event along the samples.
+The output of the function is a list containing two elements: a matrix with the $\Psi$ values, and a list containing as many matrices as number of events. In each matrix is stored the expression of the different paths of an event along the samples.
 
+
+**If bootstrap data from pseudo-alignment is required**
+
+As done above, we need to check if same annotation is used in *data_exp* and *EventXtrans*. The difference from above is that *data_exp* is a list and not a matrix as *RNASeq*. Therefore, we are going to used the rownames of the first list of *data_exp* to check if same annotations is used:
+
+
+```{r check_ann, eval=TRUE, warning=FALSE, collapse=TRUE}
+rownames(data_exp[[1]])[1:5]
+EventXtrans$transcritnames[1:5]
+
+```
+
+We need to change the rownames of the first element of the list *data_exp*  before applying *GetPSI_FromTranRef* function:
+
+```{r psi_with_bootstrap, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+#change rownames of the first element of teh list data_exp
+rownames(data_exp[[1]]) <- sapply(strsplit(rownames(data_exp[[1]]),"\\|"),function(X) return(X[1]))
+
+PSIss <- GetPSI_FromTranRef(PathsxTranscript = EventXtrans,
+                               Samples = data_exp,
+                               Bootstrap = TRUE,
+                               Filter = FALSE)
+
+PSI <- PSIss$PSI
+Expression <- PSIss$ExpEvs
+```
+
+The output of the function is a list containing two elements: an array with the $\Psi$ values with dimension = c(number of events, number of bootstrap+1,number of samples), and a list containing as many matrices as number of events. In each matrix is stored the expression of the different paths of an event along the samples.
 
 ### Statistical Analysis
 
-The statistical analysis of the alternative splicing events is done in exactly the same way as for junction arrays and RNA-Seq data from BAM files.  
+The statistical analysis of the alternative splicing events is done in exactly the same way as for junction arrays.
 
 The function *EventPointer_RNASeq_TranRef* perform this statistical analysis and requires the following parameters:
 
@@ -576,8 +643,142 @@ The output of this function is a data.frame with the information of the names of
 kable(Fit,digits=5,row.names=FALSE,align="c",caption = "Table 3: PSI_Statistic results")
 ```
 
+### Statistical Analysis (Bootstrap Test)
 
-# Primers Design
+We have implemented a bootstrap test to evaluate the difference in $\Psi$ among the conditions under study. This test can be done both for PSI values that contain information from the pseudo-alignment bootstrap and for cases in which we do not have this information.
+
+The function *EventPointer_Bootstraps* proceed to calculate the increase in PSI and its p.values by performing bootstrap statistic test. This function can be parallelized. Users may set the number of Cores (by default 1) and the ram available (by default 1 Gb).
+
+
+```{r ep_bootstrp_statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+Dmatrix <- cbind(1,rep(c(0,1),each=2))
+Cmatrix <- matrix(c(0,1),nrow=2)
+
+Fit <- EventPointer_Bootstraps(PSI = PSI,
+                               Design = Dmatrix,
+                               Contrast = Cmatrix,
+                               cores = 1,
+                               ram = 1,
+                               nBootstraps = 10,
+                               UsePseudoAligBootstrap = TRUE)
+
+```
+
+You can extract a table of the top-ranked events from the results with the function *ResulTable*
+
+```{r ResultTable, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+ResulTable(EP_Result = Fit,coef = 1,number = 5)
+
+```
+
+
+### IGV visualization
+
+EventPointer creates one GTF file that can be loaded into IGV to visualize the alternative splicing events. Figure XX displays an example result showed in IGV (5th ranked event in Table 2). Also, in the figure a reference transcriptome is displayed (blue track).
+
+To create the GTF files, the algorithm uses the *EventPointer_RNASeq_TranRef_IGV* functions with the following parameters:
+
+* **SG_List**: List with the Splicing Graph information of the events. This list is created by EventDetection_transcriptome function.
+* **pathtoeventstable**: Complete path to the table returned by EventDetection_transcriptome that contains the information of each event, or table with specific events that the user want to load into IGV to visualize.
+* **PathGTF**: Directory where to write the GTF files.
+
+As EventDetection_transcriptome function returns the splicing graph information, this function does not need to create the splicing graph. (EventPointer_IGV is equivalent function for array platform).
+
+```{r ep_tranref_igv, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+SG_List <- EventXtrans$SG_List
+PathEventsTxt<-system.file('extdata',package='EventPointer')
+PathEventsTxt <- paste0(PathEventsTxt,"/EventsFound_Gencode24_2genes.txt")
+PathGTF <- tempdir()
+
+EventPointer_RNASeq_TranRef_IGV(SG_List = SG_List,pathtoeventstable = PathEventsTxt,PathGTF = PathGTF)
+
+```
+
+
+
+### Domain Enrichment
+
+The main idea of protein domain analysis is to analyze whether the presence of a protein domain increases or decreases in the condition under study. To do this, we have implemented the function *Protein_Domain_Enrichment*. This function requires the following parameters:
+
+* **PathsxTranscript**: the output of EventDetection_transcriptome.
+* **TxD**: matrix that relates transcripts with Protein domain. Users can get it from BioMart.
+* **Diff_PSI**: matrix with the difference of psi of the condition under study.
+* **method**: a character string indicating which correlation coefficient is to be calculated. "spearman" (default) or "pearson" can be selected.
+
+As mentioned, it is first necessary to know the structure of protein domains within the transcriptome or in other words: to relate the isoforms to protein domains. This can be done using *‘bioMart’ R package.* The input needed by EP to perform this analysis is a matrix that relates transcripts to protein domains (TxD matrix). Therefore, you can work either with Pfam, Interpro or superfamily annotation.
+
+The following conde chunck shows an example of how to get this TxD matrix:
+
+```{r biomart, eval=FALSE, warning=FALSE, collapse=TRUE}
+
+library(biomaRt)
+mart <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", host = "mar2016.archive.ensembl.org")
+mart<-useDataset("hsapiens_gene_ensembl",mart)
+
+mistranscritos <- EventXtrans$transcritnames
+head(mistranscritos)
+
+## we need to remove the ".x":
+mistranscritos <- gsub("\\..*","",mistranscritos)
+
+Dominios <- getBM(attributes = c("ensembl_transcript_id","interpro","interpro_description"),
+                  filters = "ensembl_transcript_id",
+                  values = mistranscritos,
+                  mart=mart)
+
+#we build the isoform x protein domain matrix
+library(Matrix)
+ii <- match(Dominios$ensembl_transcript_id,mistranscritos)
+misDominios <- unique(Dominios[,2])
+jj <- match(Dominios[,2],misDominios)
+
+TxD <- sparseMatrix(i=ii,j = jj,dims = c(length(mistranscritos),length(misDominios)),x = 1)
+rownames(TxD) <- mistranscritos
+colnames(TxD) <- misDominios
+
+```
+
+
+The above code chunk build the required Transcript X Domain (TxD) sparse matrix where $TxD_{ij}$ = 1 means that Domain $j$ match to transcript $i$. 
+
+The next step is to perform the enrichment analysis with the function *Protein_Domain_Enrichment*
+Internally, given the TxD matrix *Protein_Domain_Enrichment* relates protein domains to events and performs the enrichment analysis:
+
+**NOTE**: Check that EventXtrans$transcritnames annotation type match to the rownames of the TxD matrix.
+
+```{r pd_enrichmetn, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+data("TxD")
+
+#check same annotation for transcripts:
+EventXtrans$transcritnames[1]
+rownames(TxD)[1]
+
+
+## as si not the same, we change EventXtrans$transcritnames annotation
+transcriptnames <- EventXtrans$transcritnames
+transcriptnames <- gsub("\\..*","",transcriptnames)
+EventXtrans$transcritnames <- transcriptnames
+
+Result_PDEA <- Protein_Domain_Enrichment(PathsxTranscript = EventXtrans,
+                                         TxD = TxD,
+                                         Diff_PSI = Fit$deltaPSI)
+
+
+```
+
+The function returns a list containing the results of the protein domain enrichment analysis. This list contains 3 matrices in which the rows indicate
+the protein domains and the columns the number of contrasts. The 3 matrices are the following:
+
+* **mycor**: correlation value between the deltaPSI and the DifProtDomain matrix (see more details in vignette)
+* **STATISTIC**: the values of the test statistic
+* **PVAL**: the pvalues of the test statistic
+
+
+### Primers Design
 
 EventPointer can also be used to design primers for PCR validation. The aim of *FindPrimers* function is the design of PCR primers and TaqMan probes for detection and quantification of alternative splicing. Depending on the assay we want to carry out the the algorithm will design the primers for a conventional PCR or the primers and TaqMan probes if we are performing a TaqMan assay. In the case of a conventional PCR we will be able to detect the alternative splicing event. Besides, the algorithm gives as an output the length of the PCR bands that are going to appear. In the case of a TaqMan assay, we will not only detect but also quantify alternative splicing.
 <br><br>
@@ -645,18 +846,20 @@ EventNum <- 1
 Primer3Path <- Sys.which("primer3_core")
 Dir <- "C:\\PROGRA~2\\primer3\\"
 
+
 MyPrimers_taqman <- FindPrimers(SG = SG,
-                        EventNum = EventNum,
-                        Primer3Path = Primer3Path,
-                        Dir = Dir,
-                        taqman = 1,
-                        nProbes=1,
-                        nPrimerstwo=4,
-                        ncommonForward=4,
-                        ncommonReverse=4,
-                        nExons=10, 
-                        nPrimers =5,
-                        maxLength = 1200) 
+                                EventNum = EventNum,
+                                Primer3Path = Primer3Path,
+                                Dir = Dir,
+                                mygenomesequence = BSgenome.Hsapiens.UCSC.hg38::Hsapiens,
+                                taqman = 1,
+                                nProbes=1,
+                                nPrimerstwo=4,
+                                ncommonForward=4,
+                                ncommonReverse=4,
+                                nExons=10, 
+                                nPrimers =5,
+                                maxLength = 1200)
 
 ```
 
@@ -705,9 +908,9 @@ kable(MyPrimers_taqman[1:5,],digits=5,row.names=FALSE,align="c",caption = "Table
 
 
 
-## IGV primers and probes visualization
+#### IGV primers and probes visualization
 
-From the output data.frame we get the sequence of the primers and probes if it is needed. We can visualize the result in IGV using the *Find Motif* tool.
+We can visualize the result in IGV using the *Find Motif* tool given the output of *FindPrimers* function.
 
 Forward primers are represented in blue whilst reverse primers are represented in red as long as the gene is transcribed from the forward strand. Otherwise the colors we will be swapped. TaqMan probes will always have the color of the forward primers.
 

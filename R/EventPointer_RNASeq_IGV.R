@@ -41,13 +41,17 @@ EventPointer_RNASeq_IGV <- function(Events,
         stop("Missing splicing graphs information")
     }
     
-    if (is.null(EventsTxt) | class(EventsTxt) != 
-        "character") {
+    # if (is.null(EventsTxt) | classsss(EventsTxt) 
+    #  != "character") {
+    if (is.null(EventsTxt) | 
+        !is(EventsTxt,"character")) {
         stop("Wrong or missing EventsTxt field")
     }
     
-    if (is.null(PathGTF) | class(PathGTF) != 
-        "character") {
+    # if (is.null(PathGTF) | 
+    #  classsss(PathGTF) != "character") {
+    if (is.null(PathGTF) | 
+        !is(PathGTF,"character")) {
         stop("Wrong or missing PathGTF field")
     }
     

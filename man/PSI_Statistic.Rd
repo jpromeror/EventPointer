@@ -24,12 +24,15 @@ Statistical analysis of the alternative splicing events. This function takes as 
 Perform a statistical analysis based on permutation test
 }
 \examples{
-   data(PSIss)
-   Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
-   Contrast <- matrix(c(0,1),nrow=1)
-
-   # Statistical analysis:
-
-   table <- PSI_Statistic(PSIss$PSI,Design = Design, Contrast = Contrast, nboot = 50)
+      data(ArraysData)
+      PSI_Arrays_list<-EventPointer:::getPSI(ArraysData)
+      PSI_Arrays <- PSI_Arrays_list$PSI
+      Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
+      Contrast <- matrix(c(0,1),nrow=1)
+      
+      # Statistical analysis:
+      
+      table <- PSI_Statistic(PSI_Arrays,Design = Design, Contrast = Contrast, nboot = 50)
+      
 
 }

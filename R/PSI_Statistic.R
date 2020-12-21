@@ -12,13 +12,16 @@
 #'  and the p.values for each contrast, and a third element (LocalFDR) with the information of the local false discovery rate.
 #'
 #' @examples
-#'    data(PSIss)
-#'    Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
-#'    Contrast <- matrix(c(0,1),nrow=1)
-#'
-#'    # Statistical analysis:
-#'
-#'    table <- PSI_Statistic(PSIss$PSI,Design = Design, Contrast = Contrast, nboot = 50)
+#'       data(ArraysData)
+#'       PSI_Arrays_list<-EventPointer:::getPSI(ArraysData)
+#'       PSI_Arrays <- PSI_Arrays_list$PSI
+#'       Design <- matrix(c(1,1,1,1,0,0,1,1),nrow=4)
+#'       Contrast <- matrix(c(0,1),nrow=1)
+#'       
+#'       # Statistical analysis:
+#'       
+#'       table <- PSI_Statistic(PSI_Arrays,Design = Design, Contrast = Contrast, nboot = 50)
+#'       
 #'
 #' @export
 #' @importFrom IRanges relist disjoin %over% reduce
@@ -38,9 +41,12 @@ PSI_Statistic <- function(PSI, Design, Contrast,
         stop("PSI field is empty")
     }
     
-  if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
-    stop("Wrong Design and/or Contrast matrices")
-  }
+    # if (classsss(Design) != "matrix" | 
+    #   classsss(Contrast) != "matrix") {
+    if (!is(Design,"matrix") | 
+        !is(Contrast,"matrix")) {
+        stop("Wrong Design and/or Contrast matrices")
+    }
     
     if (is.null(nboot)) {
         stop("nboot field is empty")

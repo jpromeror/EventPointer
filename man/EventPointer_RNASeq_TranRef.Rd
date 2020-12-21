@@ -4,8 +4,12 @@
 \alias{EventPointer_RNASeq_TranRef}
 \title{EventPointer_RNASeq_TranRef}
 \usage{
-EventPointer_RNASeq_TranRef(Count_Matrix, Statistic = "LogFC", Design,
-  Contrast)
+EventPointer_RNASeq_TranRef(
+  Count_Matrix,
+  Statistic = "LogFC",
+  Design,
+  Contrast
+)
 }
 \arguments{
 \item{Count_Matrix}{The list containing the expression data taken from

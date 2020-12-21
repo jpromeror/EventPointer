@@ -3,8 +3,10 @@
 \name{PSIss}
 \alias{PSIss}
 \title{relationship between isoforms and events}
-\format{A \code{} object \code{PSIss[[1]]} displays the values of PSI
-and \code{PSIss[[2]]} the valeus of expression.}
+\format{
+A \code{} object \code{PSIss[[1]]} displays the values of PSI
+and \code{PSIss[[2]]} the valeus of expression.
+}
 \usage{
 data(PSIss)
 }

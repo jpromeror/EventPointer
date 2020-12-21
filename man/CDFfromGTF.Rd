@@ -4,8 +4,14 @@
 \alias{CDFfromGTF}
 \title{CDF file creation for EventPointer}
 \usage{
-CDFfromGTF(input = "Ensembl", inputFile = NULL, PSR, Junc, PathCDF,
-  microarray = NULL)
+CDFfromGTF(
+  input = "Ensembl",
+  inputFile = NULL,
+  PSR,
+  Junc,
+  PathCDF,
+  microarray = NULL
+)
 }
 \arguments{
 \item{input}{Reference transcriptome used to build the CDF file. Must be one of: 'Ensembl',

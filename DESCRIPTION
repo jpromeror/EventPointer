@@ -2,9 +2,15 @@ Package: EventPointer
 Type: Package
 Title: An effective identification of alternative splicing events
 	   using junction arrays and RNA-Seq data
-Version: 2.5.5
-Author: Juan Pablo Romero, Juan A. Ferrer-Bonsoms, Pablo Sacristan, Ander Muniategui, Fernando Carazo, Ander Aramburu, Angel Rubio
-Maintainer: Juan Pablo Romero <jpromero@ceit.es>
+Version: 3.0.0
+Authors@R: c(person("Juan Pablo","Romero",role=c("aut","cre"),email = "jpromero@ceit.es"),
+  person("Juan A.", "Ferrer-Bonsoms",role=c("aut"),email = "jafhernandez@tecnun.es"),
+  person("Pablo", "Sacristan"),
+  person("Ander", "Muniategui"),
+  person("Fernando", "Carazo"),
+  person("Ander", "Aramburu"),
+  person("Angel", "Rubio")
+    )
 Description: EventPointer is an R package to identify alternative splicing events 
 		that involve either simple (case-control experiment) or complex experimental designs 
 		such as time course experiments and studies including paired-samples. The algorithm can
@@ -17,7 +23,7 @@ Description: EventPointer is an R package to identify alternative splicing event
 		splicing events in IGV. This eases the interpretation of results and the design 
 		of primers for standard PCR validation.
 Depends:
-    R (>= 3.4),
+    R (>= 4.0),
     SGSeq,
     Matrix,
     SummarizedExperiment
@@ -46,8 +52,14 @@ Imports:
 	cobs,
 	rhdf5,
 	BSgenome,
-	BSgenome.Hsapiens.UCSC.hg38,
-	Biostrings
+	Biostrings,
+	glmnet,
+	abind,
+	iterators,
+	lpSolve,
+	poibin,
+	speedglm,
+	tximport
 Suggests:
     knitr,
     rmarkdown,
@@ -58,7 +70,8 @@ Suggests:
 	kableExtra
 License: Artistic-2.0
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1
+Encoding: UTF-8
 biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse, ImmunoOncology
 VignetteBuilder: knitr
 Url: https://github.com/jpromeror/EventPointer

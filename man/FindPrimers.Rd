@@ -4,12 +4,28 @@
 \alias{FindPrimers}
 \title{FindPrimers}
 \usage{
-FindPrimers(SG, EventNum, Primer3Path, Dir, taqman = NA, nProbes = 1,
-  nPrimerstwo = 3, ncommonForward = 3, ncommonReverse = 3,
-  nExons = 5, nPrimers = 15, shortdistpenalty = 2000,
-  maxLength = 1000, minsep = 100, wminsep = 200,
-  valuethreePenalty = 1000, minexonlength = 25, wnpaths = 200,
-  qualityfilter = 5000)
+FindPrimers(
+  SG,
+  EventNum,
+  Primer3Path,
+  Dir,
+  mygenomesequence,
+  taqman = NA,
+  nProbes = 1,
+  nPrimerstwo = 3,
+  ncommonForward = 3,
+  ncommonReverse = 3,
+  nExons = 5,
+  nPrimers = 15,
+  shortdistpenalty = 2000,
+  maxLength = 1000,
+  minsep = 100,
+  wminsep = 200,
+  valuethreePenalty = 1000,
+  minexonlength = 25,
+  wnpaths = 200,
+  qualityfilter = 5000
+)
 }
 \arguments{
 \item{SG}{Information of the graph of the gene where the selected event belongs.
@@ -23,7 +39,9 @@ the number after the "_" character of the 'Event_ID'.}
 
 \item{Dir}{Complete path where primer3web_v4_0_0_default_settings.txt file and primer3_config directory are stored.}
 
-\item{taqman}{1 if you want to get probes and primers for taqman. 0 if you want to get primers for conventional PCR.}
+\item{mygenomesequence}{genome sequence of reference}
+
+\item{taqman}{TRUE if you want to get probes and primers for taqman. FALSE if you want to get primers for conventional PCR.}
 
 \item{nProbes}{Number of probes for Taqman experiments. By default 1.}
 
@@ -137,6 +155,7 @@ MyPrimers <- FindPrimers(SG = SG,
                          EventNum = EventNum,
                          Primer3Path = Primer3Path,
                          Dir = Dir,
+                         mygenomesequence = BSgenome.Hsapiens.UCSC.hg38::Hsapiens,
                          taqman = 1,
                          nProbes=1,
                          nPrimerstwo=4,

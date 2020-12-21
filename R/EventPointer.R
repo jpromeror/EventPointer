@@ -26,15 +26,15 @@
 #'    Cmatrix<-t(t(c(0,1)))
 #'    EventsFound<-paste(system.file('extdata',package='EventPointer'),'/EventsFound.txt',sep='')
 #'
-#'  Events<-EventPointer(Design=Dmatrix,
-#'                       Contrast=Cmatrix,
-#'                       ExFit=ArraysData,
-#'                       Eventstxt=EventsFound,
-#'                       Filter=TRUE,
-#'                       Qn=0.25,
-#'                       Statistic='LogFC',
-#'                       PSI=TRUE)
-#'
+#'    Events<-EventPointer(Design=Dmatrix,
+#'                         Contrast=Cmatrix,
+#'                         ExFit=ArraysData,
+#'                         Eventstxt=EventsFound,
+#'                         Filter=TRUE,
+#'                         Qn=0.25,
+#'                         Statistic='LogFC',
+#'                         PSI=TRUE)
+#' @importFrom limma lmFit
 #' @export
 
 
@@ -49,7 +49,10 @@ EventPointer <- function(Design, Contrast,
     # Perform statistical test depending on
     # the selection of the user
     
-    if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
+    # if (classsss(Design) != "matrix" | 
+    #     classsss(Contrast) != "matrix") {
+    if ( !is(Design,"matrix") | 
+         !is(Contrast,"matrix")) {
         stop("Wrong Design and/or Contrast matrices")
     }
     

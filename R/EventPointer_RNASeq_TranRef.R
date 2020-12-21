@@ -39,7 +39,8 @@
 
 EventPointer_RNASeq_TranRef <- function(Count_Matrix, 
     Statistic = "LogFC", Design, Contrast) {
-    if (class(Count_Matrix) != "list") {
+    # if (classsss(Count_Matrix) != "list") {
+    if (!is(Count_Matrix,"list")) {
         stop("Wrong Count_Matrix input: must be a list")
     }
     
@@ -53,10 +54,12 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,
         stop("Wrong statistical test given")
     }
     
-    if (any(!is(Design,"matrix"),!is(Contrast,"matrix"))) {
+    # if (classsss(Design) != "matrix" 
+    # | classsss(Contrast) != "matrix") {
+    if ( !is(Design,"matrix") | 
+         !is(Contrast,"matrix")) {
         stop("Wrong Design and/or Contrast matrices")
     }
-    
     
     
     
@@ -135,10 +138,12 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,
                   4], T34_345[, 3], T34_345[, 
                   10], T34_345[, 9])
                 
-                Final <- data.frame(Gen = rownames(T34_345), 
+                Final <- data.frame(Event_ID = rownames(T34_345), 
                   Pvalue = Values1$Pvalues, 
-                  ZValue = Values1$Tstats, 
+                  Zvalue = Values1$Tstats, 
                   stringsAsFactors = FALSE)
+                
+                rownames(Final) <- Final$Event_ID
                 
                 # EventsN <- PrepareOutput(Events, Final)
             } else if (Statistic == "DRS") {
@@ -160,8 +165,10 @@ EventPointer_RNASeq_TranRef <- function(Count_Matrix,
                 Final <- data.frame(rownames(T2), 
                   T2[, 4], T2[, 3], stringsAsFactors = FALSE)
                 
-                colnames(Final) <- c("Event", 
+                colnames(Final) <- c("Event_ID", 
                   "Pvalue", "Zvalue")
+                
+                rownames(Final) <- Final$Event_ID
                 
                 # EventsN <- PrepareOutput(Events, Final)
             }

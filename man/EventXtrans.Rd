@@ -3,8 +3,10 @@
 \name{EventXtrans}
 \alias{EventXtrans}
 \title{relationship between isoforms and events}
-\format{A \code{list} object \code{EventXtrans[[1]]} displays the isoform
-that build up the path1 of each event.}
+\format{
+A \code{list} object \code{EventXtrans[[1]]} displays the isoform
+that build up the path1 of each event.
+}
 \usage{
 data(EventXtrans)
 }

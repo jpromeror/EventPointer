@@ -4,8 +4,7 @@
 \alias{EventPointer_RNASeq}
 \title{Statistical analysis of alternative splcing events for RNASeq data}
 \usage{
-EventPointer_RNASeq(Events, Design, Contrast, Statistic = "LogFC",
-  PSI = FALSE)
+EventPointer_RNASeq(Events, Design, Contrast, Statistic = "LogFC", PSI = FALSE)
 }
 \arguments{
 \item{Events}{Output from EventDetection function}

@@ -3,9 +3,11 @@
 \name{ArrayDatamultipath}
 \alias{ArrayDatamultipath}
 \title{Preprocessed arrays data with multi-path events}
-\format{A \code{data.frame} with preprocessed arrays data. The preprocessing
+\format{
+A \code{data.frame} with preprocessed arrays data. The preprocessing
 was done using \code{aroma.affymetrix}. See the package vignette for the
-preprocessing pipeline}
+preprocessing pipeline
+}
 \usage{
 data(ArrayDatamultipath)
 }

@@ -3,8 +3,10 @@
 \name{SG_RNASeq}
 \alias{SG_RNASeq}
 \title{Splicing graph elements predicted from BAM files}
-\format{A \code{SGFeatureCounts} objects with predicted splicing
-graph features and counts}
+\format{
+A \code{SGFeatureCounts} objects with predicted splicing
+graph features and counts
+}
 \usage{
 data(SG_RNASeq)
 }

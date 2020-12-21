@@ -10,6 +10,11 @@
 #'
 NULL
 
+
+###########################################################
+## original functions
+###########################################################
+
 #' @rdname InternalFunctions
 annotateEvents <- function(Events, PSR_Gene, 
     Junc_Gene, Gxx) {
@@ -1135,9 +1140,9 @@ ClassifyEvents <- function(SG, Events, twopaths) {
                   To = Events[[XX]]$P1$To)
                 Info2 <- merge(MisExons, 
                   SG$Edges)
+                Info2 <- Info2[order(Info2$Start),]
                 Info2$dist <- as.numeric(as.vector(Info2$End)) - 
                   as.numeric(as.vector(Info2$Start))
-                
                 MisExons <- unique(as.numeric(gsub("[.ab]", 
                   "", c(as.vector(MisExons$From), 
                     as.vector(MisExons$To)))))
@@ -1297,7 +1302,7 @@ ClassifyEvents <- function(SG, Events, twopaths) {
 }
 
 
-#' @rdname InternalFunctions
+
 
 ##### Given the signals of the three paths,
 ##### estimate the concentrations of each of
@@ -1307,6 +1312,7 @@ ClassifyEvents <- function(SG, Events, twopaths) {
 # lambda parameter included to regularize
 # the affinities
 
+#' @rdname InternalFunctions
 estimateAbsoluteConc <- function(Signal1, 
     Signal2, SignalR, lambda) {
     # require(nnls)
@@ -1633,6 +1639,7 @@ GetCounts <- function(Events, sg_txiki, type = "counts") {
     return(countsEvents)
 }
 
+#' @rdname InternalFunctions
 getPathCounts <- function(x, readsC, widthinit) {
     reads <- rbind(colSums(readsC[x$P1$featureID, 
         , drop = FALSE]), colSums(readsC[x$P2$featureID, 
@@ -1644,6 +1651,7 @@ getPathCounts <- function(x, readsC, widthinit) {
     return(x)
 }
 
+#' @rdname InternalFunctions
 getPathFPKMs <- function(x, readsC, widthinit) {
     reads <- rbind(colSums(readsC[x$P1$featureID, 
         , drop = FALSE]), colSums(readsC[x$P2$featureID, 
@@ -1667,6 +1675,7 @@ GetCountsMP <- function(Events, sg_txiki,
     return(countsEvents)
 }
 
+#' @rdname InternalFunctions
 getPathCountsMP <- function(x, readsC, widthinit) {
     command <- "reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),"
     for (i in 2:(x$NumP + 1)) {
@@ -1721,7 +1730,6 @@ getPathFPKMsMP <- function(x, readsC, widthinit) {
 
 
 #' @rdname InternalFunctions
-
 getEventPaths <- function(Events, SG) {
     Groups <- Events$groups
     Triplets <- Events$triplets
@@ -2316,7 +2324,7 @@ getRandomFlow <- function(Incidence, ncol = 1) {
     
     # The seed is set to ensure the order of
     # events remains the same
-    set.seed("0xABBA")
+    # set.seed("0xABBA")
     
     # Solve the Null Space for the Incidence
     # Matrix
@@ -2970,6 +2978,230 @@ SG_creation_RNASeq <- function(SG_Gene) {
     return(list(Edges = Edges, Adjacency = Adjacency, 
         Incidence = Inc))
 }
+
+#' @rdname InternalFunctions
+SG_creation_fast <- function(SG_Gene){
+  myjunc <- which(type(SG_Gene)=="J")
+  exons <- SG_Gene[-myjunc,]
+  # if(max(sapply(geneName(exons),length))>1){
+  if(length(unlist(exons@geneName)) != length(exons)){
+    if(max(sapply(geneName(exons)[which(type(exons)=="F")],length))==1){
+      mytrans <- unique(unlist(txName(exons)[which(type(exons)=="F")]))
+      rr <- which(sapply(geneName(exons),length)>1)
+      for (yy in rr){
+        txName(exons)[yy] <- txName(exons)[yy][txName(exons)[yy] %in2% mytrans  ]
+      }
+      
+    }else if (max(sapply(geneName(exons)[which(type(exons)=="L")],length))==1){
+      mytrans <- unique(unlist(txName(exons)[which(type(exons)=="L")]))
+      rr <- which(sapply(geneName(exons),length)>1)
+      for (yy in rr){
+        txName(exons)[yy] <- txName(exons)[yy][txName(exons)[yy] %in2% mytrans  ]
+      }
+    }
+  }
+  subexons <-  disjoin(exons)
+  ol <- findOverlaps(subexons,exons)
+  # mcols(subexons)$type <- "subE"
+  #txName <- CharacterList(vector("list", length(subexons)))
+  txName <- vector(mode = "list",length = length(subexons))
+  
+  ol_subjectHits <- ol@to
+  ol_queryhits <- ol@from
+  for (i in seq(length(subexons@seqnames)) ){
+    # i <- 1
+    # jj <- which(queryHits(ol)==i)
+    jj <- which(ol_queryhits==i)
+    # jj
+    # trans <- unlist(txName(exons)[subjectHits(ol)[jj]])
+    # print(trans)
+    # txName[[i]] <- unlist(txName(exons)[subjectHits(ol)[jj]])
+    # txName[[i]] <- unlist(exons@txName[subjectHits(ol)[jj]])
+    txName[[i]] <- unlist(exons@txName[ol_subjectHits[jj]])
+  }
+  #subexons$txName <- txName
+  # subexons$txName <- CharacterList(txName)
+  
+  
+  # geneName <- unique(unlist(geneName(exons)))
+  # subexons$geneName <- unique(unlist(geneName(exons)))
+  ###create Adjency matrix
+  numnodos <- length(subexons)*2+2
+  nodos <- sort(c(start(subexons),end(subexons)))
+  coords <- c(nodos)
+  repes <- names(which(table(coords)==2))
+  coordenadas <- c("S",coords,"E")
+  #match point to the first point (not to all de equals)
+  coordenadas[match(repes,coordenadas)] <- paste0(coordenadas[match(repes,coordenadas)],"a")
+  #so, the in the second step we have to add the "b"
+  coordenadas[match(repes,coordenadas)] <- paste0(coordenadas[match(repes,coordenadas)],"b")
+  Adj <- matrix(0, nrow = numnodos, ncol = numnodos)
+  colnames(Adj) <- rownames(Adj) <- coordenadas
+  #add 1 to connected nodes
+  edges <- cbind(match(start(subexons),gsub("a","",coordenadas)),match(end(subexons),gsub("b","",coordenadas)))
+  #add 1 to adyacent subexons (only if they have atleast on e common isoform)
+  nn <- which(diff(coords)==1)
+  if(length(nn)>0){
+    adyacent <- cbind(1+nn,2+nn)
+    if(any(adyacent[,1] %in2% edges[,1] & adyacent[,2] %in2% edges[,2])){
+      nn <- nn[-which(adyacent[,1] %in2% edges[,1] & adyacent[,2] %in2% edges[,2])]
+    }
+    if(length(nn)>0){
+      # X <- nn[1]
+      ad <- sapply(nn, function(X){
+        # return(any(unlist(subexons$txName[match(coords[X],end(subexons))]) %in% unlist(subexons$txName[match(coords[X+1],start(subexons))])))
+        return(any(unlist(txName[match(coords[X],end(subexons))]) %in2% unlist(txName[match(coords[X+1],start(subexons))])))
+      })
+      nn <- nn[ad]
+      edges <- rbind(edges,cbind(1+nn,2+nn)) 
+    }
+    
+  }
+  #add 1 to junctions
+  # junctions <- SG_Gene[which(type(SG_Gene)=="J"),]
+  junctions <- SG_Gene[myjunc,]
+  juncs <- cbind(match(start(junctions),gsub("b","",coordenadas)),match(end(junctions),gsub("a","",coordenadas)))
+  Adj[juncs] <- 1
+  Adj[edges] <- 1
+  #starts and ends
+  mystrand <- as.character(unique(strand(exons)))
+  if(mystrand == "+"){
+    ff <- which(type(exons)=="F")
+    Adj[1,match(start(exons)[ff],gsub("a","",coordenadas))] <- 1
+    ll <- which(type(exons)=="L")
+    Adj[match(end(exons)[ll],gsub("b","",coordenadas)),nrow(Adj)] <- 1
+    uu <- which(type(exons)=="U")
+    if(length(uu) > 0){
+      Adj[1,match(start(exons)[uu],gsub("a","",coordenadas))] <- 1
+      Adj[match(end(exons)[uu],gsub("b","",coordenadas)),nrow(Adj)] <- 1
+    }
+  }else{
+    ff <- which(type(exons)=="L")
+    Adj[1,match(start(exons)[ff],gsub("a","",coordenadas))] <- 1
+    ll <- which(type(exons)=="F")
+    Adj[match(end(exons)[ll],gsub("b","",coordenadas)),nrow(Adj)] <- 1
+    uu <- which(type(exons)=="U")
+    if(length(uu) > 0){
+      Adj[1,match(start(exons)[uu],gsub("a","",coordenadas))] <- 1
+      Adj[match(end(exons)[uu],gsub("b","",coordenadas)),nrow(Adj)] <- 1
+    } 
+  }
+  diag(Adj) <- 0
+  # Change the name of the rows and columns to 1.a 1.b 2.a 2.b,...
+  nombres <- rep(paste(seq_len((numnodos/2 - 1)), ".b", sep = ""), each = 2)
+  nombresa <- rep(paste(seq_len((numnodos/2 - 1)), ".a", sep = ""), each = 2)
+  nombres[seq(1, (numnodos - 2), by = 2)] <- nombresa[seq(1, (numnodos - 2), by = 2)]
+  rownames(Adj) <- colnames(Adj) <- c("S", nombres, "E")
+  Adjacency <- Matrix(Adj)
+  # PosAdj <- c(0, as.numeric(rbind(start(ranges(subexons)), end(ranges(subexons)))), 0)
+  PosAdj <- c(0, coords, 0)
+  
+  ###incidence matrix
+  Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 0))
+  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 2], seq_len(ncol(Inc)))] <- 1
+  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 1], seq_len(ncol(Inc)))] <- -1
+  
+  rownames(Inc) <- rownames(Adj)
+  colnames(Inc) <- seq_len(ncol(Inc))
+  
+  NuevoOrden <- which(Inc[1, ] == -1)
+  NuevoOrden <- c(NuevoOrden, setdiff(unlist(apply(Inc[grep("b", rownames(Inc)), , drop = FALSE], 1, function(x){
+    A <- which(x == -1)})),
+    which(Inc[nrow(Inc), ] == 1)))
+  
+  NuevoOrden <- c(NuevoOrden, unlist(apply(Inc[grep("a", rownames(Inc)), , drop = FALSE], 1,
+                                           function(x) {which(x == -1)})))
+  NuevoOrden <- c(NuevoOrden, which(Inc[nrow(Inc), ] == 1))
+  
+  Inc <- Inc[, NuevoOrden]
+  
+  #Edges
+  Edges <- data.frame()
+  # From <- colnames(Adj)[which(Adj>0,
+  # arr.ind=1)[,1]]
+  From <- rownames(Inc)[apply(Inc, 2, function(X) {
+    which(X == -1)
+  })]
+  # To <- colnames(Adj)[which(Adj>0,
+  # arr.ind=1)[,2]]
+  To <- rownames(Inc)[apply(Inc, 2, function(X) {
+    which(X == 1)
+  })]
+  Edges <- data.frame(From, To)
+  Edges$Chr <- as.vector(seqnames(SG_Gene)@values)
+  Edges$Start <- 0
+  Edges$End <- 0
+  Exons <- grep("a", Edges$From)
+  # Edges$Strand <-
+  # as.character(strand(SG_Gene_SoloE[Exons[1]]))
+  Edges$Strand <- strand(SG_Gene)@values
+  Edges$Type <- "J"
+  Virtual <- c(grep("S", Edges$From), grep("E", Edges$To))
+  Edges[Exons, "Type"] <- "E"
+  Edges[Virtual, "Type"] <- "V"  # If J is required, comment this line.
+  Edges$Start <- PosAdj[match(Edges$From, colnames(Adj))]
+  Edges$End <- PosAdj[match(Edges$To, colnames(Adj))]
+  Edges$Chr <- max(Edges$Chr)
+  
+  # Put featuresID (we can put now from 1 to the number of edges)
+  Edges$featureID <- seq_len(nrow(Edges))
+  
+  #match each edge with the corresponding transcripts
+  Edges$transcripts <- NA
+  
+  misstart <- start(subexons)
+  misends <- end(subexons)
+  
+  for(ii in 1:nrow(Edges)){
+    # ii <- 12
+    # Edges[ii,]
+    
+    if(Edges$Type[ii] == "V"){
+      next() #there is not need to annotate isoforms to virtual edges
+      # if(Edges$From[ii] == "S"){
+      #   ee <- which(start(exons) == Edges$End[ii])
+      #   Edges$transcripts[ii] <- paste(unlist(txName(exons)[ee]),collapse = "|")
+      # }else{
+      #   ee <- which(end(exons) == Edges$Start[ii])
+      #   Edges$transcripts[ii] <- paste(unlist(txName(exons)[ee]),collapse = "|")
+      # } 
+      
+    }else if(Edges$Type[ii] == "E"){
+      # ee <- which(start(subexons) == Edges$Start[ii])
+      ee <- which(misstart == Edges$Start[ii])
+      # Edges$transcripts[ii] <- paste(unlist(subexons$txName[ee]),collapse="|")
+      Edges$transcripts[ii] <- paste(unlist(txName[ee]),collapse="|")
+    } else if(Edges$Type[ii] == "J"){
+      
+      if((Edges$End[ii] - Edges$Start[ii])==1){
+        # sub1 <- unlist(subexons$txName[which(end(subexons)== Edges$Start[ii])])
+        # sub1 <- unlist(subexons$txName[which(misends== Edges$Start[ii])])
+        sub1 <- unlist(txName[which(misends== Edges$Start[ii])])
+        # sub2 <- unlist(subexons$txName[which(start(subexons)== Edges$End[ii])])
+        # sub2 <- unlist(subexons$txName[which(misstart== Edges$End[ii])])
+        sub2 <- unlist(txName[which(misstart== Edges$End[ii])])
+        trans <- unique(c(sub1,sub2))
+        trans <- trans[trans %in2% sub1 & trans %in2% sub2]
+        Edges$transcripts[ii] <- paste(trans,collapse = "|")
+      }else{
+        ee <- which(start(junctions)==Edges$Start[ii] & end(junctions)==Edges$End[ii])
+        # Edges$transcripts[ii] <- paste(unlist(txName(junctions)[ee]),collapse = "|")
+        # Edges$transcripts[ii] <- paste(unlist(junctions@txName[ee]),collapse = "|")
+        Edges$transcripts[ii] <- paste(junctions@txName[[ee]],collapse = "|")
+      }
+      
+    }
+    
+    
+    
+    
+  }
+  
+  return(list(Edges = Edges, Adjacency = Adjacency, Incidence = Inc))
+  
+  
+}
+
 
 
 #' @rdname InternalFunctions
@@ -3937,153 +4169,11 @@ mergeExonsTerminal2 <- function(features,
     return(exons)
 }
 
-########### function for the bootstrap statistic----
 
+###########################################################
+## function for primers design
+###########################################################
 
-
-
-#' @rdname InternalFunctions
-get_beta <- function(combboots, incrPSI_original, 
-    ncontrastes) {
-    newcombboots <- rep(list(matrix(NA, dim(combboots[[1]])[1], 
-        dim(combboots[[1]])[2])), ncontrastes)
-    
-    newcombboots <- lapply(combboots, function(X) {
-        return((1 + X)/2)  # Make values between 0-1
-    })
-    
-    # Data for beta distribution
-    rmedia <- sapply(newcombboots, rowMeans)
-    rvar <- sapply(newcombboots, rowVars) + 
-        1e-05
-    alpha <- ((1 - rmedia) * (rmedia^2)/rvar) - 
-        rmedia
-    beta <- alpha * (1 - rmedia)/rmedia
-    
-    # Example of plots of an event (any
-    # event) ---- n<-391 #Index of event
-    # hist(newcombboots[[1]][n,],seq(0,1,by =
-    # 0.01),freq = F, main = paste('Histogram
-    # of increase in PSI'), xlab =
-    # expression(paste('Increase in PSI')))
-    # Histogram x <- seq(0,1, by =.001)
-    # lines(x,dbeta(x,alpha[n],beta[n]),type
-    # ='l', lwd = 1, col ='orange') #Density
-    # function with calculated alpha and beta
-    # lines(density(newcombboots[[1]][n,]),
-    # type ='l', lwd = 1, col ='purple')
-    # #Empirical density function
-    
-    # Obtain p-values for all events ----
-    deltaPSI <- t(incrPSI_original)
-    pvalues <- matrix(NA, nrow = dim(deltaPSI)[1], 
-        ncol = dim(deltaPSI)[2])
-    
-    pvalues <- pbeta(deltaPSI, alpha, beta)
-    positionMa <- which(pvalues > 0.5)
-    pvalues[positionMa] <- pbeta(deltaPSI[positionMa], 
-        alpha[positionMa], beta[positionMa], 
-        lower.tail = FALSE)
-    pvalues <- pvalues * 2
-    
-    
-    deltaPSI <- (deltaPSI * 2) - 1
-    result <- list(deltaPSI = deltaPSI, pvalues = pvalues)
-    
-    return(result)
-}
-
-#' @rdname InternalFunctions
-get_table <- function(PSI_arrayP, nevents, 
-    totchunk, chunk, nsamples, incrPSI_original, 
-    V, nboot, nbootin, ncontrastes) {
-    
-    # Obtain the part of the incrPSI_original
-    # needed for the minichunk and its length
-    indexincr <- match(rownames(PSI_arrayP), 
-        colnames(incrPSI_original))
-    incrPSI_originalChunk <- incrPSI_original[, 
-        indexincr, drop = FALSE]
-    l <- length(indexincr)  # Length of the minichunk
-    
-    combboots <- rep(list(matrix(NA, l, nboot * 
-        nbootin)), ncontrastes)
-    # Intialize matrix for the increase in
-    # PSI
-    
-    I <- as.integer(rep(seq_len(l), nsamples))
-    J <- as.integer(rep(seq_len(nsamples), 
-        each = l))
-    CTEind <- I + (J - 1L) * l - 1L * nsamples * 
-        l
-    # Constant needed for function get_YB
-    output <- matrix(NA, l, ncontrastes)
-    gc()
-    for (boot in seq_len(nboot)) {
-        Yb <- get_YB(PSI_arrayP, l, nsamples, 
-            I, J, CTEind)
-        # Obtain the combination of bootstraps,
-        # the matrix contains the values of PSI
-        
-        for (boot2 in seq_len(nbootin)) {
-            Yb1 <- Yb[, sample(ncol(Yb), 
-                replace = TRUE)]
-            # Samples the Yb (mixes data)
-            output <- tcrossprod(V, Yb1)  # Obtain the increase in PSI
-            for (boot3 in seq_len(ncontrastes)) {
-                combboots[[boot3]][, boot2 + 
-                  nbootin * (boot - 1)] <- output[boot3, 
-                  ]  # Fills matrix of increase in PSI
-            }
-        }
-    }
-    
-    # Obtain p-values and table of the
-    # minichunks
-    table <- get_beta(combboots, incrPSI_originalChunk, 
-        ncontrastes)
-    # matplot(t(PSI_original[order(pvalues)[1:30],]),
-    # type='b') Plot of events with # small
-    # p-value
-    
-    
-    return(table)
-}
-
-#' @rdname InternalFunctions
-get_YB <- function(PSI_arrayS, l, nsamples, 
-    I, J, CTEind) {
-    K <- rep(sample(dim(PSI_arrayS)[3], nsamples, 
-        replace = TRUE), l)
-    
-    # Formula to obtain the index of the
-    # PSI_arrayS
-    IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[c(1, 
-        2)])
-    
-    Yb <- PSI_arrayS[IndiceIJK]
-    attr(Yb, "dim") <- c(l, nsamples)
-    return(Yb)
-}
-
-#' @rdname InternalFunctions
-getInfo <- function(table, ncontrast) {
-    if (class(table$LocalFDR) == "list") {
-        data <- data.frame(deltaPSI = table$deltaPSI[, 
-            ncontrast], Pvalues = table$Pvalues[, 
-            ncontrast], LocalFDR = table$LocalFDR[[ncontrast]]$lfdr2)
-    } else {
-        data <- data.frame(deltaPSI = table$deltaPSI[, 
-            ncontrast], Pvalues = table$Pvalues[, 
-            ncontrast], LocalFDR = table$LocalFDR$lfdr2)
-    }
-    
-    return(data)
-}
-
-
-
-########### function for primers design ----
 
 #' @rdname InternalFunctions
 PrimerSequenceGeneral <- function(taqman,FinalExons,
@@ -4093,52 +4183,53 @@ PrimerSequenceGeneral <- function(taqman,FinalExons,
                                   maxLength,
                                   minsep,wminsep,
                                   valuethreePpenalty,
-                                  wnpaths,qualityfilter)
-  {
-  thermo.param = file.path(Dir, "primer3_config")
-  settings = file.path(Dir,"primer3web_v4_0_0_default_settings.txt")
-  PrimersFound <- 0
-  n <- 0
-  Fdata <- data.frame()
-  if (class(FinalExons)!="character"){
-    while ((nrow(Fdata) < nPrimers )& (n<nrow(FinalExons))){
-      n <- n+1
-      # 1) Use only two primers
-      if(FinalExons[n,5]==0){
-        
-        Fdata1 <-PrimerSequenceTwo(FinalExons,SG,generaldata,n,thermo.param,
-                                   Primer3Path,settings)
-        Fdata <- rbind(Fdata, Fdata1)
-        
-        # 2) Use common FW primer and two Reverse primers
-      } else if (FinalExons[n,5]==1){
-        Fdata1 <- PrimerSequenceCommonFor(FinalExons,SG,generaldata,n,
-                                          thermo.param,Primer3Path,
-                                          settings)
-        Fdata <- rbind(Fdata, Fdata1)
-        
-        
-        # 3) Use common reverse primer and two FW primers    
-      } else if (FinalExons[n,5]==2){
-        Fdata1 <- PrimerSequenceCommonRev(FinalExons,SG,generaldata,n,
-                                          thermo.param,Primer3Path,
-                                          settings)
-        Fdata <- rbind(Fdata, Fdata1)
-      }
+                                  wnpaths,qualityfilter,mygenomesequence)
+{
+    thermo.param = file.path(Dir, "primer3_config")
+    settings = file.path(Dir,"primer3web_v4_0_0_default_settings.txt")
+    PrimersFound <- 0
+    n <- 0
+    Fdata <- data.frame()
+    # if (classss(FinalExons)!="character"){
+    if (!is(FinalExons,"character")){
+        while ((nrow(Fdata) < nPrimers )& (n<nrow(FinalExons))){
+            n <- n+1
+            # 1) Use only two primers
+            if(FinalExons[n,5]==0){
+                
+                Fdata1 <-PrimerSequenceTwo(FinalExons,SG,generaldata,n,thermo.param,
+                                           Primer3Path,settings,mygenomesequence)
+                Fdata <- rbind(Fdata, Fdata1)
+                
+                # 2) Use common FW primer and two Reverse primers
+            } else if (FinalExons[n,5]==1){
+                Fdata1 <- PrimerSequenceCommonFor(FinalExons,SG,generaldata,n,
+                                                  thermo.param,Primer3Path,
+                                                  settings,mygenomesequence)
+                Fdata <- rbind(Fdata, Fdata1)
+                
+                
+                # 3) Use common reverse primer and two FW primers    
+            } else if (FinalExons[n,5]==2){
+                Fdata1 <- PrimerSequenceCommonRev(FinalExons,SG,generaldata,n,
+                                                  thermo.param,Primer3Path,
+                                                  settings,mygenomesequence)
+                Fdata <- rbind(Fdata, Fdata1)
+            }
+        }
+        if (dim(Fdata)[1]!=0){
+            # Sorting results taking into account sequences:
+            RankedFdata <- getranksequence(taqman, Fdata,maxLength,minsep,
+                                           wminsep,valuethreePpenalty,wnpaths,
+                                           qualityfilter)
+        }else{
+            RankedFdata <- "Not possible to place primers due to the structure of the Event."
+            
+        }
+    } else{
+        RankedFdata <- "Not possible to place primers due to the structure of the Event."
     }
-    if (dim(Fdata)[1]!=0){
-      # Sorting results taking into account sequences:
-      RankedFdata <- getranksequence(taqman, Fdata,maxLength,minsep,
-                                     wminsep,valuethreePpenalty,wnpaths,
-                                     qualityfilter)
-    }else{
-      RankedFdata <- "Not possible to place primers due to the structure of the Event."
-      
-    }
-  } else{
-    RankedFdata <- "Not possible to place primers due to the structure of the Event."
-  }
-  return(RankedFdata)
+    return(RankedFdata)
 }
 
 
@@ -4146,67 +4237,68 @@ PrimerSequenceGeneral <- function(taqman,FinalExons,
 PrimerSequenceTwo <-function(FinalExons,SG,
                              generaldata,n,
                              thermo.param,
-                             Primer3Path,settings)
-  {
-  Fdata1<- data.frame()
-  # Get the ID for each exon where Primers are placed
-  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
-  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
-  # Get de sequence of each exon:
-  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
-  FExonSeq <- getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1]))
-  RExonSeq <- getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1]))
-  
-  # Build input sequence for Primer3
-  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq)))+1
-  seq <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq),sep="")
-  maxlength <- str_length(seq)
-  # Call Primer3 
-  p1 <- callPrimer3(seq, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
-                    name = "Primer1", Primer3Path = Primer3Path,
-                    thermo.param = thermo.param,
-                    sequence_target = 110+minlength,
-                    settings = settings)
-  
-  # Build Output binding with new Sequence info and knowed Exon info
-  if(is.null(dim(p1))==FALSE){
-    for (s in 1: dim(p1)[1]) {
-      For1Exon <- FinalExons[n,1]
-      Rev1Exon <- FinalExons[n,3]
-      For1Seq <- p1[s,2]
-      Rev1Seq <- p1[s,3]
-      LastPosFor1 <-  p1[s,6]+ p1[s,7] - 1
-      LastPosFor2 <- NA
-      FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
-      FirstPosRev2 <- NA
-      distinPrimers <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
-      Info <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers,SG)
-      
-      paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-      
-      # Distances from any path:
-      DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-      # Distances from path1:
-      DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
-      # Distances from path2
-      DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
-      Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
-      names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
-      PrSeq <- data.frame(For1Seq,NA,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
-      colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
-      Fdata1<-cbind(PrSeq , FinalExons[n,-6],Distances)
-    }
-  }   
-  return(Fdata1)
+                             Primer3Path,settings,mygenomesequence)
+{
+    Fdata1<- data.frame()
+    # Get the ID for each exon where Primers are placed
+    ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+    ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+    # Get de sequence of each exon:
+    # Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+    FExonSeq <- getSeq(mygenomesequence,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1]))
+    RExonSeq <- getSeq(mygenomesequence,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1]))
+    
+    # Build input sequence for Primer3
+    minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq)))+1
+    seq <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq),sep="")
+    maxlength <- str_length(seq)
+    # Call Primer3 
+    p1 <- callPrimer3(seq, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                      name = "Primer1", Primer3Path = Primer3Path,
+                      thermo.param = thermo.param,
+                      sequence_target = 110+minlength,
+                      settings = settings)
+    
+    # Build Output binding with new Sequence info and knowed Exon info
+    if(is.null(dim(p1))==FALSE){
+        for (s in 1: dim(p1)[1]) {
+            For1Exon <- FinalExons[n,1]
+            Rev1Exon <- FinalExons[n,3]
+            For1Seq <- p1[s,2]
+            Rev1Seq <- p1[s,3]
+            LastPosFor1 <-  p1[s,6]+ p1[s,7] - 1
+            LastPosFor2 <- NA
+            FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+            FirstPosRev2 <- NA
+            distinPrimers <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+            Info <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers,SG)
+            
+            paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+            
+            # Distances from any path:
+            DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+            # Distances from path1:
+            DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+            # Distances from path2
+            DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+            Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+            names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+            PrSeq <- data.frame(For1Seq,NA,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+            colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+            Fdata1<-cbind(PrSeq , FinalExons[n,-6],Distances)
+        }
+    }   
+    return(Fdata1)
 }
 
 
 #' @rdname InternalFunctions
 ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
                            ,Primer3Path=Sys.which("primer3_core"),
-                           nProbes)
+                           nProbes,mygenomesequence)
   {
-  if (class(FinalSeq)!="character"){
+  # if (classsss(FinalSeq)!="character"){
+    if (!is(FinalSeq,"character")){
     thermo.param = file.path(Dir, "primer3_config")
     settings = file.path(Dir,"primer3web_v4_0_0_default_settings.txt")
     # The Probe will be in the reference and in one of the two paths:
@@ -4219,7 +4311,7 @@ ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
       
       # We put a probe in the reference:
       ExonsRef <- generaldata$exonsPathsandRef$Reference
-      seqref <- CreateSequenceforProbe(SG,ExonsRef,FinalSeq,n)
+      seqref <- CreateSequenceforProbe(SG,ExonsRef,FinalSeq,n,mygenomesequence)
       probesref <- callPrimer3probes(seqref, name = "Primer1", 
                                      Primer3Path = Primer3Path,
                                      thermo.param = thermo.param,
@@ -4231,7 +4323,7 @@ ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
         # We put a probe in the path1:
         
         ExonsPath1 <- generaldata$exonsPathsandRef$Path1
-        seqPath1 <- CreateSequenceforProbe(SG,ExonsPath1,FinalSeq,n)
+        seqPath1 <- CreateSequenceforProbe(SG,ExonsPath1,FinalSeq,n,mygenomesequence)
         probesPath1 <- callPrimer3probes(seqPath1,name = "Primer1",
                                          Primer3Path = Primer3Path,
                                          thermo.param = thermo.param,
@@ -4243,7 +4335,7 @@ ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
         }else{
           # We try to put a probe in the path2:
           ExonsPath2 <- generaldata$exonsPathsandRef$Path2
-          seqPath2 <- CreateSequenceforProbe(SG,ExonsPath2,FinalSeq,n)
+          seqPath2 <- CreateSequenceforProbe(SG,ExonsPath2,FinalSeq,n,mygenomesequence)
           probesPath2 <- callPrimer3probes(seqPath2,name = "Primer1",
                                            Primer3Path = Primer3Path,
                                            thermo.param = thermo.param,
@@ -4359,11 +4451,11 @@ callPrimer3 <- function (seq,threeprimers = FALSE,
   returned.primers = as.numeric(as.vector(out[out[, 1] == "PRIMER_PAIR_NUM_RETURNED", 
                                               ][, 2]))
   if (length(returned.primers) == 0) {
-    warning("primers not detected for ", name, call. = FALSE)
+    # warning("primers not detected for ", name, call. = FALSE)
     return(NA)
   }
   if ((returned.primers) == 0) {
-    warning("primers not detected for ", name, call. = FALSE)
+    # warning("primers not detected for ", name, call. = FALSE)
     return(NA)
   }
   if (returned.primers > 0) {
@@ -4449,7 +4541,7 @@ callPrimer3probes <- function (seq, name = "Primer1",
 
 
 #' @rdname InternalFunctions
-CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
+CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n,mygenomesequence)
   {
   if (isEmpty(Exons)){
     Exons=""}
@@ -4468,7 +4560,8 @@ CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
     # If there is a primer in an exon we need to put only the part of the sequence 
     # after that primer:
     ExonID <- match(FinalSeq[n,9], SG$Edges$From)
-    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    # ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
     ExonSeq <- unlist(strsplit(ExonSeq,""))
     seqinicio <- paste(ExonSeq[(FinalSeq[n,5]+1):length(ExonSeq)],collapse = "") 
   }
@@ -4483,7 +4576,8 @@ CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
     # If there is a primer in an exon we need to put only the part of the sequence 
     # after that primer:
     ExonID <- match(FinalSeq[n,10], SG$Edges$From)
-    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    # ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
     ExonSeq <- unlist(strsplit(ExonSeq,""))
     seqinicio <- paste(ExonSeq[(FinalSeq[n,6]+1):length(ExonSeq)],collapse = "") 
   }
@@ -4498,7 +4592,8 @@ CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
     # If there is a primer in an exon we need to put only the part of the sequence 
     # after that primer:
     ExonID <- match(FinalSeq[n,11], SG$Edges$From)
-    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    # ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
     ExonSeq <- unlist(strsplit(ExonSeq,""))
     seqfin <- paste(ExonSeq[0:(FinalSeq[n,7]-1)],collapse = "") 
   }
@@ -4513,7 +4608,8 @@ CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
     # If there is a primer in an exon we need to put only the part of the sequence 
     # after that primer:
     ExonID <- match(FinalSeq[n,12], SG$Edges$From)
-    ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    # ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+    ExonSeq <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
     ExonSeq <- unlist(strsplit(ExonSeq,""))
     seqfin <- paste(ExonSeq[0:(FinalSeq[n,8]-1)],collapse = "") 
   }
@@ -4525,7 +4621,8 @@ CreateSequenceforProbe <- function(SG,Exons,FinalSeq,n)
     ExonID <- match(Exons[i], SG$Edges$From)
     # Get de sequence of that exon
     if (is.na(ExonID)==FALSE){
-      ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+      # ExonSeq <- as.character(getSeq(Hsapiens,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
+      ExonSeq <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonID], as.numeric(SG$Edges$Start[ExonID]), as.numeric(SG$Edges$End[ExonID])))
       # Build input sequence for Primer3
       seq <- paste(seq,paste(rep("N",21),collapse = ""),ExonSeq, sep="")
     }else {
@@ -4593,25 +4690,28 @@ includeaexons <- function(Forward)
 }
 
 #' @rdname InternalFunctions
-genreverse <- function(FinalInfo)
-  {
-  names <- names(FinalInfo)
-  NewFinal <- FinalInfo
-  # We aplly the reverse and complement to probes:
-  rev <- function(x) {
-    if (is.na(x))
-    {return(NA)}
-    else
-    {return(as.character(reverseComplement(DNAString(x))))}}
-  
-  for (i in 13:15){
-    x <- sapply(FinalInfo[,i],FUN = rev)
-    NewFinal[,i] <- x
-  }
-  # We swap forward and reverse columns keeping names:
-  NewFinal[,1:8] <- cbind(NewFinal[,c(3,4,1,2,7,8,5,6)])
-  names(NewFinal) <- names
-  return(NewFinal)
+genreverse <- function(FinalInfo,taqman)
+{
+    names <- names(FinalInfo)
+    NewFinal <- FinalInfo
+    # We aplly the reverse and complement to probes:
+    if(taqman==1){
+        rev <- function(x) {
+            if (is.na(x))
+            {return(NA)}
+            else
+            {return(as.character(reverseComplement(DNAString(x))))}}
+        
+        for (i in 13:15){
+            x <- sapply(FinalInfo[,i],FUN = rev)
+            NewFinal[,i] <- x
+        }
+    }
+    
+    # We swap forward and reverse columns keeping names:
+    NewFinal[,1:8] <- NewFinal[,c(3,4,1,2,7,8,5,6)]
+    names(NewFinal) <- names
+    return(NewFinal)
 }
 
 
@@ -5353,150 +5453,150 @@ PrimerSequenceCommonFor <-function(FinalExons,SG,
                                    generaldata,n,
                                    thermo.param,
                                    Primer3Path,
-                                   settings)
-  {
-  Fdata1 <- data.frame()
-  # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
-  For1Exon <- FinalExons[n,1]
-  Rev1Exon <- FinalExons[n,3]
-  Rev2Exon <- FinalExons[n,4]
-  # Get the ID for each exon where Primers are placed
-  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
-  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
-  ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
-  # Get de sequence of each exon
-  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
-  FExonSeq  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
-  RExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
-  RExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
-  # Call primer3 with two the sequence of two of the exons:
-  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
-  seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
-  maxlength <- str_length(seq1) 
-  
-  p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
-                    name = "Primer1", Primer3Path = Primer3Path,
-                    thermo.param = thermo.param,
-                    sequence_target = 110,
-                    settings = settings)
-  # When a sequence is finded in first exon we look for de sequence in the other exon:
-  if(is.null(dim(p1))==FALSE){
-    for (s in 1: dim(p1)[1]) {
-      pr=p1[s,2]
-      minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
-      seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
-      maxlength2 <- str_length(seq2)
-      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
-                        name = "Primer1", Primer3Path = Primer3Path,
-                        thermo.param = thermo.param,
-                        sequence_target = 110+ minlength2,
-                        settings = settings)
-      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
-      if(is.null(dim(p2))==FALSE){
-        for (d in 1: dim(p2)[1]) {
-          # We calculate primers positions in exons
-          For1Seq <- p1[s,2]
-          Rev1Seq <- p1[s,3]
-          Rev2Seq <- p2[d,3]
-          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
-          LastPosFor2 <- NA
-          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
-          FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
-          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
-          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
-          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
-          InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
-          Info <- c(InfoC1,InfoC2)
-          # Distances from any path:
-          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path1:
-          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path2
-          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
-          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
-          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
-          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
-          colnames(FExons) <- colnames(FinalExons)[-6]
-          PrSeq<-data.frame(For1Seq,NA,Rev1Seq,Rev2Seq,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
-          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
-          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                                   settings,mygenomesequence)
+{
+    Fdata1 <- data.frame()
+    # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
+    For1Exon <- FinalExons[n,1]
+    Rev1Exon <- FinalExons[n,3]
+    Rev2Exon <- FinalExons[n,4]
+    # Get the ID for each exon where Primers are placed
+    ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+    ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+    ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
+    # Get de sequence of each exon
+    # Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+    FExonSeq  <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+    RExonSeq1 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+    RExonSeq2 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
+    # Call primer3 with two the sequence of two of the exons:
+    minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
+    seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
+    maxlength <- str_length(seq1) 
+    
+    p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
+                      name = "Primer1", Primer3Path = Primer3Path,
+                      thermo.param = thermo.param,
+                      sequence_target = 110,
+                      settings = settings)
+    # When a sequence is finded in first exon we look for de sequence in the other exon:
+    if(is.null(dim(p1))==FALSE){
+        for (s in 1: dim(p1)[1]) {
+            pr=p1[s,2]
+            minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
+            seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
+            maxlength2 <- str_length(seq2)
+            p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                              name = "Primer1", Primer3Path = Primer3Path,
+                              thermo.param = thermo.param,
+                              sequence_target = 110+ minlength2,
+                              settings = settings)
+            # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+            if(is.null(dim(p2))==FALSE){
+                for (d in 1: dim(p2)[1]) {
+                    # We calculate primers positions in exons
+                    For1Seq <- p1[s,2]
+                    Rev1Seq <- p1[s,3]
+                    Rev2Seq <- p2[d,3]
+                    LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+                    LastPosFor2 <- NA
+                    FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+                    FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
+                    distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
+                    InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+                    distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
+                    InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
+                    Info <- c(InfoC1,InfoC2)
+                    # Distances from any path:
+                    DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path1:
+                    DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path2
+                    DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+                    Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+                    names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+                    FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+                    colnames(FExons) <- colnames(FinalExons)[-6]
+                    PrSeq<-data.frame(For1Seq,NA,Rev1Seq,Rev2Seq,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+                    colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+                    Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                }
+            }
         }
-      }
     }
-  }
-  # 2ยบ Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
-  # For that reason we swap exons:
-  a <-  FinalExons[,3]
-  FinalExons[,3] <- FinalExons[,4]
-  FinalExons[,4] <- a
-  
-  For1Exon <- FinalExons[n,1]
-  Rev1Exon <- FinalExons[n,3]
-  Rev2Exon <- FinalExons[n,4]
-  # Get the ID for each exon where Primers are placed
-  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
-  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
-  ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
-  # Get de sequence of each exon
-  FExonSeq  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
-  RExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
-  RExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
-  # Call primer3 with two the sequence of two of the exons:
-  minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
-  seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
-  maxlength <- str_length(seq1) 
-  
-  p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
-                    name = "Primer1", Primer3Path = Primer3Path,
-                    thermo.param = thermo.param,
-                    sequence_target = 110,
-                    settings = settings)
-  # When a sequence is finded in first exon we look for de sequence in the other exon:
-  if(is.null(dim(p1))==FALSE){
-    for (s in 1: dim(p1)[1]) {
-      pr=p1[s,2]
-      minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
-      seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
-      maxlength2 <- str_length(seq2)
-      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
-                        name = "Primer1", Primer3Path = Primer3Path,
-                        thermo.param = thermo.param,
-                        sequence_target = 110+ minlength2,
-                        settings = settings)
-      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
-      if(is.null(dim(p2))==FALSE){
-        for (d in 1: dim(p2)[1]) {
-          # We calculate primers positions in exons
-          For1Seq <- p1[s,2]
-          Rev1Seq <- p1[s,3]
-          Rev2Seq <- p2[d,3]
-          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
-          LastPosFor2 <- NA
-          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
-          FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
-          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
-          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
-          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
-          InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
-          Info <- c(InfoC1,InfoC2)
-          # Distances from any path:
-          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path1:
-          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path2
-          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
-          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
-          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
-          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,4],FinalExons[n,3],FinalExons[n,5],FinalExons[n,7])
-          colnames(FExons) <- colnames(FinalExons)[-6]
-          PrSeq<-data.frame(For1Seq,NA,Rev2Seq,Rev1Seq,LastPosFor1,LastPosFor2,FirstPosRev2,FirstPosRev1)
-          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
-          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+    # 2Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
+    # For that reason we swap exons:
+    a <-  FinalExons[,3]
+    FinalExons[,3] <- FinalExons[,4]
+    FinalExons[,4] <- a
+    
+    For1Exon <- FinalExons[n,1]
+    Rev1Exon <- FinalExons[n,3]
+    Rev2Exon <- FinalExons[n,4]
+    # Get the ID for each exon where Primers are placed
+    ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+    ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+    ExonR2 <- match(as.character(FinalExons[n,4]), SG$Edges$From)
+    # Get de sequence of each exon
+    FExonSeq  <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+    RExonSeq1 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+    RExonSeq2 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR2], as.numeric(SG$Edges$Start[ExonR2]), as.numeric(SG$Edges$End[ExonR2])))
+    # Call primer3 with two the sequence of two of the exons:
+    minlength <- max(c(str_length(FExonSeq),str_length(RExonSeq1)))+1
+    seq1 <- paste(as.character(FExonSeq), paste(rep("N",minlength),collapse = "") ,as.character(RExonSeq1),sep="")
+    maxlength <- str_length(seq1) 
+    
+    p1 <- callPrimer3(seq1, size_range =sprintf("%0.0f-%0.0f", minlength, maxlength),
+                      name = "Primer1", Primer3Path = Primer3Path,
+                      thermo.param = thermo.param,
+                      sequence_target = 110,
+                      settings = settings)
+    # When a sequence is finded in first exon we look for de sequence in the other exon:
+    if(is.null(dim(p1))==FALSE){
+        for (s in 1: dim(p1)[1]) {
+            pr=p1[s,2]
+            minlength2 <- max(c(str_length(FExonSeq),str_length(RExonSeq2)))+1
+            seq2 <- paste(as.character(FExonSeq), paste(rep("N",minlength2),collapse = "") ,as.character(RExonSeq2),sep="")
+            maxlength2 <- str_length(seq2)
+            p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = FALSE , size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                              name = "Primer1", Primer3Path = Primer3Path,
+                              thermo.param = thermo.param,
+                              sequence_target = 110+ minlength2,
+                              settings = settings)
+            # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+            if(is.null(dim(p2))==FALSE){
+                for (d in 1: dim(p2)[1]) {
+                    # We calculate primers positions in exons
+                    For1Seq <- p1[s,2]
+                    Rev1Seq <- p1[s,3]
+                    Rev2Seq <- p2[d,3]
+                    LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+                    LastPosFor2 <- NA
+                    FirstPosRev1 <- p1[s,8]-str_length(FExonSeq)-minlength-p1[s,9]+1
+                    FirstPosRev2 <- p2[d,8]-str_length(FExonSeq)-minlength2-p2[d,9]+1
+                    distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s]- minlength
+                    InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+                    distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d]- minlength2
+                    InfoC2 <- getDistanceseachPath(For1Exon,Rev2Exon,generaldata,distinPrimers2,SG)
+                    Info <- c(InfoC1,InfoC2)
+                    # Distances from any path:
+                    DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path1:
+                    DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path2
+                    DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+                    Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+                    names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+                    FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,4],FinalExons[n,3],FinalExons[n,5],FinalExons[n,7])
+                    colnames(FExons) <- colnames(FinalExons)[-6]
+                    PrSeq<-data.frame(For1Seq,NA,Rev2Seq,Rev1Seq,LastPosFor1,LastPosFor2,FirstPosRev2,FirstPosRev1)
+                    colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+                    Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                }
+            }
         }
-      }
     }
-  }
-  return(unique(Fdata1))
+    return(unique(Fdata1))
 }
 
 
@@ -5505,177 +5605,1409 @@ PrimerSequenceCommonRev <-function(FinalExons,SG,
                                    generaldata,n,
                                    thermo.param,
                                    Primer3Path,
-                                   settings)
-  {
-  Fdata1 <- data.frame()
-  # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
-  For1Exon <- FinalExons[n,1]
-  For2Exon <- FinalExons[n,2]
-  Rev1Exon <- FinalExons[n,3]
-  # Get the ID for each exon where Primers are placed
-  ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
-  ExonF2 <- match(as.character(FinalExons[n,2]), SG$Edges$From)
-  ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
-  # Get de sequence of each exon
-  Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
-  FExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
-  FExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
-  SeqExonR  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
-  # Call primer3 with two the sequence of two of the exons:
-  minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
-  seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
-  maxlength <- str_length(seq1)
-  
-  p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
-                    name = "Primer1", Primer3Path = Primer3Path,
-                    thermo.param = thermo.param,
-                    sequence_target = 110,
-                    settings = settings)
-  # When a sequence is finded in first exon we look for de sequence in the other exon:
-  if(is.null(dim(p1))==FALSE){
-    for (s in 1: dim(p1)[1]) {
-      pr=p1[s,3]
-      minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
-      seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
-      maxlength2 <- str_length(seq2)
-      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
-                        name = "Primer1", Primer3Path = Primer3Path,
-                        thermo.param = thermo.param,
-                        sequence_target = 110+minlength2,
-                        settings = settings)
-      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
-      if(is.null(dim(p2))==FALSE){
-        for (d in 1: dim(p2)[1]) {
-          # We calculate primers positions in exons
-          For1Seq <- p1[s,2]
-          For2Seq <- p2[d,2]
-          Rev1Seq <- p1[s,3]
-          # We calculate primers positions in exons
-          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
-          LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
-          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
-          FirstPosRev2 <- NA
-          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
-          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
-          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] - minlength2
-          InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
-          Info <- c(InfoC1,InfoC2)
-          # Distances from any path:
-          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path1:
-          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path2
-          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
-          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
-          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
-          FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
-          colnames(FExons) <- colnames(FinalExons)[-6]
-          PrSeq<-data.frame(For1Seq,For2Seq,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
-          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
-          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                                   settings,mygenomesequence)
+{
+    Fdata1 <- data.frame()
+    # Case1: Find sequence in the first Exon and once we have set that sequence we look for the sequence in the second exon.
+    For1Exon <- FinalExons[n,1]
+    For2Exon <- FinalExons[n,2]
+    Rev1Exon <- FinalExons[n,3]
+    # Get the ID for each exon where Primers are placed
+    ExonF1 <- match(as.character(FinalExons[n,1]), SG$Edges$From)
+    ExonF2 <- match(as.character(FinalExons[n,2]), SG$Edges$From)
+    ExonR1 <- match(as.character(FinalExons[n,3]), SG$Edges$From)
+    # Get de sequence of each exon
+    # Hsapienshg38  <- BSgenome.Hsapiens.UCSC.hg38::Hsapiens
+    FExonSeq1 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+    FExonSeq2 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
+    SeqExonR  <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+    # Call primer3 with two the sequence of two of the exons:
+    minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
+    seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
+    maxlength <- str_length(seq1)
+    
+    p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                      name = "Primer1", Primer3Path = Primer3Path,
+                      thermo.param = thermo.param,
+                      sequence_target = 110,
+                      settings = settings)
+    # When a sequence is finded in first exon we look for de sequence in the other exon:
+    if(is.null(dim(p1))==FALSE){
+        for (s in 1: dim(p1)[1]) {
+            pr=p1[s,3]
+            minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
+            seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
+            maxlength2 <- str_length(seq2)
+            p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                              name = "Primer1", Primer3Path = Primer3Path,
+                              thermo.param = thermo.param,
+                              sequence_target = 110+minlength2,
+                              settings = settings)
+            # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+            if(is.null(dim(p2))==FALSE){
+                for (d in 1: dim(p2)[1]) {
+                    # We calculate primers positions in exons
+                    For1Seq <- p1[s,2]
+                    For2Seq <- p2[d,2]
+                    Rev1Seq <- p1[s,3]
+                    # We calculate primers positions in exons
+                    LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+                    LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
+                    FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
+                    FirstPosRev2 <- NA
+                    distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+                    InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+                    distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] - minlength2
+                    InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
+                    Info <- c(InfoC1,InfoC2)
+                    # Distances from any path:
+                    DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path1:
+                    DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path2
+                    DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+                    Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+                    names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+                    FExons <- data.frame(FinalExons[n,1],FinalExons[n,2],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+                    colnames(FExons) <- colnames(FinalExons)[-6]
+                    PrSeq<-data.frame(For1Seq,For2Seq,Rev1Seq,NA,LastPosFor1,LastPosFor2,FirstPosRev1,FirstPosRev2)
+                    colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+                    Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                }
+            }
         }
-      }
     }
-  }
-  # 2ยบ Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
-  # For that reason we swap exons:
-  a <-  FinalExons[,2]
-  FinalExons[,2] <- FinalExons[,1]
-  FinalExons[,1] <- a
-  
-  For1Exon <- FinalExons[n,1]
-  For2Exon <- FinalExons[n,2]
-  Rev1Exon <- FinalExons[n,3]
-  # Get the ID for each exon where Primers are placed
-  ExonF1 <- match(as.character(For1Exon), SG$Edges$From)
-  ExonF2 <- match(as.character(For2Exon), SG$Edges$From)
-  ExonR1 <- match(as.character(Rev1Exon), SG$Edges$From)
-  # Get de sequence of each exon
-  FExonSeq1 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
-  FExonSeq2 <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
-  SeqExonR  <- as.character(getSeq(Hsapienshg38,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
-  # Call primer3 with two the sequence of two of the exons:
-  minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
-  seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
-  maxlength <- str_length(seq1)
-  
-  p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
-                    name = "Primer1", Primer3Path = Primer3Path,
-                    thermo.param = thermo.param,
-                    sequence_target = 110,
-                    settings = settings)
-  # When a sequence is finded in first exon we look for de sequence in the other exon:
-  if(is.null(dim(p1))==FALSE){
-    for (s in 1: dim(p1)[1]) {
-      pr=p1[s,3]
-      minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
-      seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
-      maxlength2 <- str_length(seq2)
-      p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
-                        name = "Primer1", Primer3Path = Primer3Path,
-                        thermo.param = thermo.param,
-                        sequence_target = 110+minlength2,
-                        settings = settings)
-      # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
-      if(is.null(dim(p2))==FALSE){
-        for (d in 1: dim(p2)[1]) {
-          For1Seq <- p1[s,2]
-          For2Seq <- p2[d,2]
-          Rev1Seq <- p1[s,3]
-          # We calculate primers positions in exons
-          LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
-          LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
-          FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
-          FirstPosRev2 <- NA
-          distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
-          InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
-          distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] -minlength2
-          InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
-          Info <- c(InfoC1,InfoC2)
-          # Distances from any path:
-          DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path1:
-          DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
-          # Distances from path2
-          DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
-          Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
-          names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
-          FExons <- data.frame(FinalExons[n,2],FinalExons[n,1],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
-          colnames(FExons) <- colnames(FinalExons)[-6]
-          PrSeq<-data.frame(For2Seq,For1Seq,Rev1Seq,NA,LastPosFor2,LastPosFor1,FirstPosRev1,FirstPosRev2)
-          colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
-          Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+    # 2Case: Find sequence in the second Exon and once we have set that sequence we look for the sequence in the first exon.
+    # For that reason we swap exons:
+    a <-  FinalExons[,2]
+    FinalExons[,2] <- FinalExons[,1]
+    FinalExons[,1] <- a
+    
+    For1Exon <- FinalExons[n,1]
+    For2Exon <- FinalExons[n,2]
+    Rev1Exon <- FinalExons[n,3]
+    # Get the ID for each exon where Primers are placed
+    ExonF1 <- match(as.character(For1Exon), SG$Edges$From)
+    ExonF2 <- match(as.character(For2Exon), SG$Edges$From)
+    ExonR1 <- match(as.character(Rev1Exon), SG$Edges$From)
+    # Get de sequence of each exon
+    FExonSeq1 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF1], as.numeric(SG$Edges$Start[ExonF1]), as.numeric(SG$Edges$End[ExonF1])))
+    FExonSeq2 <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonF2], as.numeric(SG$Edges$Start[ExonF2]), as.numeric(SG$Edges$End[ExonF2])))
+    SeqExonR  <- as.character(getSeq(mygenomesequence,SG$Edges$Chr[ExonR1], as.numeric(SG$Edges$Start[ExonR1]), as.numeric(SG$Edges$End[ExonR1])))
+    # Call primer3 with two the sequence of two of the exons:
+    minlength <- max(c(str_length(FExonSeq1),str_length(SeqExonR)))+1
+    seq1 <- paste(as.character(FExonSeq1), paste(rep("N",minlength),collapse = "") ,as.character(SeqExonR),sep="")
+    maxlength <- str_length(seq1)
+    
+    p1 <- callPrimer3(seq1, size_range = sprintf("%0.0f-%0.0f", minlength, maxlength),
+                      name = "Primer1", Primer3Path = Primer3Path,
+                      thermo.param = thermo.param,
+                      sequence_target = 110,
+                      settings = settings)
+    # When a sequence is finded in first exon we look for de sequence in the other exon:
+    if(is.null(dim(p1))==FALSE){
+        for (s in 1: dim(p1)[1]) {
+            pr=p1[s,3]
+            minlength2 <- max(c(str_length(FExonSeq2),str_length(SeqExonR)))+1
+            seq2 <- paste(as.character(FExonSeq2), paste(rep("N",minlength2),collapse = "") ,as.character(SeqExonR),sep="")
+            maxlength2 <- str_length(seq2)
+            p2 <- callPrimer3(seq2,threeprimers = TRUE,pr=pr,reverse = TRUE, size_range = sprintf("%0.0f-%0.0f", minlength2, maxlength2),
+                              name = "Primer1", Primer3Path = Primer3Path,
+                              thermo.param = thermo.param,
+                              sequence_target = 110+minlength2,
+                              settings = settings)
+            # If we have all Sequences needed we build Output binding with new Sequence info and knowed Exon info
+            if(is.null(dim(p2))==FALSE){
+                for (d in 1: dim(p2)[1]) {
+                    For1Seq <- p1[s,2]
+                    For2Seq <- p2[d,2]
+                    Rev1Seq <- p1[s,3]
+                    # We calculate primers positions in exons
+                    LastPosFor1 <- p1[s,6]+ p1[s,7] - 1
+                    LastPosFor2 <- p2[d,6]+ p2[d,7] - 1
+                    FirstPosRev1 <- p1[s,8]-str_length(FExonSeq1)-minlength-p1[s,9]+1
+                    FirstPosRev2 <- NA
+                    distinPrimers1 <- p1$PRIMER_PAIR_PRODUCT_SIZE[s] - minlength
+                    InfoC1 <- getDistanceseachPath(For1Exon,Rev1Exon,generaldata,distinPrimers1,SG)
+                    distinPrimers2 <- p2$PRIMER_PAIR_PRODUCT_SIZE[d] -minlength2
+                    InfoC2 <- getDistanceseachPath(For2Exon,Rev1Exon,generaldata,distinPrimers2,SG)
+                    Info <- c(InfoC1,InfoC2)
+                    # Distances from any path:
+                    DistancesP0 <- paste(Info[which(Info=="p0")-1][order(as.integer(Info[which(Info=="p0")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path1:
+                    DistancesP1 <- paste(Info[which(Info=="p1")-1][order(as.integer(Info[which(Info=="p1")-1]),decreasing = FALSE)],collapse = " - ")
+                    # Distances from path2
+                    DistancesP2 <- paste(Info[which(Info=="p2")-1][order(as.integer(Info[which(Info=="p2")-1]),decreasing = FALSE)],collapse = " - ")
+                    Distances <- data.frame(DistancesP1,DistancesP2,DistancesP0)
+                    names(Distances) <-c("DistPath1","DistPath2","DistNoPath")
+                    FExons <- data.frame(FinalExons[n,2],FinalExons[n,1],FinalExons[n,3],FinalExons[n,4],FinalExons[n,5],FinalExons[n,7])
+                    colnames(FExons) <- colnames(FinalExons)[-6]
+                    PrSeq<-data.frame(For2Seq,For1Seq,Rev1Seq,NA,LastPosFor2,LastPosFor1,FirstPosRev1,FirstPosRev2)
+                    colnames(PrSeq)<-c("For1Seq","For2Seq","Rev1Seq","Rev2Seq","LastPosFor1","LastPosFor2","FirstPosRev1","FirstPosRev2")
+                    Fdata1<-rbind(Fdata1,cbind(PrSeq , FExons,Distances))
+                }
+            }
         }
-      }
     }
-  }
-  return(unique(Fdata1))
+    return(unique(Fdata1))
 }
 
 
 
 
 
+###########################################################
+## BOOTSTRAP INTERNAL FUCNTIONS
+###########################################################
+
+
+#' @rdname InternalFunctions
+get_beta <- function(combboots, incrPSI_original, 
+                     ncontrastes) {
+  newcombboots <- rep(list(matrix(NA, dim(combboots[[1]])[1], 
+                                  dim(combboots[[1]])[2])), ncontrastes)
+  
+  newcombboots <- lapply(combboots, function(X) {
+    return((1 + X)/2)  # Make values between 0-1
+  })
+  
+  # Data for beta distribution
+  rmedia <- sapply(newcombboots, rowMeans)
+  rvar <- sapply(newcombboots, rowVars) + 
+    1e-05
+  alpha <- ((1 - rmedia) * (rmedia^2)/rvar) - 
+    rmedia
+  beta <- alpha * (1 - rmedia)/rmedia
+  
+  # Example of plots of an event (any
+  # event) ---- n<-391 #Index of event
+  # hist(newcombboots[[1]][n,],seq(0,1,by =
+  # 0.01),freq = F, main = paste('Histogram
+  # of increase in PSI'), xlab =
+  # expression(paste('Increase in PSI')))
+  # Histogram x <- seq(0,1, by =.001)
+  # lines(x,dbeta(x,alpha[n],beta[n]),type
+  # ='l', lwd = 1, col ='orange') #Density
+  # function with calculated alpha and beta
+  # lines(density(newcombboots[[1]][n,]),
+  # type ='l', lwd = 1, col ='purple')
+  # #Empirical density function
+  
+  # Obtain p-values for all events ----
+  deltaPSI <- t(incrPSI_original)
+  pvalues <- matrix(NA, nrow = dim(deltaPSI)[1], 
+                    ncol = dim(deltaPSI)[2])
+  
+  pvalues <- pbeta(deltaPSI, alpha, beta)
+  positionMa <- which(pvalues > 0.5)
+  pvalues[positionMa] <- pbeta(deltaPSI[positionMa], 
+                               alpha[positionMa], beta[positionMa], 
+                               lower.tail = FALSE)
+  pvalues <- pvalues * 2
+  
+  
+  deltaPSI <- (deltaPSI * 2) - 1
+  result <- list(deltaPSI = deltaPSI, pvalues = pvalues)
+  
+  return(result)
+}
+
+#' @rdname InternalFunctions
+get_table <- function(PSI_arrayP, nevents, 
+                      totchunk, chunk, nsamples, incrPSI_original, 
+                      V, nboot, nbootin, ncontrastes) {
+  
+  # Obtain the part of the incrPSI_original
+  # needed for the minichunk and its length
+  indexincr <- match(rownames(PSI_arrayP), 
+                     colnames(incrPSI_original))
+  incrPSI_originalChunk <- incrPSI_original[, 
+                                            indexincr, drop = FALSE]
+  l <- length(indexincr)  # Length of the minichunk
+  
+  combboots <- rep(list(matrix(NA, l, nboot * 
+                                 nbootin)), ncontrastes)
+  # Intialize matrix for the increase in
+  # PSI
+  
+  I <- as.integer(rep(seq_len(l), nsamples))
+  J <- as.integer(rep(seq_len(nsamples), 
+                      each = l))
+  CTEind <- I + (J - 1L) * l - 1L * nsamples * 
+    l
+  # Constant needed for function get_YB
+  output <- matrix(NA, l, ncontrastes)
+  gc()
+  for (boot in seq_len(nboot)) {
+    Yb <- get_YB(PSI_arrayP, l, nsamples, 
+                 I, J, CTEind)
+    # Obtain the combination of bootstraps,
+    # the matrix contains the values of PSI
+    
+    for (boot2 in seq_len(nbootin)) {
+      Yb1 <- Yb[, sample(ncol(Yb), 
+                         replace = TRUE)]
+      # Samples the Yb (mixes data)
+      output <- tcrossprod(V, Yb1)  # Obtain the increase in PSI
+      for (boot3 in seq_len(ncontrastes)) {
+        combboots[[boot3]][, boot2 + 
+                             nbootin * (boot - 1)] <- output[boot3, 
+                                                             ]  # Fills matrix of increase in PSI
+      }
+    }
+  }
+  
+  # Obtain p-values and table of the
+  # minichunks
+  table <- get_beta(combboots, incrPSI_originalChunk, 
+                    ncontrastes)
+  # matplot(t(PSI_original[order(pvalues)[1:30],]),
+  # type='b') Plot of events with # small
+  # p-value
+  
+  
+  return(table)
+}
+
+#' @rdname InternalFunctions
+get_YB <- function(PSI_arrayS, l, nsamples, 
+                   I, J, CTEind) {
+  K <- rep(sample(dim(PSI_arrayS)[3], nsamples, 
+                  replace = TRUE), l)
+  
+  # Formula to obtain the index of the
+  # PSI_arrayS
+  IndiceIJK <- CTEind + K * prod(dim(PSI_arrayS)[c(1, 
+                                                   2)])
+  
+  Yb <- PSI_arrayS[IndiceIJK]
+  attr(Yb, "dim") <- c(l, nsamples)
+  return(Yb)
+}
+
+#' @rdname InternalFunctions
+getInfo <- function(table, ncontrast) {
+  # if (classsss(table$LocalFDR) == "list") {
+    if (is(table$LocalFDR,"list")) {
+    data <- data.frame(deltaPSI = table$deltaPSI[, 
+                                                 ncontrast], Pvalues = table$Pvalues[, 
+                                                                                     ncontrast], LocalFDR = table$LocalFDR[[ncontrast]]$lfdr2)
+  } else {
+    data <- data.frame(deltaPSI = table$deltaPSI[, 
+                                                 ncontrast], Pvalues = table$Pvalues[, 
+                                                                                     ncontrast], LocalFDR = table$LocalFDR$lfdr2)
+  }
+  
+  return(data)
+}
 
 
 
+#' @rdname InternalFunctions
+checkContrastDesignMatrices <- function(C,D) {
+  result <- TRUE
+  V <- crossprod(C,solve(crossprod(D),t(D)))
+  f.con <- crossprod(t(D),solve(crossprod(D),t(D))) # New version
+  f.dir <- rep("<=", ncol(V))
+  f.rhs <- rep(1,ncol(V))
+  contrasts <- nrow(V)
+  
+  for (contrast in 1:contrasts) {
+    
+    f.obj <- V[contrast,]
+    Salida <- lp("max", f.obj, f.con, f.dir, f.rhs)$objval
+    if (abs(Salida-1) > 1e-10) { 
+      warning("Design and Contrast Matrices badly designed!!")
+      result <- FALSE
+    }
+    Salida <- lp("min", f.obj, f.con, f.dir, f.rhs)$objval
+    if (abs(Salida+1) > 1e-10) { 
+      warning("Design and Contrast Matrices badly designed!!")
+      result <- FALSE
+    }
+  }
+  if (result == TRUE){
+    cat("\n The Contrast and Design Matrices have been correctly designed. \n", sep = "\n")
+  }
+  return(result)
+}
+
+#' @rdname InternalFunctions
+mclapplyPSI_Bootstrap <- function(PSI_boots,Design,Contrast,cores,ram,nbootstraps,KallistoBootstrap,th, verbose = 0){
+  
+  # # PSI_array <- array(unlist(PSI_boots,use.names = FALSE), c(dim(PSI_boots[[1]]),length(PSI_boots)),
+  # #                                     dimnames = list(rownames(PSI_boots[[1]])))
+  # indnan <- which(is.na(PSI_array))
+  # PSI_array[indnan]<-runif(length(indnan),min=0,max=1)
+  # 
+  # #Create matrix of the increase in PSI of events
+  # nsamples <- dim(PSI_array)[3]
+  # nevents <- dim(PSI_array)[1]
+  # ncontrastes <- dim(Contrast)[1]
+  
+  eps <- 10 * .Machine$double.eps ## We take 10 times the computer's resolution.
+  ETA_aux <- NaN
+  # crono <- 0
+  p.value <- list()
+  deltaPSI <- list()
+  median_events <- list()
+  iqr_events <- list()
+  # Both of these variables are for calculating the ETA.
+  
+  indnan <- which(is.na(PSI_boots))
+  PSI_boots[indnan]<-runif(length(indnan),min=0,max=1)
+  #Create matrix of the increase in PSI of events
+  if(is.matrix(PSI_boots)){
+    PSI_boots <- array(PSI_boots,dim = c(nrow(PSI_boots),1,ncol(PSI_boots)),dimnames = list(rownames(PSI_boots),c(),colnames(PSI_boots)))
+  }
+  nsamples <- dim(PSI_boots)[3]
+  nkallboot <- dim(PSI_boots)[2]
+  nevents <- dim(PSI_boots)[1]
+  ncontrastes <- dim(t(Contrast))[1]
+  
+  
+  numeventos <- floor(ram/((nsamples*nkallboot)*cores*8e-9 + ncontrastes*nbootstraps*8e-9))
+  
+  # numelements <- ram / 1.8e-8
+  # numeventos <- floor(numelements/(nbootstraps*ncontrastes))
+  totchunk <- ceiling(nevents/numeventos)
+  cat("Number of chunks: ",totchunk,"\n")
+  eventsPos <- floor(nevents/totchunk)
+  ini <- 1
+  fin <- eventsPos
+  
+  # Loops, only chunks of data: --
+  # pb <- txtProgressBar(min = 0, max = totchunk,
+  #                      style = 3)
+  for (chunk in 1:totchunk) {
+    # setTxtProgressBar(pb, chunk)
+    if(chunk==totchunk){ 
+      fin <- nevents
+    }
+    # chunkPSI_array <- PSI_array[ini:fin,,]
+    # chunkPSI_array <- PSI_boots[ini:fin,,,drop=FALSE]
+    chunkPSI_array <- PSI_boots[seq(from=ini,to=fin),,,drop=FALSE]
+    chunklist<-  vector("list", cores) #List for mclapply, its length depends on the amount of cores
+    
+    if (dim(chunkPSI_array)[1]>=cores){
+      miscores <- cores
+      l<-floor(dim(chunkPSI_array)[1]/cores) #Length of elements of the list
+    }else{
+      miscores <- dim(chunkPSI_array)[1]
+      l <- 1
+    }
+    
+    for (c in 1:cores) { #Fill list with part of the data of PSI_array
+      if(c==miscores){
+        chunklist[[c]]<-chunkPSI_array[((c-1)*l+1):(dim(chunkPSI_array)[1]),,,drop=FALSE] #Condition for last matrix of list
+      }else{
+        chunklist[[c]]<-chunkPSI_array[((c-1)*l+1):(c*l),,,drop=FALSE]
+      }
+    }
+    remove(chunkPSI_array)
+    
+    
+    # table <- mclapply(chunklist, get_table_Bootstrap,Design,Contrast,nbootstraps,KallistoBootstrap,th,mc.cores = cores )
+    
+    
+    
+    #in order do debug
+    # table <- vector(mode="list",length = cores)
+    # for(ii in seq_len(cores)){
+    #   table[[ii]] <- get_table_Bootstrap(chunklist[[ii]],Design,Contrast,nbootstraps,KallistoBootstrap,th)
+    # }
+    
+    
+    
+    # #the original
+    # cat("\nPerforming resampling of chunk number",chunk,", this may take a while...\n")
+    # registerDoParallel(cores = cores)
+    # table <- foreach(ii = seq_len(cores)) %dopar% {
+    #   get_table_Bootstrap(chunklist[[ii]],Design,Contrast,nbootstraps,KallistoBootstrap,th)
+    # }
+    
+    #With new get_table_Bootstrap
+    cat("\nPerforming resampling of chunk number",chunk,", this may take a while...\n")
+    table <- call_get_table_Bootstrap(chunklist,Design,Contrast,nbootstraps,KallistoBootstrap,th,cores)
+    
+    
+    
+    
+    
+    if (cores == 1){
+      deltaPSI[[chunk]] <- table [[1]][[1]]
+      p.value[[chunk]] <- table [[1]][[2]]
+      iqr_events[[chunk]] <- table[[1]][[3]]
+      median_events[[chunk]] <- table[[1]][[4]]
+    }else{
+      aux_deltaPSI <- lapply(table,function(x) x[[1]] )
+      aux_p.values <- lapply(table,function(x) x[[2]] )
+      aux_iqr_events <- lapply(table,function(x) x[[3]])
+      aux_median_events <- lapply(table,function(x) x[[4]])
+      
+      
+      p.value[[chunk]] <- aux_p.values
+      deltaPSI[[chunk]] <- aux_deltaPSI 
+      iqr_events[[chunk]] <- aux_iqr_events
+      median_events[[chunk]] <- aux_median_events
+      
+      rm(aux_p.values,aux_deltaPSI,table)
+    }
+    
+    
+    if (chunk == totchunk){
+      cat ( "\n****Analysis 100 % Completed****\n")
+      cat("\nPreparing output...\n ")
+      if (cores == 1){
+        deltaPSI <-unname(do.call(abind,c(deltaPSI,along=1)))
+        Pvalues <- unname(do.call(rbind,p.value))
+        iqr_events <- unname(do.call(rbind,iqr_events))
+        median_events <- unname(do.call(rbind,median_events))
+      }else{
+        # aux_p_values <- mclapply(p.value, function(x) abind(x, along=1),mc.cores=cores)
+        aux_p_values <- lapply(p.value, function(x) abind(x, along=1))
+        # aux_iqr_events <- mclapply(iqr_events,function(x) abind(x,along=1),mc.cores=cores)
+        aux_iqr_events <- lapply(iqr_events,function(x) abind(x,along=1))
+        # aux_median_events <- mclapply(median_events,function(x) abind(x,along=1),mc.cores=cores)
+        aux_median_events <- lapply(median_events,function(x) abind(x,along=1))
+        # aux_deltaPSI <- mclapply(deltaPSI, function(x) abind(x,along=1),mc.cores=cores)
+        aux_deltaPSI <- lapply(deltaPSI, function(x) abind(x,along=1))
+        
+        Pvalues <- do.call(rbind,aux_p_values)
+        iqr_events <- do.call(rbind,aux_iqr_events)
+        median_events <- do.call(rbind,aux_median_events)
+        
+        rm(p.value,aux_p_values,deltaPSI,aux_iqr_events,aux_median_events)
+        deltaPSI <- unname(do.call(abind,c(aux_deltaPSI,along=1)))
+        rm(aux_deltaPSI)
+        
+      }
+    } 
+    
+    cat("finish chunk ",chunk,"\n")
+    ini <- fin+1
+    fin <- fin+eventsPos
+    
+  }
+  
+  # LFDR estimation. NaNs are removed.
+  if(ncol(Contrast)>1){
+      ## infering the localfdr need a lambda parameter to be within [0,1)
+      ## and need to achieve at least the bigest pvalue if only if this pvalue is not 1
+      ## then:
+      if(max(Pvalues)==1){
+          milambda <- seq(0.05, 0.95, 0.05)
+      }else{
+          milambda <- seq(0.05, max(Pvalues), 0.05)
+      }
+      
+    LocalFDR <-apply(Pvalues,2,function(X){
+      result <- qvalue(X,trunc = FALSE, monotone = FALSE,lambda = milambda)
+      salida <- suppressWarnings(cobs(x=log(result$pvalues+eps),y=result$lfdr, constraint = "incr",
+                                      pointwise = matrix(c(-1,0,1,1,min(log(result$pvalues+eps),na.rm = TRUE),0),byrow = TRUE,ncol = 3), lambda = 1,
+                                      print.mesg = FALSE))
+      iix <- which(is.na(X))
+      if(length(iix)>0){
+        jjx <- which(!is.na(X))
+        if(length(jjx)>0){
+          result$lfdr2 <- result$lfdr
+          result$lfdr2[jjx] <- predict(salida, log(X[jjx]+eps))[,2]
+        }else{
+          Prueba$lfdr2 <- Prueba$lfdr
+        }
+      }else{
+        result$lfdr2 <- predict(salida, log(X+eps))[,2]
+      }
+      return(result)
+      
+    })
+  }else{
+      ## infering the localfdr need a lambda parameter to be within [0,1)
+      ## and need to achieve at least the bigest pvalue if only if this pvalue is not 1
+      ## then:
+      if(max(Pvalues)==1){
+          milambda <- seq(0.05, 0.95, 0.05)
+      }else{
+          milambda <- seq(0.05, max(Pvalues), 0.05)
+      }
+      
+    LocalFDR <- qvalue(Pvalues,trunc = FALSE, monotone = FALSE,lambda = milambda)
+    salida <- suppressWarnings(cobs(x=log(LocalFDR$pvalues+eps),y=LocalFDR$lfdr, constraint = "incr",
+                                    pointwise = matrix(c(-1,0,1,1,min(log(LocalFDR$pvalues+eps),na.rm = TRUE),0),byrow = TRUE,ncol = 3),lambda = 1,
+                                    print.mesg = FALSE))
+    iix <-which(is.na(Pvalues))
+    if(length(iix)>0){
+      jjx <- which(!is.na(Pvalues))
+      if(length(jjx)>0){
+        LocalFDR$lfdr2 <- LocalFDR$lfdr
+        LocalFDR$lfdr2[jjx] <- predict(salida, log(Pvalues[jjx]+eps))[,2]
+      }else{
+        LocalFDR$lfdr2 <- LocalFDR$lfdr
+      }
+    }else{
+      LocalFDR$lfdr2 <- predict(salida, log(Pvalues+eps))[,2]
+    }
+  }
+  
+  rownames(Pvalues) <- rownames(PSI_boots)
+  rownames(deltaPSI) <- rownames(PSI_boots)
+  rownames(iqr_events) <- rownames(PSI_boots)
+  rownames(median_events) <- rownames(PSI_boots)
+  tablefinal <-list(deltaPSI=deltaPSI,Pvalues=Pvalues,iqr_events = iqr_events,median_events=median_events,LocalFDR=LocalFDR)
+  
+  return(tablefinal)
+  
+}
+
+#' @rdname InternalFunctions
+call_get_table_Bootstrap <- function(chunklist,Design,Contrast,nbootstraps,KallistoBootstrap,th,cores){
+    
+    
+    # registerDoParallel(cores = cores)
+    # table <- foreach(ii = seq_len(cores),.export = c("get_table_Bootstrap")) %dopar% {
+    #   get_table_Bootstrap(chunklist[[ii]],Design,Contrast,nbootstraps,KallistoBootstrap,th)
+    # }
+    # return(table)
+    
+    if(cores > 1){
+        
+        cat("\nCreating clusters","\n")
+        cl <- makeCluster(cores,type = 'PSOCK')
+        registerDoParallel(cl)
+        cat(paste0("\nWorking in parallel (",cores," cores)"))
+        # try(table <- foreach(ii = seq_len(cores),.export = c("get_table_Bootstrap","pvalue_incr_PSI"),.packages =c("matrixStats","gldist")) %dopar% {
+        #   get_table_Bootstrap(chunklist[[ii]],Design,Contrast,nbootstraps,KallistoBootstrap,th)
+        # })
+        
+        try(table <- foreach(ii = seq_len(cores),.export = c("get_table_Bootstrap","pvalue_incr_PSI"),.packages =c("EventPointer","matrixStats")) %dopar% {
+            get_table_Bootstrap(chunklist[[ii]],Design,Contrast,nbootstraps,KallistoBootstrap,th)
+        })
+        
+        stopCluster(cl)
+        cat("\nParallel work finished","\n")
+        return(table)
+    }else{
+        table <- list(get_table_Bootstrap(chunklist[[1]],Design,Contrast,nbootstraps,KallistoBootstrap,th))
+        return(table)
+    }
+    
+}
+
+#' @rdname InternalFunctions
+get_table_Bootstrap <- function(PSI_arrayP,Design,Contrast,nbootstraps,KallistoBootstrap,th){
+  
+  # set.seed(1)
+  dims <- dim(PSI_arrayP)
+  l <- dims[1]
+  m <- dims[3]
+  ncontrastes <- ncol(Contrast)
+  
+  V <- crossprod(Contrast,solve(crossprod(Design),t(Design)))
+  
+  # This chunk of code is used to get the different types of samples there are is the experiment, and the amount 
+  # of each sample there is in each type.
+  # Tipos <- t(unique(t(V)));alea <- runif(nrow(Tipos));aleaTipos <- round(as.numeric(alea %*% Tipos), digits = 10)
+  # Clases <- factor(match(round(as.numeric(alea %*% V),digits = 10), aleaTipos));elementosxclase <- table(Clases)
+  
+  # rm(Tipos,alea,aleaTipos)
+  
+  grupos <- round(t(V) %*% rnorm(nrow(V)),digits = 6)
+  tablagrupos <- table(grupos)
+  nclases <- length(tablagrupos)
+  # Getting the output for each event
+  
+  # The following if condition checks if there has been any Kallisto bootstrap done.
+  # If the first condition is met, it means there has been no Kallisto Bootstrapping.
+  # The user is asked to enter if there has been any Kallisto Bootstrapping as a parameter, 0 by default.
+  #______________________________________________________________________________________________________________________
+  
+  # This is the case in which there has been no Kallisto Bootstrapping, in this case,there is only one bootstrap
+  # which is the one we are using below to make the sampling with replacement.
+  # We also perform one bootstrap for all the samples in the same time, thus, saving computational time.
+  
+  if (KallistoBootstrap == FALSE){ 
+      
+      if(nclases == nrow(Design)){
+          stop("number of groups equal to number of samples. 
+        Without the bootstrap from pseudo-alignment
+        it is no possible to run bootstrap statistic")
+      }
+      
+      incr_PSI <- array(NA,c(l,ncontrastes,nbootstraps+1))
+      # indexes <- (1:length(Clases))
+      # nclases <- length(elementosxclase)
+      
+      # Q <- list()
+      helper <- matrix(NA,nrow = m,ncol = nbootstraps)
+      #realdeltapsi
+      
+      if(any(is.na(PSI_arrayP[,1,]))){
+          for(iiq in 1:nclases) {
+              # iiq <- 1
+              sampling <- which(grupos == names(tablagrupos[iiq]))
+              A <- PSI_arrayP[,1,][,sampling]
+              if(any(is.na(A))){
+                  sonNAs <- is.na(A)
+                  Ab <- A
+                  for(ii in 1:ncol(A)) {
+                      # ii <- 1
+                      weights <- matrix(runif(nrow(A)*ncol(A)),nrow(A),ncol(A))
+                      weights[sonNAs] <- 0
+                      weights <- weights/rowSums(weights, na.rm = TRUE)
+                      Ab[,ii] <- rowSums(A*weights, na.rm = TRUE)
+                  }
+                  Ab[!sonNAs] <- A[!sonNAs]
+                  PSI_arrayP[,1,][,sampling] <- Ab
+              }else{
+                  next
+              }
+              
+          }
+      }
+      incr_PSI[,,1] <-  t(V %*% t(PSI_arrayP[,1,]))
+      
+      for (event in 1:l) { 
+          # for (clase in 1:nclases) {
+          for (iiq in 1:nclases) {
+              # elementosclase <- indexes[clase == Clases]
+              # Q[[clase]] <- matrix(sample(elementosclase, elementosxclase[clase] * nbootstraps, replace = TRUE),
+              #                      nrow = elementosxclase[clase], ncol = nbootstraps)
+              elementosclase <- which(grupos == names(tablagrupos)[iiq])
+              helper[elementosclase,] <- sample(PSI_arrayP[event,1,elementosclase],size = nbootstraps,replace = TRUE)
+          }
+          # Salida <- do.call(rbind,Q)
+          
+          # for (nboot in 1:nbootstraps) {
+          incr_PSI[event,,-1] <- V %*% helper
+          # }
+      }
+      ResultsPvals <- pvalue_incr_PSI(incr_PSI,th)
+      table <- list(PSI_values = incr_PSI[,,1],
+                    # table <- list(PSI_values = incr_PSI,
+                    Pvalues = ResultsPvals$p.value,
+                    iqr_events = ResultsPvals$iqr_events,
+                    median_events = ResultsPvals$median_events)
+      return(table)
+  } 
+  
+  #______________________________________________________________________________________________________________________
+  
+  # In this case, there has been Kallisto Bootstrapping. First, we remove the maximum authenticity bootstrap,
+  # because is the one we have used before. In this case we will be sampling the Kallisto Bootstraps,
+  # for each event in each sample we make the bootstraps of those Kallisto Bootstraps.
+  # On this if condition, we are taking the Kallisto Bootstrapping of all the samples that have the same condition.
+  
+  if (KallistoBootstrap == TRUE){
+      
+      incr_PSI <- array(0,c(l,ncontrastes,(1+nbootstraps)))
+      helper <- array(NA,c(m,nbootstraps))
+      vv <- PSI_arrayP[,1,]
+      if(any(is.na(vv))){
+          for(iiq in 1:nclases) {
+              # iiq <- 1
+              sampling <- which(grupos == names(tablagrupos[iiq]))
+              A <- vv[,sampling]
+              if(any(is.na(A))){
+                  sonNAs <- is.na(A)
+                  Ab <- A
+                  for(ii in 1:ncol(A)) {
+                      # ii <- 1
+                      weights <- matrix(runif(nrow(A)*ncol(A)),nrow(A),ncol(A))
+                      weights[sonNAs] <- 0
+                      weights <- weights/rowSums(weights, na.rm = TRUE)
+                      Ab[,ii] <- rowSums(A*weights, na.rm = TRUE)
+                  }
+                  Ab[!sonNAs] <- A[!sonNAs]
+                  vv[,sampling] <- Ab
+              }else{
+                  next
+              }
+              
+          }
+      }
+      incr_PSI[,,1] <-  t(V %*% t(vv))
+      PSI_arrayP <- PSI_arrayP[,-1,]
+      sample <- 0
+      
+      for (event in 1:l) { 
+          # event <- 4
+          # for(Clase in levels(Clases)) {
+          for(iiq in 1:nclases) {
+              # iiq <- 1
+              # NewClase <- as.numeric(Clase)
+              # aux <- as.numeric(elementosxclase[NewClase])
+              # sampling <- (sample+1):((sample)+aux)
+              sampling <- which(grupos == names(tablagrupos[iiq]))
+              for (sample in sampling){
+                  # sample <- sampling[1]
+                  if(any(is.na(PSI_arrayP[event,,sampling]))){
+                      if(any(!is.na(PSI_arrayP[event,,sampling]))){
+                          A <- PSI_arrayP[event,,sampling]
+                          nnx <- which(is.na(A))
+                          A[nnx] <- sample(A[-nnx],length(nnx),replace=TRUE)
+                          PSI_arrayP[event,,sampling] <- A  
+                      }else{
+                      }
+                  }
+                  helper[sample,] <- sample(PSI_arrayP[event,,sampling],nbootstraps,replace=TRUE)
+              }
+          }
+          incr_PSI[event,,-1] <- V %*% helper
+          # incr_PSI[event,,-1] <- matrixproduct(V,helper)
+          sample <- 0
+      }
+      
+      
+      ResultsPvals <- pvalue_incr_PSI(incr_PSI,th)
+      table <- list(PSI_values = incr_PSI[,,1],
+                    # table <- list(PSI_values = incr_PSI,
+                    Pvalues = ResultsPvals$p.value,
+                    iqr_events = ResultsPvals$iqr_events,
+                    median_events = ResultsPvals$median_events)
+      
+      return(table)
+  }
+}
+
+#' @rdname InternalFunctions
+pvalue_incr_PSI <- function (incr_PSI, th = 0, verbose = 0){
+  
+  dims <- dim(incr_PSI)
+  nevents <- dims[1]
+  ncontrastes <- dims[2]
+  
+  # x <- seq(-1,1,by = .0001)
+  p.value <- array (NA, c(nevents,ncontrastes))
+  iqr_events <- array (NA, c(nevents,ncontrastes))
+  median_events <- array (NA, c(nevents,ncontrastes))
+  
+  for (contrasts in 1:ncontrastes){
+    for (events in 1:nevents) {
+      notimportant <- FALSE
+      
+      aux2<-incr_PSI[events,contrasts,-1]
+      if(any(is.na(aux2))){
+          p.value[events,contrasts] <- 1
+          next
+      }
+      my_iqr <- iqr(aux2)
+      my_median <- median(aux2)
+      
+      iqr_events[events,contrasts] <- my_iqr
+      median_events[events,contrasts] <- my_median
+      
+      
+      if (my_iqr < 1e-5){
+        notimportant <- TRUE
+        # If this variable is TRUE, means that both the median and the iqr are 0, thus, having no impact at all.
+      }
+      
+      if (notimportant == TRUE){
+          p.value[events,contrasts] <- 1 * (abs(my_median) < 1e-3) #de aqui el pico en el 1
+      }else{
+        # try(param <- fitgl(aux2,start=c(my_median,my_iqr,0,0.3), method = "quant",len=500L)$par)
+          param <- try(fitgl(aux2,start=c(my_median,my_iqr,0,0.3), method = "quant",len=500L)$par)
+          
+          if(is(param,"try-error")){
+              p.value[events,contrasts] <- 1
+          }else{
+              # param1 <- param
+              
+              p.value[events,contrasts] <-(1+pgl(-th,param)+ (1-pgl(th,param)))*(1-max(pgl(-th,param),1-pgl(th,param)))
+              if (p.value[events,contrasts] > 1) p.value[events,contrasts] <- 1
+              
+              
+              if (p.value[events,contrasts] < 1e-13) {
+                  p.value[events,contrasts] <-  pnorm(abs(th), mean = abs(my_median), sd = my_iqr/1.349)
+              }
+              
+          }
+          
+        
+        
+        # if (verbose > 0) {  # If verbose = 0 (default), there is no plotting done. 
+        #   # If verbose = 1, only the significant pvalues are plotted,
+        #   # If verbose = 2, all the pvalues are plotted.
+        #   if ((p.value[events,contrasts] < .01)|(verbose > 1)) {
+        #     hist(aux2,seq(-1,1,by = 0.005),freq = F, xlim = c(-1,1))
+        #     try(lines(x, dgl(x, param), col = "red"))
+        #   }
+        # }
+        
+        
+      } 
+    } 
+  }
+  return(list(p.value=p.value,
+              iqr_events=iqr_events,
+              median_events=median_events))
+}
 
 
+###########################################################
+## enrichment
+###########################################################
+#' @rdname InternalFunctions
+calculateCorrelationTest <- function(A,B,method = c("pearson", "spearman")){
+  
+  
+  B <- as.matrix(B)
+  B <- t(B)
+  
+  # A_2 <- A
+  # B_2 <- B
+  if(method == "spearman"){
+    # A <-rowRanks(A,ties.method = "average") (not necessary)
+    B <- rowRanks(B,ties.method = "average")  
+  }
+  
+  Asd <- (A - rowMeans(A))
+  Bsd <- (B - rowMeans(B))
+  Asd <- Asd/sqrt(rowSums(Asd^2))
+  Bsd <- Bsd/sqrt(rowSums2(Bsd^2))
+  
+  
+  
+  # miscolnames <- rownames(Gene_Expression)
+  
+  mycor <- tcrossprod(Asd,Bsd) 
+  mycor <- as.matrix(mycor)
+  #get pvalues
+  n <- ncol(A)
+  df <- n-2
+  STATISTIC <- sqrt(df) * mycor / sqrt(1 - mycor^2)
+  STATISTIC <- as.matrix(STATISTIC)
+  
+  PVAL <- pt(STATISTIC,df)
+  iix <- which(PVAL>0.5)
+  if(length(iix)>0){
+    PVAL[iix] <- pt(STATISTIC[iix],df,lower.tail = FALSE)
+  }
+  PVAL <- 2*PVAL
+  #
+  return(list(mycor=mycor,STATISTIC = STATISTIC, PVAL = PVAL))
+  
+  
+  
+}
+
+###########################################################
+## others
+###########################################################
+#' @rdname InternalFunctions
+"%in2%" <- function(x, table) match(x, table, nomatch = 0) > 0
+
+###########################################################
+## SF Prediction internal functions
+###########################################################
+#' @rdname InternalFunctions
+callGRseq_parallel <- function(EventsFound,SG_List,cores,typeA,nt){
+    
+    
+    cl <- makeCluster(cores)
+    registerDoParallel(cl)
+    try(
+        GRseq3 <- foreach(i = seq_len(nrow(EventsFound)),.packages = "GenomicRanges") %dopar%
+            # suppressWarnings(GRseq <- foreach(i = seq_len(12),.combine = "c") %dopar%  
+            {
+                # i <- 1258 # para mutual exclusive
+                # i <- 3 #para alternative first
+                # i <- 1 #typeA
+                mygene <- EventsFound$GeneName[i]
+                mygeneid <- EventsFound$GeneID[i]
+                mytype <- EventsFound$EventType[i]
+                myeventsID <- EventsFound$EventID[i]
+                myp1 <- EventsFound$Path.1[i]
+                myp2 <- EventsFound$Path.2[i]
+                mypref <- EventsFound$Path.Reference[i]
+                myChr <- gsub(":.*","",EventsFound$GPos[i])
+                jjx <- which(names(SG_List)==mygene)
+                myEdges <- SG_List[[jjx]]$Edges
+                
+                
+                if(mytype %in% typeA){
+                    X <- strsplit(unlist(strsplit(myp1,",")),"-")
+                    # X
+                    u1 <- which(myEdges$From == paste0(X[[1]][1],".b") & myEdges$To == paste0(X[[1]][2],".a"))
+                    u2 <- which(myEdges$From == paste0(X[[3]][1],".b") & myEdges$To == paste0(X[[3]][2],".a"))
+                    
+                    centers <- c(myEdges$Start[u1],myEdges$End[u1],myEdges$Start[u2],myEdges$End[u2])
+                    nc <- length(centers)
+                    
+                    GR <- data.frame(seqname = rep(myChr,nc),
+                                     start = centers-(nt),
+                                     end = centers+(nt),
+                                     strand = myEdges$Strand[1])
+                    GR <- GRanges(GR)
+                    GR2 <- reduce(GR)
+                    h <- length(GR2)
+                    GR2 <- as.data.frame(GR2)
+                    GR2$SeqID <- paste0(myeventsID,"-",1:h)
+                    GR2$EventID <- myeventsID
+                    GR2$Length.Seq <- GR2$end-GR2$start+1
+                    # GRseq <- c(GRseq,GR2)
+                    return(GR2)
+                }else if(mytype == "Mutually Exclusive Exons"){
+                    
+                    X <- strsplit(unlist(strsplit(myp1,",")),"-")
+                    # X
+                    u1 <- which(myEdges$From == paste0(X[[1]][1],".b") & myEdges$To == paste0(X[[1]][2],".a"))
+                    u2 <- which(myEdges$From == paste0(X[[3]][1],".b") & myEdges$To == paste0(X[[3]][2],".a"))
+                    
+                    Y <- strsplit(unlist(strsplit(myp2,",")),"-")
+                    # Y
+                    u3 <- which(myEdges$From == paste0(X[[2]][1],".a") & myEdges$To == paste0(X[[2]][2],".b"))
+                    
+                    centers <- c(myEdges$Start[u1],myEdges$End[u1],myEdges$Start[u2],myEdges$End[u2],myEdges$Start[u3],myEdges$End[u3])
+                    nc <- length(centers)
+                    
+                    GR <- data.frame(seqname = rep(myChr,nc),
+                                     start = centers-(nt),
+                                     end = centers+(nt),
+                                     strand = myEdges$Strand[1])
+                    GR <- GRanges(GR)
+                    GR2 <- reduce(GR)
+                    h <- length(GR2)
+                    GR2 <- as.data.frame(GR2)
+                    GR2$SeqID <- paste0(myeventsID,"-",1:h)
+                    GR2$EventID <- myeventsID
+                    GR2$Length.Seq <- GR2$end-GR2$start+1
+                    # GRseq <- c(GRseq,GR2)
+                    return(GR2)
+                    
+                }else {
+                    X <- strsplit(unlist(strsplit(myp1,",")),"-")
+                    # X
+                    
+                    Y <- strsplit(unlist(strsplit(myp2,",")),"-")
+                    # Y
+                    
+                    u1 <- sapply(X,function(X){
+                        if(X[1]==X[2]){
+                            c(paste0(X[1],".a"),paste0(X[2],".b"))
+                        }else{
+                            c(paste0(X[1],".b"),paste0(X[2],".a"))
+                        }
+                    })
+                    
+                    u1 <- t(u1)
+                    u2 <- sapply(Y,function(X){
+                        if(X[1]==X[2]){
+                            c(paste0(X[1],".a"),paste0(X[2],".b"))
+                        }else{
+                            c(paste0(X[1],".b"),paste0(X[2],".a"))
+                        }
+                    })
+                    
+                    u2 <- t(u2)
+                    a <- match(as.vector(myEdges$From),u1[,1])
+                    b <- match(as.vector(myEdges$To),u1[,2])
+                    indexc1 <- which(a==b)
+                    
+                    a2 <- match(as.vector(myEdges$From),u2[,1])
+                    b2 <- match(as.vector(myEdges$To),u2[,2])
+                    indexc2 <- which(a2==b2)
+                    
+                    # u1
+                    # myEdges[indexc1,1:4]
+                    
+                    # u2
+                    # myEdges[indexc2,1:4]
+                    
+                    centers <- c(myEdges$Start[indexc1],myEdges$End[indexc1],myEdges$Start[indexc2],myEdges$End[indexc2])
+                    nc <- length(centers)
+                    
+                    GR <- data.frame(seqname = rep(myChr,nc),
+                                     start = centers-(nt),
+                                     end = centers+(nt),
+                                     strand = myEdges$Strand[1])
+                    GR <- GRanges(GR)
+                    GR2 <- reduce(GR)
+                    h <- length(GR2)
+                    GR2 <- as.data.frame(GR2)
+                    GR2$SeqID <- paste0(myeventsID,"-",1:h)
+                    GR2$EventID <- myeventsID
+                    GR2$Length.Seq <- GR2$end-GR2$start+1
+                    # GRseq <- c(GRseq,GR2)
+                    return(GR2)
+                    
+                }
+            }
+    )
+    stopCluster(cl)
+    
+    GRseq3 <- do.call(rbind,GRseq3)
+    
+    GRseq3 <- GRanges(seqnames = GRseq3$seqnames,
+                      ranges = IRanges(GRseq3$start,GRseq3$end),
+                      strand = GRseq3$strand,
+                      SeqID=GRseq3$SeqID,
+                      EventID=GRseq3$EventID,
+                      Length.Seq=GRseq3$Length.Seq)
+    
+    return(GRseq3)
+
+}
+
+#' @rdname InternalFunctions
+getpij <- function(A){
+    rSc <- rowSums(A)
+    cSc <- colSums(A)
+    rSums <- factor(rSc)
+    cSums <- factor(cSc)
+    
+    Xbig2small <- sparseMatrix(i = 1:(nrow(A)+ncol(A)),
+                               j = c(as.numeric(rSums), as.numeric(cSums)+length(levels(rSums))),
+                               x =1)
+    
+    rM <- sparseMatrix(i = as.numeric(rSums),
+                       j = 1:nrow(A),
+                       x =1)
+    cM <- sparseMatrix(i = 1:ncol(A),
+                       j = as.numeric(cSums),
+                       x =1)
+    
+    A1 <- rM %*% A %*% cM 
+    A0 <- rM %*% (1-A) %*% cM 
+    
+    X1 <- sparseMatrix(i = 1:(nrow(A1)*ncol(A1)),
+                       j = rep(1:nrow(A1), ncol(A1)),
+                       x = 1,
+                       dims = c((nrow(A1)*ncol(A1)), (nrow(A1)+ncol(A1))))
+    
+    X2 <- sparseMatrix(i = 1:(nrow(A1)*ncol(A1)),
+                       j = nrow(A1)+rep(1:ncol(A1), each = nrow(A1)),
+                       x = 1,
+                       dims = c((nrow(A1)*ncol(A1)), (nrow(A1)+ncol(A1))))
+    Xtxiki <- X1 + X2 # Matriz de diseño
+    Xtxiki <- rbind(Xtxiki, c(rep(1,nrow(A1)), rep(0,ncol(A1))))
+    Salida5 <- speedglm.wfit2(X=(Xtxiki),
+                              y=cbind(c(as.vector(A1),round(mean(A1))), c(as.vector(A0),round(mean(A0)))),
+                              family = binomial(), sparse=TRUE)
+    
+    cS5A <- coef(Salida5)
+    cS5 <- cS5A %*% t(Xbig2small)
+    elog5 <- matrix(exp(cS5[1:nrow(A)]), ncol = 1) %*% matrix(exp(cS5[nrow(A) + 1:ncol(A)]), nrow = 1)
+    p5 <- elog5 /(1+elog5)
+    
+    ## TODO: include a warning if the colSums (rowSums) of p5 is
+    # not similar to the colSums (rowSums) of A
+    deltar <- rowSums(p5) - rSc
+    if (max(abs(deltar))>1e-3) warning("Converge problems in the solution!!!")
+    rownames(p5) <- rownames(A)
+    colnames(p5) <- colnames(A)
+    return(p5)
+}
+
+#' @rdname InternalFunctions
+speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = NULL, 
+                            family = gaussian(), start = NULL, etastart = NULL, mustart = NULL, 
+                            offset = NULL, acc = 1e-08, maxit = 25, k = 2, sparselim = 0.9, 
+                            camp = 0.01, eigendec = TRUE, tol.values = 1e-07, tol.vectors = 1e-07, 
+                            tol.solve = .Machine$double.eps, sparse = NULL, method = c("eigen", 
+                                                                                       "Cholesky", "qr"), trace = FALSE, ...) 
+{
+    nobs <- NROW(y)
+    nvar <- ncol(X)
+    if (missing(y)) 
+        stop("Argument y is missing")
+    if (missing(X)) 
+        stop("Argument X is missing")
+    if (is.null(offset)) 
+        offset <- rep.int(0, nobs)
+    if (is.null(weights)) 
+        weights <- rep(1, nobs)
+    col.names <- dimnames(X)[[2]]
+    method <- match.arg(method)
+    fam <- family$family
+    link <- family$link
+    variance <- family$variance
+    dev.resids <- family$dev.resids
+    aic <- family$aic
+    linkinv <- family$linkinv
+    mu.eta <- family$mu.eta
+    if (is.null(sparse)) 
+        sparse <- is.sparse(X = X, sparselim, camp)
+    if (is.null(start)) {
+        if (is.null(mustart)) 
+            eval(family$initialize)
+        eta <- if (is.null(etastart)) 
+            family$linkfun(mustart)
+        else etastart
+        mu <- mustart
+        start <- rep(0, nvar)
+    }
+    else {
+        eta <- offset + as.vector(if (nvar == 1) 
+            X * start
+            else {
+                if (sparse) 
+                    X %*% start
+                else tcrossprod(X, t(start))
+            })
+        mu <- linkinv(eta)
+    }
+    iter <- 0
+    dev <- sum(dev.resids(y, mu, weights))
+    tol <- 1
+    if ((fam == "gaussian") & (link == "identity")) 
+        maxit <- 1
+    C_Cdqrls <- getNativeSymbolInfo("Cdqrls", PACKAGE = getLoadedDLLs()$stats)
+    while ((tol > acc) & (iter < maxit)) {
+        iter <- iter + 1
+        beta <- start
+        dev0 <- dev
+        varmu <- variance(mu)
+        mu.eta.val <- mu.eta(eta)
+        z <- (eta - offset) + (y - mu)/mu.eta.val
+        W <- (weights * mu.eta.val * mu.eta.val)/varmu
+        X1 <- sqrt(W) * X
+        XTX <- crossprod(X1)
+        XTz <- t(crossprod((W * z), X))
+        if (iter == 1 & method != "qr") {
+            variable <- colnames(X)
+            ris <- if (eigendec)
+                control(XTX, , tol.values, tol.vectors, , method)
+            else list(rank = nvar, pivot = 1:nvar)
+            ok <- ris$pivot[1:ris$rank]
+            if (eigendec) {
+                XTX <- ris$XTX
+                X <- X[, ok]
+                XTz <- XTz[ok]
+                start <- start[ok]
+            }
+            beta <- start
+        }
+        if (method == "qr") {
+            ris <- .Call(C_Cdqrls, XTX, XTz, tol.values, FALSE)
+            start <- if (ris$rank < nvar) 
+                ris$coefficients[ris$pivot]
+            else ris$coefficients
+        }
+        else {
+            start <- solve(XTX, XTz, tol = tol.solve)
+        }
+        eta <-  drop(X %*% start)
+        mu <- linkinv(eta <- eta + offset)
+        dev <- sum(dev.resids(y, mu, weights))
+        tol <- max(abs(dev0 - dev)/(abs(dev) + 0.1))
+        if (trace) 
+            cat("iter", iter, "tol", tol, "\n")
+    }
+    wt <- sum(weights)
+    wtdmu <- if (intercept) 
+        sum(weights * y)/wt
+    else linkinv(offset)
+    nulldev <- sum(dev.resids(y, wtdmu, weights))
+    n.ok <- nobs - sum(weights == 0)
+    nulldf <- n.ok - as.integer(intercept)
+    rank <- ris$rank
+    dfr <- nobs - rank - sum(weights == 0)
+    aic.model <- aic(y, nobs, mu, weights, dev) + k * rank
+    #ll.nuovo <- speedglm:::ll.speedglm(fam, aic.model, rank)
+    res <- (y - mu)/mu.eta(eta)
+    resdf <- n.ok - rank
+    RSS <- sum(W * res * res)
+    var_res <- RSS/dfr
+    dispersion <- if (fam %in% c("poisson", "binomial")) 
+        1
+    else var_res
+    if (method == "qr") {
+        coefficients <- start
+        coefficients[coefficients == 0] = NA
+        ok <- ris$pivot[1:rank]
+    }
+    else {
+        coefficients <- rep(NA, nvar)
+        start <- as(start, "numeric")
+        coefficients[ok] <- start
+    }
+    names(coefficients) <- col.names
+    rval <- list(coefficients = coefficients, 
+                 iter = iter, tol = tol, family = family, link = link, 
+                 df = dfr, XTX = XTX, dispersion = dispersion, ok = ok, 
+                 rank = rank, RSS = RSS, method = method, aic = aic.model, 
+                 sparse = sparse, deviance = dev, nulldf = nulldf, nulldev = nulldev, 
+                 ngoodobs = n.ok, n = nobs, intercept = intercept, convergence = (!(tol > 
+                                                                                        acc)))
+    class(rval) <- "speedglm"
+    rval
+}
 
 
+########################## add gldist functinos for bootstrap statistic ###################
+
+# gldist is a former R package of the CRAN repository. As it in no more available we have included
+# in our code
+
+#' @rdname InternalFunctions
+#' @useDynLib EventPointer gldist_dgl
+dgl <- function(x, med = 0, iqr = 1, chi = 0, xi = 0.6, maxit = 1000L){
+    .Call("gldist_dgl", x, med, iqr, chi, xi, maxit)
+}
+    
 
 
+#' @rdname InternalFunctions
+fitgl <- function(x, start, inc = FALSE, na.rm = FALSE,
+                  method = c("mle", "hist", "prob", "quant", "shape"), ...) {
+    
+    method <- match.arg(method)
+    if (identical(method, "shape")) inc <- FALSE
+    
+    if (na.rm) x <- na.omit(x)
+    
+    if (any(is.na(x)))
+        stop("NAs are not allowed. You might want to use 'na.rm = TRUE'")
+    
+    med <- median(x)
+    iqr <- IQR(x)
+    
+    # if the location and scale parameters are not included in the
+    # optimization, we then scale the dataset to have med = 0 and iqr = 1.
+    if (!inc)
+        x <- (x - med) / iqr
+    
+    # extract additional arguments that should be passed to nlminb
+    dots <- list(...)
+    nm <- c('eval.max', 'iter.max', 'trace', 'abs.tol',
+            'rel.tol', 'x.tol', 'step.min')
+    control <- dots[names(dots) %in% nm]
+    # and keep the other additional arguments for the objective function
+    obj_control <- dots[!(names(dots) %in% nm)]
+    
+    obj <-
+        switch(method,
+               
+               mle = {
+                   function(par) {
+                       if (any(is.na(par))) return(Inf)
+                       if (!inc) par <- c(0, 1, par)
+                       ans <-  -sum(log(dgl(x, par, maxit=1e4L)))
+                       if (is.na(ans)) Inf else ans
+                   }
+               },
+               
+               hist = {
+                   hist_args <- c(list(x = x, plot = FALSE), obj_control)
+                   hh <- do.call(hist, hist_args)
+                   function(par) {
+                       if (any(is.na(par))) return(Inf)
+                       if (!inc) par <- c(0, 1, par)
+                       den <-  dgl(hh$mids, par, maxit=1e4L)
+                       if (any(is.na(den))) Inf else mean((hh$density - den)^2)
+                   }
+               },
+               
+               prob = {
+                   len <- length(x)
+                   x <- sort(x)
+                   p <- (1:len)/(len + 1)
+                   function(par) {
+                       if (any(is.na(par))) return(Inf)
+                       if (!inc) par <- c(0, 1, par)
+                       ans <- mean((p - pgl(x, par, maxit = 1e4L))^2)
+                       if (is.nan(ans)) Inf else ans
+                   }
+               },
+               
+               quant = {
+                   len <-
+                       if (is.null(obj_control$len))
+                           1000L
+                   else
+                       obj_control$len
+                   p <- ppoints(len)
+                   qs <- as.vector(quantile(x, p))
+                   function(par) {
+                       if (any(is.na(par))) return(Inf)
+                       if (!inc) par <- c(0, 1, par)
+                       q <- qgl(p, par)
+                       if (any(is.na(q))) Inf else mean((q - qs)^2)
+                   }
+               },
+               
+               shape = {
+                   S <- function(p, par) qgl(p, par)
+                   glskew <- function(par) {
+                       p <- (1:7)/8
+                       (S(p[5], par) - S(p[3], par)) /
+                           (S(p[7], par) - S(p[1], par))
+                   }
+                   glkurt <- function(par) {
+                       p <- (1:7)/8
+                       (S(p[7], par) - S(p[5], par) +
+                               S(p[3], par) - S(p[1], par)) /
+                           (S(p[6], par) - S(p[2], par))
+                   }
+                   q <- as.vector(quantile(x, (1:7)/8))
+                   # med <- q[4]
+                   # iqr <- q[6] - q[2]
+                   skew <- (q[5] - q[3]) / (q[7] - q[1])
+                   kurt <- (q[7] - q[5] + q[3] - q[1]) / (q[6] - q[2])
+                   function(par) {
+                       par <- c(0, 1, par)
+                       #-> to ensure that fitted parameters are
+                       #-> feasible for all points x
+                       if (any(is.na(pgl(x, par, maxit = 1e4)))) return(Inf)
+                       sample <- c(skew, kurt)
+                       theoretical <- c(glskew(par), glkurt(par))
+                       ans <- sum((sample - theoretical)^2)
+                       if (is.na(ans)) Inf else ans
+                   }
+               })
+    
+    small <- 1e-4
+    if (missing(start))
+        start <- c(med, iqr , 0, .6)
+    lower <- c(-Inf, small, -1 + small, small)
+    upper <- c(Inf, Inf, 1 - small, 1 - small)
+    
+    ans <- nlminb(start[c(rep(inc, 2), TRUE, TRUE)],
+                  obj,
+                  lower = lower[c(rep(inc, 2), TRUE, TRUE)],
+                  upper = upper[c(rep(inc, 2), TRUE, TRUE)],
+                  control = control)
+    
+    # When location and scale where not included in the optimization,
+    # add their sample estimates to the fitted shape parameters
+    if (!inc)
+        ans$par <- c(med, iqr, ans$par)
+    
+    names(ans$par) <- c("med", "iqr", "chi", "xi")
+    ans
+    
+}
 
 
+#' @rdname InternalFunctions
+#' @useDynLib EventPointer gldist_pgl
+pgl <- function(q, med = 0, iqr = 1, chi = 0, xi = 0.6, maxit = 1000L){
+    .Call("gldist_pgl", q, med, iqr, chi, xi, maxit)
+}
+    
 
 
+#' @rdname InternalFunctions
+#' @useDynLib EventPointer gldist_qdgl
+qdgl <- function(p, med = 0, iqr = 1, chi = 0, xi = 0.6){
+    .Call("gldist_qdgl", p, med, iqr, chi, xi)
+}
+    
 
+#' @rdname InternalFunctions
+#' @useDynLib EventPointer gldist_qgl
+qgl <- function(p, med = 0, iqr = 1, chi = 0, xi = 0.6){
+    .Call("gldist_qgl", p, med, iqr, chi, xi)
+}
+    
 
-
-
-
-
-
+#' @rdname InternalFunctions
+#' @useDynLib EventPointer gldist_rgl
+rgl <- function(n, med = 0, iqr = 1, chi = 0, xi = 0.6){
+    .Call("gldist_rgl", n, med, iqr, chi, xi)
+}
+    
 
 
 

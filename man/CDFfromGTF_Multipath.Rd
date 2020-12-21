@@ -4,8 +4,15 @@
 \alias{CDFfromGTF_Multipath}
 \title{CDF file creation for EventPointer (MultiPath)}
 \usage{
-CDFfromGTF_Multipath(input = "Ensembl", inputFile = NULL, PSR, Junc,
-  PathCDF, microarray = NULL, paths = 2)
+CDFfromGTF_Multipath(
+  input = "Ensembl",
+  inputFile = NULL,
+  PSR,
+  Junc,
+  PathCDF,
+  microarray = NULL,
+  paths = 2
+)
 }
 \arguments{
 \item{input}{Reference transcriptome used to build the CDF file. Must be one of Ensembl,

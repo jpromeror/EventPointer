@@ -4,8 +4,16 @@
 \alias{EventPointer}
 \title{EventPointer}
 \usage{
-EventPointer(Design, Contrast, ExFit, Eventstxt, Filter = TRUE,
-  Qn = 0.25, Statistic = "LogFC", PSI = FALSE)
+EventPointer(
+  Design,
+  Contrast,
+  ExFit,
+  Eventstxt,
+  Filter = TRUE,
+  Qn = 0.25,
+  Statistic = "LogFC",
+  PSI = FALSE
+)
 }
 \arguments{
 \item{Design}{The design matrix for the experiment.}
@@ -43,13 +51,12 @@ Statistical analysis of alternative splcing events
    Cmatrix<-t(t(c(0,1)))
    EventsFound<-paste(system.file('extdata',package='EventPointer'),'/EventsFound.txt',sep='')
 
- Events<-EventPointer(Design=Dmatrix,
-                      Contrast=Cmatrix,
-                      ExFit=ArraysData,
-                      Eventstxt=EventsFound,
-                      Filter=TRUE,
-                      Qn=0.25,
-                      Statistic='LogFC',
-                      PSI=TRUE)
-
+   Events<-EventPointer(Design=Dmatrix,
+                        Contrast=Cmatrix,
+                        ExFit=ArraysData,
+                        Eventstxt=EventsFound,
+                        Filter=TRUE,
+                        Qn=0.25,
+                        Statistic='LogFC',
+                        PSI=TRUE)
 }

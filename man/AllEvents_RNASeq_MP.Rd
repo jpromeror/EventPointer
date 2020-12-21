@@ -3,8 +3,10 @@
 \name{AllEvents_RNASeq_MP}
 \alias{AllEvents_RNASeq_MP}
 \title{Alternative splicing multi-path events detected by EventPointer}
-\format{A \code{list} object \code{AllEvents_RNASeq[[i]][[j]]}
-displays the jth splicing event for the ith gene.}
+\format{
+A \code{list} object \code{AllEvents_RNASeq[[i]][[j]]}
+displays the jth splicing event for the ith gene.
+}
 \usage{
 data(AllEvents_RNASeq_MP)
 }

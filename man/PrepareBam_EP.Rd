@@ -4,8 +4,14 @@
 \alias{PrepareBam_EP}
 \title{Bam files preparation for EventPointer}
 \usage{
-PrepareBam_EP(Samples, SamplePath, Ref_Transc = "Ensembl",
-  fileTransc = NULL, cores = 1, Alpha = 2)
+PrepareBam_EP(
+  Samples,
+  SamplePath,
+  Ref_Transc = "Ensembl",
+  fileTransc = NULL,
+  cores = 1,
+  Alpha = 2
+)
 }
 \arguments{
 \item{Samples}{Name of the .bam files to be analyzed (Sample1.bam,Sample2.bam,...,etc).}

@@ -13,7 +13,10 @@
 \alias{findTriplets}
 \alias{findTriplets2}
 \alias{GetCounts}
+\alias{getPathCounts}
+\alias{getPathFPKMs}
 \alias{GetCountsMP}
+\alias{getPathCountsMP}
 \alias{getEventPaths}
 \alias{getEventMultiPaths}
 \alias{GetIGVPaths}
@@ -29,6 +32,7 @@
 \alias{SG_Info}
 \alias{SG_creation}
 \alias{SG_creation_RNASeq}
+\alias{SG_creation_fast}
 \alias{WriteGTF}
 \alias{WriteGTF_RNASeq}
 \alias{flat2Cdf}
@@ -41,10 +45,6 @@
 \alias{annotate2}
 \alias{annotateFeatures2}
 \alias{mergeExonsTerminal2}
-\alias{get_beta}
-\alias{get_table}
-\alias{get_YB}
-\alias{getInfo}
 \alias{PrimerSequenceGeneral}
 \alias{PrimerSequenceTwo}
 \alias{ProbesSequence}
@@ -68,6 +68,26 @@
 \alias{getranksequence}
 \alias{PrimerSequenceCommonFor}
 \alias{PrimerSequenceCommonRev}
+\alias{get_beta}
+\alias{get_table}
+\alias{get_YB}
+\alias{getInfo}
+\alias{checkContrastDesignMatrices}
+\alias{mclapplyPSI_Bootstrap}
+\alias{call_get_table_Bootstrap}
+\alias{get_table_Bootstrap}
+\alias{pvalue_incr_PSI}
+\alias{calculateCorrelationTest}
+\alias{\%in2\%}
+\alias{callGRseq_parallel}
+\alias{getpij}
+\alias{speedglm.wfit2}
+\alias{dgl}
+\alias{fitgl}
+\alias{pgl}
+\alias{qdgl}
+\alias{qgl}
+\alias{rgl}
 \title{EventPointer Internal Functions}
 \usage{
 annotateEvents(Events, PSR_Gene, Junc_Gene, Gxx)
@@ -92,7 +112,13 @@ findTriplets2(Incidence, paths = 2, randSol)
 
 GetCounts(Events, sg_txiki, type = "counts")
 
+getPathCounts(x, readsC, widthinit)
+
+getPathFPKMs(x, readsC, widthinit)
+
 GetCountsMP(Events, sg_txiki, type = "counts")
+
+getPathCountsMP(x, readsC, widthinit)
 
 getEventPaths(Events, SG)
 
@@ -124,14 +150,27 @@ SG_creation(SG_Gene)
 
 SG_creation_RNASeq(SG_Gene)
 
+SG_creation_fast(SG_Gene)
+
 WriteGTF(PATH, Data, Probes, Paths)
 
 WriteGTF_RNASeq(PATH, Data, Paths)
 
-flat2Cdf(file, chipType, tags = NULL, rows = 2560, cols = 2560,
-  verbose = 10, xynames = c("X", "Y"), gcol = 5, ucol = 6,
-  splitn = 4, col.class = c("integer", "character")[c(1, 1, 1, 2, 2,
-  2)], Directory = getwd(), ...)
+flat2Cdf(
+  file,
+  chipType,
+  tags = NULL,
+  rows = 2560,
+  cols = 2560,
+  verbose = 10,
+  xynames = c("X", "Y"),
+  gcol = 5,
+  ucol = 6,
+  splitn = 4,
+  col.class = c("integer", "character")[c(1, 1, 1, 2, 2, 2)],
+  Directory = getwd(),
+  ...
+)
 
 uniquefast(X)
 
@@ -151,43 +190,72 @@ annotateFeatures2(query, subject)
 
 mergeExonsTerminal2(features, min_n_sample = 1)
 
-get_beta(combboots, incrPSI_original, ncontrastes)
+PrimerSequenceGeneral(
+  taqman,
+  FinalExons,
+  generaldata,
+  SG,
+  Dir,
+  nPrimers,
+  Primer3Path = Sys.which("primer3_core"),
+  maxLength,
+  minsep,
+  wminsep,
+  valuethreePpenalty,
+  wnpaths,
+  qualityfilter,
+  mygenomesequence
+)
 
-get_table(PSI_arrayP, nevents, totchunk, chunk, nsamples, incrPSI_original,
-  V, nboot, nbootin, ncontrastes)
+PrimerSequenceTwo(
+  FinalExons,
+  SG,
+  generaldata,
+  n,
+  thermo.param,
+  Primer3Path,
+  settings,
+  mygenomesequence
+)
 
-get_YB(PSI_arrayS, l, nsamples, I, J, CTEind)
-
-getInfo(table, ncontrast)
-
-PrimerSequenceGeneral(taqman, FinalExons, generaldata, SG, Dir, nPrimers,
-  Primer3Path = Sys.which("primer3_core"), maxLength, minsep, wminsep,
-  valuethreePpenalty, wnpaths, qualityfilter)
-
-PrimerSequenceTwo(FinalExons, SG, generaldata, n, thermo.param,
-  Primer3Path, settings)
-
-ProbesSequence(SG, FinalSeq, generaldata, Dir,
-  Primer3Path = Sys.which("primer3_core"), nProbes)
+ProbesSequence(
+  SG,
+  FinalSeq,
+  generaldata,
+  Dir,
+  Primer3Path = Sys.which("primer3_core"),
+  nProbes,
+  mygenomesequence
+)
 
 sort.exons(namesPath, decreasing = FALSE)
 
 all_simple_paths2(wg, from, to, ...)
 
-callPrimer3(seq, threeprimers = FALSE, pr, reverse = FALSE,
-  size_range = "150-500", Tm = c(57, 59, 62), name = "Primer1",
+callPrimer3(
+  seq,
+  threeprimers = FALSE,
+  pr,
+  reverse = FALSE,
+  size_range = "150-500",
+  Tm = c(57, 59, 62),
+  name = "Primer1",
   Primer3Path = "primer3-2.3.7/bin/primer3_core",
   thermo.param = "primer3-2.3.7/src/primer3_config/",
   sequence_target = NULL,
-  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt"
+)
 
-callPrimer3probes(seq, name = "Primer1",
+callPrimer3probes(
+  seq,
+  name = "Primer1",
   Primer3Path = "primer3-2.3.7/bin/primer3_core",
   thermo.param = "primer3-2.3.7/src/primer3_config/",
   sequence_target = NULL,
-  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt"
+)
 
-CreateSequenceforProbe(SG, Exons, FinalSeq, n)
+CreateSequenceforProbe(SG, Exons, FinalSeq, n, mygenomesequence)
 
 findPotencialExons(D, namesPath, maxLength, SG, minexonlength)
 
@@ -195,40 +263,220 @@ fullExons(namesPath)
 
 includeaexons(Forward)
 
-genreverse(FinalInfo)
+genreverse(FinalInfo, taqman)
 
 getDistanceseachPath(Exon1, Exon2, generaldata, distinPrimers, SG)
 
-getDominants2(PrimersTwo, Primers1, commonForward, commonReverse, namesRef,
-  D, numberOfPaths, nprimerstwo, ED, wNpaths = 1000, wP12inRef = 1000)
+getDominants2(
+  PrimersTwo,
+  Primers1,
+  commonForward,
+  commonReverse,
+  namesRef,
+  D,
+  numberOfPaths,
+  nprimerstwo,
+  ED,
+  wNpaths = 1000,
+  wP12inRef = 1000
+)
 
-getDominantsFor(Primers1, Primers2, commonForward, namesRef, D,
-  numberOfPaths, Event, ncommonForward, ED, wNpaths = 1000,
-  wP12inRef = 1000)
+getDominantsFor(
+  Primers1,
+  Primers2,
+  commonForward,
+  namesRef,
+  D,
+  numberOfPaths,
+  Event,
+  ncommonForward,
+  ED,
+  wNpaths = 1000,
+  wP12inRef = 1000
+)
 
-getDominantsRev(Primers1, Primers2, commonReverse, namesRef, D,
-  numberOfPaths, Event, ncommonReverse, ED, wNpaths = 1000,
-  wP12inRef = 1000)
+getDominantsRev(
+  Primers1,
+  Primers2,
+  commonReverse,
+  namesRef,
+  D,
+  numberOfPaths,
+  Event,
+  ncommonReverse,
+  ED,
+  wNpaths = 1000,
+  wP12inRef = 1000
+)
 
 getExonsFullSignal(namesPath, SG)
 
-getFinalExons(generaldata, maxLength, nPrimerstwo, ncommonForward,
-  ncommonReverse, nExons, minsep, wminsep, valuethreePpenalty,
-  minexonlength)
+getFinalExons(
+  generaldata,
+  maxLength,
+  nPrimerstwo,
+  ncommonForward,
+  ncommonReverse,
+  nExons,
+  minsep,
+  wminsep,
+  valuethreePpenalty,
+  minexonlength
+)
 
 getgeneraldata(SG, Event, shortdistpenalty)
 
-getrankexons(SG, Dominants, nt, wg, items, minsep, wminsep,
-  valuethreePpenalty, D)
+getrankexons(
+  SG,
+  Dominants,
+  nt,
+  wg,
+  items,
+  minsep,
+  wminsep,
+  valuethreePpenalty,
+  D
+)
 
-getranksequence(taqman, Fdata, maxLength, minsep, wminsep,
-  valuethreePpenalty, wnpaths, qualityfilter)
+getranksequence(
+  taqman,
+  Fdata,
+  maxLength,
+  minsep,
+  wminsep,
+  valuethreePpenalty,
+  wnpaths,
+  qualityfilter
+)
 
-PrimerSequenceCommonFor(FinalExons, SG, generaldata, n, thermo.param,
-  Primer3Path, settings)
+PrimerSequenceCommonFor(
+  FinalExons,
+  SG,
+  generaldata,
+  n,
+  thermo.param,
+  Primer3Path,
+  settings,
+  mygenomesequence
+)
 
-PrimerSequenceCommonRev(FinalExons, SG, generaldata, n, thermo.param,
-  Primer3Path, settings)
+PrimerSequenceCommonRev(
+  FinalExons,
+  SG,
+  generaldata,
+  n,
+  thermo.param,
+  Primer3Path,
+  settings,
+  mygenomesequence
+)
+
+get_beta(combboots, incrPSI_original, ncontrastes)
+
+get_table(
+  PSI_arrayP,
+  nevents,
+  totchunk,
+  chunk,
+  nsamples,
+  incrPSI_original,
+  V,
+  nboot,
+  nbootin,
+  ncontrastes
+)
+
+get_YB(PSI_arrayS, l, nsamples, I, J, CTEind)
+
+getInfo(table, ncontrast)
+
+checkContrastDesignMatrices(C, D)
+
+mclapplyPSI_Bootstrap(
+  PSI_boots,
+  Design,
+  Contrast,
+  cores,
+  ram,
+  nbootstraps,
+  KallistoBootstrap,
+  th,
+  verbose = 0
+)
+
+call_get_table_Bootstrap(
+  chunklist,
+  Design,
+  Contrast,
+  nbootstraps,
+  KallistoBootstrap,
+  th,
+  cores
+)
+
+get_table_Bootstrap(
+  PSI_arrayP,
+  Design,
+  Contrast,
+  nbootstraps,
+  KallistoBootstrap,
+  th
+)
+
+pvalue_incr_PSI(incr_PSI, th = 0, verbose = 0)
+
+calculateCorrelationTest(A, B, method = c("pearson", "spearman"))
+
+x \%in2\% table
+
+callGRseq_parallel(EventsFound, SG_List, cores, typeA, nt)
+
+getpij(A)
+
+speedglm.wfit2(
+  y,
+  X,
+  intercept = TRUE,
+  weights = NULL,
+  row.chunk = NULL,
+  family = gaussian(),
+  start = NULL,
+  etastart = NULL,
+  mustart = NULL,
+  offset = NULL,
+  acc = 1e-08,
+  maxit = 25,
+  k = 2,
+  sparselim = 0.9,
+  camp = 0.01,
+  eigendec = TRUE,
+  tol.values = 1e-07,
+  tol.vectors = 1e-07,
+  tol.solve = .Machine$double.eps,
+  sparse = NULL,
+  method = c("eigen", "Cholesky", "qr"),
+  trace = FALSE,
+  ...
+)
+
+dgl(x, med = 0, iqr = 1, chi = 0, xi = 0.6, maxit = 1000L)
+
+fitgl(
+  x,
+  start,
+  inc = FALSE,
+  na.rm = FALSE,
+  method = c("mle", "hist", "prob", "quant", "shape"),
+  ...
+)
+
+pgl(q, med = 0, iqr = 1, chi = 0, xi = 0.6, maxit = 1000L)
+
+qdgl(p, med = 0, iqr = 1, chi = 0, xi = 0.6)
+
+qgl(p, med = 0, iqr = 1, chi = 0, xi = 0.6)
+
+rgl(n, med = 0, iqr = 1, chi = 0, xi = 0.6)
 }
 \value{
 Internal outputs
