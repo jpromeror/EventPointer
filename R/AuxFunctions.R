@@ -2709,6 +2709,11 @@ SG_Info <- function(SG_Gene) {
     
     # Return All Information
     
+    if(!Graph_Edges$Strand[1]=="+"){
+        Graph_Edges$Strand <- "-"
+    }
+    
+    
     Result <- list(Edges = Graph_Edges, Adjacency = Adjacency, 
         Incidence = Incidence)
     # Result<-list(Edges=Graph_Edges,Incidence=Incidence)
