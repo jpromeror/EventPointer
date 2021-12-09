@@ -2158,15 +2158,17 @@ getPSI_RNASeq <- function(Result, lambda = 0.1) {
             if (!any(is.na(Evs_Counts))) {
                 CountMatrix[[jj]] <- Evs_Counts
             } else {
-                CountMatrix[[jj]] <- NULL
+              # browser()
+                # CountMatrix[[jj]] <- NULL
             }
         } else {
             
+          # browser()
             
         }
     }
     
-    
+    # browser()
     Ids <- rep(c("_P1", "_P2", "_Ref"), length(Vec)/3)
     CountMatrix <- do.call(rbind, CountMatrix)
     rownames(CountMatrix) <- paste(Vec, Ids, 
