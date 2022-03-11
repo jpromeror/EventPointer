@@ -356,9 +356,10 @@ annotateEventsMultipath <- function(Events,
                 eval(parse(text = command))
                 command <- paste0("PSR_P", 
                   kk, "<-sapply(1:nrow(EPP", 
-                  kk, "),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(EPP", 
-                  kk, "[x,'Start']) & as.numeric(PSR_Gene[,'Stop'])<=as.numeric(EPP", 
-                  kk, "[x,'End']))})")
+                  kk, 
+    "),function(x){which(as.numeric(PSR_Gene[,'Start'])>=as.numeric(EPP", 
+     kk, "[x,'Start']) & as.numeric(PSR_Gene[,'Stop'])<=as.numeric(EPP", 
+      kk, "[x,'End']))})")
                 eval(parse(text = command))
                 command <- paste0("PSR_P", 
                   kk, "<-PSR_Gene[unlist(PSR_P", 
@@ -377,8 +378,8 @@ annotateEventsMultipath <- function(Events,
                 eval(parse(text = command))
                 command <- paste0("Junc_P", 
                   kk, "<-sapply(1:nrow(JPP", 
-                  kk, "),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(JPP", 
-                  kk, "[x,'Start']) & as.numeric(Junc_Gene[,'Stop'])==as.numeric(JPP", 
+  kk, "),function(x){which(as.numeric(Junc_Gene[,'Start'])==as.numeric(JPP", 
+  kk, "[x,'Start']) & as.numeric(Junc_Gene[,'Stop'])==as.numeric(JPP", 
                   kk, "[x,'End']))})")
                 eval(parse(text = command))
                 command <- paste0("Junc_P", 
@@ -559,7 +560,7 @@ annotateEventsMultipath <- function(Events,
                 PathR[, 2], sep = "", collapse = ",")
             ProbesR <- paste(Events[[ii]]$Probes_Ref, 
                 collapse = ",")
-            NEv <- "NEv<-data.frame(GeneName,ENSGID,EventNumber,EventType,GPos,EventNumP,"
+NEv <- "NEv<-data.frame(GeneName,ENSGID,EventNumber,EventType,GPos,EventNumP,"
             for (kk in seq_len(paths)) {
                 if (kk <= EventNumP) {
                   command <- paste0("Path", 
