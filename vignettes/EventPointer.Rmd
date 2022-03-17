@@ -127,7 +127,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 The following code chunks show examples on how to run the function using part of the Affymetrix GTF and the example data included in the package. This data corresponds to the Affymetrix HTA 2.0 GTF representing only the DONSON gene and the probes that are mapped to it.
 
   Using Affymetrix GTF as reference transcriptome
-```{r CDFGTF, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r CDFGTF, eval=FALSE, warning=FALSE, collapse=TRUE}
 
 # Set input variables
    PathFiles<-system.file("extdata",package="EventPointer")
@@ -139,7 +139,7 @@ The following code chunks show examples on how to run the function using part of
    
 # Run the function
 
-   CDFfromGTF(input="AffyGTF",inputFile=DONSON_GTF,
+   CDFfromGTF123(input="AffyGTF",inputFile=DONSON_GTF,
               PSR=PSRProbes,Junc=JunctionProbes,
               PathCDF=Directory,microarray=array)
 
@@ -273,7 +273,7 @@ Once the process is completed two GTF files are generated in the specified direc
 ![**Figure 5.** GTF files generated with EventPointer_IGV](Figure6.png)
 
 
-```{r Arrays_IGV, eval=TRUE, collapse=TRUE}
+```{r Arrays_IGV, eval=FALSE, collapse=TRUE}
 
 # Set Input Variables
   
