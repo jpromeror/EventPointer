@@ -472,9 +472,9 @@ Transcriptome <- "Gencode24_2genes"
 Pathtxt <- tempdir()
 ```
 
-```{r GTFfGTF_2, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r GTFfGTF_2, eval=FALSE, warning=FALSE, collapse=TRUE}
 # Run the function
-
+inputFile <- "/home/external_HDD/HDD_1/EventPointer/inst/extdata/gencode.v24.ann_2genes_prueba.gtf"
 EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
                                              Transcriptome = Transcriptome,
                                              Pathtxt=Pathtxt,
@@ -487,7 +487,7 @@ This function takes a couple of hours to complete (depending on the computer), a
 
 This function also returns a list containing five elements: three sparce matrices that relate which isoforms build up the paths (path1,path2 and pathRef) of each event. The fourth element contains the name of the reference annotation: only appear the name of the transcript. The final element is SG_List: a list with the information of the graph of each gene, this variable is necesary for Primers design step.
 
-```{r GTFfGTFnames, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r GTFfGTFnames, eval=FALSE, warning=FALSE, collapse=TRUE}
 
 names(EventXtrans)
 
