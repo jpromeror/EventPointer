@@ -2,7 +2,7 @@ Package: EventPointer
 Type: Package
 Title: An effective identification of alternative splicing events
 	   using junction arrays and RNA-Seq data
-Version: 3.3.1
+Version: 3.4.0
 Authors@R: c(person("Juan Pablo","Romero",role=c("aut"),email = "jpromero@ceit.es"),
   person("Juan A.", "Ferrer-Bonsoms",role=c("aut","cre"),email = "jafhernandez@tecnun.es"),
   person("Pablo", "Sacristan"),
