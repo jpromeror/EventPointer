@@ -472,7 +472,7 @@ Transcriptome <- "Gencode24_2genes"
 Pathtxt <- tempdir()
 ```
 
-```{r GTFfGTF_2, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r GTFfGTF_2, eval=FALSE, warning=FALSE, collapse=TRUE}
 # Run the function
 
 EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
