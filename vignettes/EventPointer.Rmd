@@ -950,7 +950,7 @@ The following code chunks show examples on how to run the function using part of
 
 Using Affymetrix GTF as reference transcriptome
 
-```{r CDFGTF_MP, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r CDFGTF_MP, eval=FALSE, warning=FALSE, collapse=TRUE}
 
 # Set input variables
    PathFiles<-system.file("extdata",package="EventPointer")
@@ -986,7 +986,7 @@ This function requires the following parameters:
 The function *EventDetectionMultipath* detects events with number of paths from 2 to variable *paths*. This function classifies the events with two paths as the *EventDetection* function does and the events with more than two paths as *"Multi-Path"*.
 
 
-```{r EventDetection_MP, eval=TRUE}
+```{r EventDetection_MP, eval=FALSE}
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
