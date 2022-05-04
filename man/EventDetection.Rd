@@ -21,9 +21,11 @@ It also generates a file called EventsFound_RNASeq.txt with the information of e
 Identification of all the alternative splicing events in the splicing graphs
 }
 \examples{
+\donttest{
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
+   }
 
 }

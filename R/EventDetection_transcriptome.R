@@ -25,6 +25,7 @@
 #'
 #' @examples
 #'
+#'    \donttest{
 #'          PathFiles<-system.file("extdata",package="EventPointer")
 #'          inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
 #'          Transcriptome <- "Gencode24_2genes"
@@ -37,6 +38,7 @@
 #'                                                       Transcriptome = Transcriptome,
 #'                                                       Pathtxt=Pathtxt,
 #'                                                       cores=1)
+#'     }
 #'
 #' @export
 #' @import Matrix

@@ -139,7 +139,7 @@ The following code chunks show examples on how to run the function using part of
    
 # Run the function
 
-   CDFfromGTF123(input="AffyGTF",inputFile=DONSON_GTF,
+   CDFfromGTF(input="AffyGTF",inputFile=DONSON_GTF,
               PSR=PSRProbes,Junc=JunctionProbes,
               PathCDF=Directory,microarray=array)
 
