@@ -21,7 +21,7 @@
 #' recommended to have at least 1.5 GB of free space.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'    PathFiles<-system.file('extdata',package='EventPointer')
 #'    DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
 #'    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')

@@ -41,7 +41,7 @@ input in downstream functions (Get_PSI_FromTranRef, FindPrimers, and EventPointe
 }
 \examples{
 
-   \donttest{
+   \dontrun{
          PathFiles<-system.file("extdata",package="EventPointer")
          inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
          Transcriptome <- "Gencode24_2genes"

@@ -44,6 +44,7 @@ recommended to have at least 1.5 GB of free space.
 Generates the CDF file to be used under the aroma.affymetrix framework.
 }
 \examples{
+ \dontrun{
    PathFiles<-system.file('extdata',package='EventPointer')
    DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
@@ -55,5 +56,6 @@ Generates the CDF file to be used under the aroma.affymetrix framework.
 
    CDFfromGTF_Multipath(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,
                         PathCDF=Directory,microarray=microarray,paths=3)
+ }
 
 }

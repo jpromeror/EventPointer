@@ -11,7 +11,7 @@
 #' It also generates a file called EventsFound_RNASeq.txt with the information of each event.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   # Run EventDetection function
 #'    data(SG_RNASeq)
 #'    TxtPath<-tempdir()
