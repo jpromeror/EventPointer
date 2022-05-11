@@ -17,6 +17,7 @@
 #'
 #'
 #' @examples
+#' \dontrun{
 #'    data(EventXtrans)
 #'    data(PSIss)
 #'    # Design and contrast matrix:
@@ -30,6 +31,7 @@
 #'    Fit <- EventPointer_RNASeq_TranRef(Count_Matrix =  PSIss$ExpEvs,
 #'                                       Statistic = 'LogFC',Design = Design,
 #'                                       Contrast = Contrast)
+#' }
 #'
 #'
 #' @export

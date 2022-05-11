@@ -30,7 +30,7 @@ A list containing the results of the protein domain enrichment anaylisis. This l
 Analyze whether the presence of a protein domain increases or decreases in the condition under study.
 }
 \examples{
-
+\dontrun{
    data("EventXtrans")
    data("TxD")
    data("Fit")
@@ -43,5 +43,6 @@ Analyze whether the presence of a protein domain increases or decreases in the c
    Result_PDEA <- Protein_Domain_Enrichment(PathsxTranscript = EventXtrans,
                                             TxD = TxD,
                                             Diff_PSI = Fit$deltaPSI)
+   }
 
 }

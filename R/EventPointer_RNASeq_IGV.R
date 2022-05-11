@@ -13,7 +13,7 @@
 #' events.
 #'
 #' @examples
-#'
+#' \dontrun{
 #'   data(AllEvents_RNASeq)
 #'   data(SG_RNASeq)
 #'
@@ -28,6 +28,7 @@
 #'    EventsTxt<-paste(system.file('extdata',package='EventPointer'),'/EventsFound_RNASeq.txt',sep='')
 #'    PathGTF<-tempdir()
 #'    EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
+#'    }
 #' @export
 
 

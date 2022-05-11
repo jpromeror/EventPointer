@@ -23,6 +23,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{
 #'    PathFiles<-system.file('extdata',package='EventPointer')
 #'    DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
 #'    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
@@ -52,6 +53,8 @@
 #'                   PathGTF=Directory,
 #'                  EventsFile= EventsFound,
 #'                  microarray='HTA-2_0')
+#'                  
+#' }
 #'
 #' @export
 

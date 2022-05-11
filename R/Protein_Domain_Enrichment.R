@@ -20,7 +20,7 @@
 #'  
 #' 
 #' @examples 
-#' 
+#' \dontrun{
 #'    data("EventXtrans")
 #'    data("TxD")
 #'    data("Fit")
@@ -33,6 +33,7 @@
 #'    Result_PDEA <- Protein_Domain_Enrichment(PathsxTranscript = EventXtrans,
 #'                                             TxD = TxD,
 #'                                             Diff_PSI = Fit$deltaPSI)
+#'    }
 #' 
 #' @export
 #' @import Matrix
