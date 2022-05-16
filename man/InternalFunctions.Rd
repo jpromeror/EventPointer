@@ -88,6 +88,13 @@
 \alias{qdgl}
 \alias{qgl}
 \alias{rgl}
+\alias{hyperGeometricApproach}
+\alias{poissonBinomialApproach}
+\alias{significanceFunction}
+\alias{hyperMatrixRes}
+\alias{GseaApproach}
+\alias{WilcoxonApproach}
+\alias{Wilcoxon.z.matrix}
 \title{EventPointer Internal Functions}
 \usage{
 annotateEvents(Events, PSR_Gene, Junc_Gene, Gxx)
@@ -477,6 +484,68 @@ qdgl(p, med = 0, iqr = 1, chi = 0, xi = 0.6)
 qgl(p, med = 0, iqr = 1, chi = 0, xi = 0.6)
 
 rgl(n, med = 0, iqr = 1, chi = 0, xi = 0.6)
+
+callGRseq_parallel(EventsFound, SG_List, cores, typeA, nt)
+
+getpij(A)
+
+speedglm.wfit2(
+  y,
+  X,
+  intercept = TRUE,
+  weights = NULL,
+  row.chunk = NULL,
+  family = gaussian(),
+  start = NULL,
+  etastart = NULL,
+  mustart = NULL,
+  offset = NULL,
+  acc = 1e-08,
+  maxit = 25,
+  k = 2,
+  sparselim = 0.9,
+  camp = 0.01,
+  eigendec = TRUE,
+  tol.values = 1e-07,
+  tol.vectors = 1e-07,
+  tol.solve = .Machine$double.eps,
+  sparse = NULL,
+  method = c("eigen", "Cholesky", "qr"),
+  trace = FALSE,
+  ...
+)
+
+hyperGeometricApproach(ExS, nSel, P_value_PSI, significance, resPred, N)
+
+poissonBinomialApproach(ExS, nSel, P_value_PSI, significance, resPred, N)
+
+significanceFunction(P_value_PSI, cSel, nSel, significance)
+
+hyperMatrixRes(cSel, nSel, ExS, P_value_PSI, significance, N)
+
+GseaApproach(P_value_PSI, ExS, significance, resPred, PSI_table = NULL)
+
+WilcoxonApproach(
+  P_value_PSI,
+  ExS,
+  significance,
+  resPred,
+  PSI_table = NULL,
+  nSel,
+  N
+)
+
+Wilcoxon.z.matrix(
+  ExprT,
+  GeneGO,
+  alternative = c("two.sided", "less", "greater"),
+  mu = 0,
+  paired = FALSE,
+  exact = NULL,
+  correct = TRUE,
+  conf.int = FALSE,
+  conf.level = 0.95
+)
 }
 \value{
 Internal outputs

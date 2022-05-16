@@ -24,7 +24,8 @@ deferentially spliced. A vector of length equal to the number of contrasts.
 If null it will consider the nSel top ranked events.}
 
 \item{method}{methodology to apply: "Fisher" for Fisher's exact test 
-(default) or "PoiBin" for Poisson Binomial test.}
+(default), "PoiBin" for Poisson Binomial test, "Wilcoxon" for a wilcoxon 
+test or  "Gsea" for a test of kolmogorov smirnov}
 }
 \value{
 The function returs a list. This list has for each contrast a data.frame containing
