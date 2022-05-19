@@ -918,6 +918,20 @@ Forward primers are represented in blue whilst reverse primers are represented i
 ![**Figure 8.** Transcriptome, paths and primers visualization using IGV. ](Figure11.png)
 
 
+### RBP prediction (Future Lines)
+
+Various processes (probably many of them yet to be discovered) are involved in  the regulation of alternative splicing. One of this regulators are the RNA-binding proteins (RBPs).<br>
+we have integrated several databases of CLIP-seq experiments with an  algorithm that detects differential splicing events to discover RBPs that are especially  enriched. Thus, EP proposes a ranking of which RBP is likely to be driving the observed changes in the splicing.
+<br><br>
+To perform this analysis it is necessary to execute the following steps:
+
+* Create a matrix that relates AS events with RBP binding sites using the function *EventPointer:::CreateExSmatrix*
+* Run the prediction algorithm using the function *EventPointer:::SF_Prediction*
+
+A detailed explanation of how to use this pipeline is desribed in https://github.com/clobatofern/SFPointer_testPipeline.
+
+
+
 # Multi-Path Events
 
 EventPointer can also identify Multi-Path events. The multi-path events are composed of more elements than a triplet where the concentration of the reference path should be equal to the sum of the concentration of the rest of paths. This is depicted in Figure 8.
