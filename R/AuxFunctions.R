@@ -2758,9 +2758,9 @@ SG_creation <- function(SG_Gene) {
     # Build incidence matrix
     Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
         0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
@@ -2919,9 +2919,9 @@ SG_creation_RNASeq <- function(SG_Gene) {
     # Build incidence matrix
     Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
         0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
@@ -3106,8 +3106,8 @@ SG_creation_fast <- function(SG_Gene){
   
   ###incidence matrix
   Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 0))
-  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 2], seq_len(ncol(Inc)))] <- 1
-  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 1], seq_len(ncol(Inc)))] <- -1
+  Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 2], seq_len(ncol(Inc)))] <- 1
+  Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 1], seq_len(ncol(Inc)))] <- -1
   
   rownames(Inc) <- rownames(Adj)
   colnames(Inc) <- seq_len(ncol(Inc))
