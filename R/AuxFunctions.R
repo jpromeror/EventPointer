@@ -7556,7 +7556,7 @@ Wilcoxon.z.matrix <- function(ExprT, GeneGO,
                               mu = 0, paired = FALSE, 
                               exact = NULL, correct = TRUE, conf.int = FALSE, conf.level = 0.95) {
   
-  require(matrixStats)
+  # require(matrixStats)
   # Transp_ENSTxGO <- Matrix::t(GeneGO)
   RExprT <- rowRanks(ExprT, preserveShape = T)
   
@@ -7580,6 +7580,7 @@ Wilcoxon.z.matrix <- function(ExprT, GeneGO,
   return((z))
 }
 
+#' @rdname InternalFunctions
 MatrixRes <- function(cSel, nSel, ExS, P_value_PSI , significance, N, nmTopEv){
   mynselevents <- matrix(0,nrow=nrow(ExS),ncol=1)
   rownames(mynselevents) <- rownames(ExS)
@@ -7598,6 +7599,322 @@ MatrixRes <- function(cSel, nSel, ExS, P_value_PSI , significance, N, nmTopEv){
                           stringsAsFactors = FALSE)
   return(matrixRes)
 }
+
+#' @rdname InternalFunctions
+myphyper <- function(p, m, n, k,lower.tail=TRUE,log.p = FALSE) {
+  #enrichment = p1 > p2, one - sided test, critical region right
+  #this is the lower.tail = FALSE
+  if(lower.tail==FALSE){
+    pp <- phyper(p+1, m, n, k,lower.tail = FALSE) + .5 * dhyper(p, m, n, k)
+  }
+  
+  #depletion = p1 < p2 one - sided test, critical region left
+  #this is the lower.tail = TRUE
+  if(lower.tail==TRUE){
+    pp <- phyper(p-1, m, n, k) + .5 * dhyper(p, m, n, k)
+  }
+  
+  if(log.p == TRUE){
+    pp <- log(pp)
+  }
+  
+  return(pp)
+}
+
+
+####### events classification #########
+
+
+#' @rdname InternalFunctions
+reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
+  # randSol <- getRandomFlow(SG$Incidence,
+  #                          ncol = 10)
+  # Events <- findTriplets(randSol)
+  # Events <- getEventPaths(Events, SG)
+  # EventNum <- as.numeric(gsub(".*_",
+  #                             "",mievento))
+  # 
+  # Event<- Events[[EventNum]]
+  
+  pp1_2 <- strsplit(unlist(strsplit(pp1,",")),"-")
+  pp2_2 <- strsplit(unlist(strsplit(pp2,",")),"-")
+  ppref_2 <- strsplit(unlist(strsplit(ppref,",")),"-")
+  
+  pp1_2 <- unlist(lapply(pp1_2, function(X){
+    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+  }))
+  pp2_2 <- unlist(lapply(pp2_2, function(X){
+    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+  }))
+  ppref_2 <- unlist(lapply(ppref_2, function(X){
+    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+  }))
+  
+  Event <- list(P1=SG$Edges[pp1_2,],P2=SG$Edges[pp2_2,],Ref=SG$Edges[ppref_2,])
+  
+  # Event
+  
+  generaldata <- getgeneraldata(SG,
+                                Event,2000)
+  
+  D <- generaldata$D
+  
+  namesP1 <- unique(as.vector(
+    as.matrix(Event$P1[,1:2])))
+  namesP1 <- namesP1[namesP1 %in%
+                       colnames(D)]
+  Primers1 <- findPotencialExons(D,
+                                 namesP1,
+                                 maxLength = Inf,
+                                 SG=SG,
+                                 minexonlength = 0)
+  
+  namesP2 <- unique(as.vector(
+    as.matrix(Event$P2[,1:2])))
+  namesP2 <- namesP2[namesP2 
+                     %in% colnames(D)]
+  Primers2 <- findPotencialExons(
+    D,
+    namesP2, maxLength = Inf,
+    SG=SG,minexonlength = 0)
+  
+  # Primers1
+  # Primers2
+  
+  commonForward <- intersect(
+    Primers1$Forward, Primers2$Forward)
+  commonReverse <- intersect(
+    Primers1$Reverse, Primers2$Reverse)
+  
+  if(length(commonForward) > 0 &
+     length(commonReverse) > 0){
+    
+    newStart <- commonForward[
+      which.max(as.numeric(gsub("\\..*","",commonForward)))]
+    newEnd <- commonReverse[
+      which.min(as.numeric(gsub("\\..*","",commonReverse)))]
+    
+    newAdj <- SG$Adjacency
+    
+    index_start <- match(
+      newStart,rownames(newAdj))
+    index_end <- match(
+      newEnd,rownames(newAdj))
+    
+    newAdj <- newAdj[
+      c(1,index_start:index_end,ncol(newAdj)),
+      c(1,index_start:index_end,ncol(newAdj))]
+    newAdj[1,] <- 0
+    newAdj[1,2] <- 1
+    newAdj[,ncol(newAdj)] <- 0
+    newAdj[
+      nrow(newAdj)-1,"E"] <- 1
+    
+    
+    while(TRUE){
+      torm <- which(
+        rowSums(newAdj[-nrow(newAdj),])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          # ssx <- 2
+          subexontoremove <- gsub(
+            "\\..*","",names(torm)[ssx])
+          torm_index <- c(torm_index,
+                          grep(subexontoremove,
+                               rownames(newAdj)))
+        }
+        newAdj <- newAdj[-torm_index,
+                         -torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    while(TRUE){
+      torm <- which(
+        colSums(newAdj[,-1])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          # ssx <- 2
+          subexontoremove <- gsub(
+            "\\..*","",names(torm)[ssx])
+          torm_index <- c(
+            torm_index,
+            grep(subexontoremove,
+                 rownames(newAdj)))
+        }
+        newAdj <- newAdj[
+          -torm_index,-torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    
+    ref_junct_ford <- as.vector(
+      which(rowSums(abs(newAdj))>=2))[1]
+    names(ref_junct_ford) <- rownames(
+      newAdj)[ref_junct_ford]
+    
+    ref_junct_revs <- max(as.vector(
+      which(colSums(abs(newAdj))>=2)))
+    names(ref_junct_revs) <- rownames(
+      newAdj)[ref_junct_revs]
+    
+    
+    #possible paths:
+    numberOfPaths <- solve(
+      Diagonal(ncol(newAdj))-newAdj)
+    distances_list <- vector(
+      mode="list",
+      length=numberOfPaths[
+        ref_junct_ford,ref_junct_revs])
+    
+    
+    SG$Edges$leng <- SG$Edges$End-SG$Edges$Start  
+    from_p1 <- names(ref_junct_ford)
+    newAdj_2 <- newAdj
+    # mis_distance_p1_list <- list()
+    misecuecia <- distances_list
+    misecuecia <- lapply(misecuecia,
+                         function(X) from_p1)
+    
+    ffx <- match(names(
+      ref_junct_revs),rownames(numberOfPaths))
+    
+    for(ttx in 1:length(distances_list)){
+      # ttx <- 2
+      from_p1 <- names(ref_junct_ford)
+      mis_distance_p1 <- c()
+      pos_sec <- 2
+      while(TRUE){
+        if(from_p1 == names(ref_junct_revs)){
+          distances_list[[ttx]] <- mis_distance_p1
+          break
+        }
+        bb <- 1
+        while(TRUE){
+          to_p1 <- names(
+            which(newAdj_2[from_p1,]==1))[bb]
+          ccx <- any(unlist(
+            sapply(misecuecia,
+                   function(X) X[pos_sec])) == to_p1)
+          if(is.na(ccx)){
+            break
+          }
+          if(ccx){
+            zzx <- which(
+              unlist(sapply(
+                misecuecia,
+                function(X) X[pos_sec])) == to_p1)
+            areidenticals <- c()
+            for(hhx in 1:length(zzx)){
+              areidenticals <- 
+                c(areidenticals,
+                  identical(c(
+                    misecuecia[[ttx]]
+                    [1:(pos_sec-1)],to_p1),
+                    misecuecia[[zzx[hhx]]][1:pos_sec]))
+            }
+            areidenticals <- areidenticals[areidenticals]
+            if(length(areidenticals) == 
+               numberOfPaths[to_p1,ffx]){
+              bb <- bb+1
+            }else{
+              break
+            }
+          }else{
+            break
+          }
+        }
+        misecuecia[[ttx]][pos_sec] <- to_p1
+        if(length(grep("a",from_p1))>0){
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+          next
+        }else{
+          mis_distance_p1 <- c(
+            mis_distance_p1,
+            SG$Edges$leng[
+              SG$Edges$From==from_p1 & SG$Edges$To==to_p1])
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+        }
+      }
+    }
+    
+    
+    structure_distances <- t(sapply(distances_list,function(X){
+      cbind(
+        max(X) == 1,
+        X[length(X)] == 1,
+        X[1] == 1,
+        length(X)==2 & min(X)>1,
+        length(X)>2 & min(X)>1 
+      )
+    }))
+    colnames(structure_distances) <- c("isretainedintron", 
+                                       "is_alt3", "is_alt5", 
+                                       "is_casstte", 
+                                       "is_multiple_casstte")
+    structure_distances <- as.data.frame(structure_distances)
+    
+    eventType <- c()
+    
+    ### complex retained Intron
+    if(any(structure_distances$isretainedintron)){
+      isri <- TRUE
+      eventType <- c(eventType,"Complex Retained Intron")
+      # break
+    }else{
+      isri <- FALSE
+    }
+    
+    ### complex alternative 3' or 5' splice site
+    if( (any(structure_distances$is_alt3) | 
+         any(structure_distances$is_alt5)) & isri == FALSE ){
+      if(as.vector(SG$Edges$Strand[1]) == "+"){
+        
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }
+        # break
+        
+      }else{
+        
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }
+        # break
+        
+      }
+    }
+    
+    #### complex casstte or multiple cassette exon
+    if(any(structure_distances$is_casstte)){
+      eventType <- c(eventType,"Complex Cassette Exon")
+    }
+    if(any(structure_distances$is_multiple_casstte)){
+      eventType <- c(eventType,"Multiple Exon Skipping")
+    }
+    
+  }else{
+    eventType <- "Complex Event"
+  }
+  eventType <- paste(eventType,collapse = " | ")
+  
+  return(eventType)
+  
+}
+
+
+
 
 
 

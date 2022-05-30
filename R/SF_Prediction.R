@@ -24,6 +24,7 @@
 #' @importFrom speedglm control is.sparse
 #' @importFrom IRanges IRanges
 #' @importFrom fgsea fgsea
+#' @importFrom matrixStats rowRanks
 
 
 

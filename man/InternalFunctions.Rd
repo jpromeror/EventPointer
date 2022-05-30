@@ -95,6 +95,9 @@
 \alias{GseaApproach}
 \alias{WilcoxonApproach}
 \alias{Wilcoxon.z.matrix}
+\alias{MatrixRes}
+\alias{myphyper}
+\alias{reclasify_intern}
 \title{EventPointer Internal Functions}
 \usage{
 annotateEvents(Events, PSR_Gene, Junc_Gene, Gxx)
@@ -546,6 +549,12 @@ Wilcoxon.z.matrix(
   conf.int = FALSE,
   conf.level = 0.95
 )
+
+MatrixRes(cSel, nSel, ExS, P_value_PSI, significance, N, nmTopEv)
+
+myphyper(p, m, n, k, lower.tail = TRUE, log.p = FALSE)
+
+reclasify_intern(SG, mievento, pp1, pp2, ppref)
 }
 \value{
 Internal outputs
