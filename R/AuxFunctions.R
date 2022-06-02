@@ -7641,13 +7641,29 @@ reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
   ppref_2 <- strsplit(unlist(strsplit(ppref,",")),"-")
   
   pp1_2 <- unlist(lapply(pp1_2, function(X){
-    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
+    
   }))
   pp2_2 <- unlist(lapply(pp2_2, function(X){
-    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
   }))
   ppref_2 <- unlist(lapply(ppref_2, function(X){
-    intersect(grep(X[1],as.vector(SG$Edges$From)),grep(X[2],as.vector(SG$Edges$To)))
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
   }))
   
   Event <- list(P1=SG$Edges[pp1_2,],P2=SG$Edges[pp2_2,],Ref=SG$Edges[ppref_2,])
@@ -7712,41 +7728,32 @@ reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
     
     
     while(TRUE){
-      torm <- which(
-        rowSums(newAdj[-nrow(newAdj),])==0)
+      torm <- which(rowSums(newAdj[-nrow(newAdj),])==0)
       if(length(torm)>0){
         torm_index <- c()
         for(ssx in 1:length(torm)){
           # ssx <- 2
-          subexontoremove <- gsub(
-            "\\..*","",names(torm)[ssx])
-          torm_index <- c(torm_index,
-                          grep(subexontoremove,
-                               rownames(newAdj)))
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
         }
-        newAdj <- newAdj[-torm_index,
-                         -torm_index]     
+        newAdj <- newAdj[-torm_index,-torm_index]     
       }else{
         break
       }
     }
     
+    
+    
     while(TRUE){
-      torm <- which(
-        colSums(newAdj[,-1])==0)
+      torm <- which(colSums(newAdj[,-1])==0)
       if(length(torm)>0){
         torm_index <- c()
         for(ssx in 1:length(torm)){
           # ssx <- 2
-          subexontoremove <- gsub(
-            "\\..*","",names(torm)[ssx])
-          torm_index <- c(
-            torm_index,
-            grep(subexontoremove,
-                 rownames(newAdj)))
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
         }
-        newAdj <- newAdj[
-          -torm_index,-torm_index]     
+        newAdj <- newAdj[-torm_index,-torm_index]     
       }else{
         break
       }
@@ -7767,6 +7774,12 @@ reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
     #possible paths:
     numberOfPaths <- solve(
       Diagonal(ncol(newAdj))-newAdj)
+    
+    if(numberOfPaths[
+      ref_junct_ford,ref_junct_revs] > 10){
+      return("Complex Event")
+    }
+    
     distances_list <- vector(
       mode="list",
       length=numberOfPaths[

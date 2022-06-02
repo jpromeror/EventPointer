@@ -4,7 +4,7 @@
 \alias{Events_ReClassification}
 \title{Events_ReClassification}
 \usage{
-Events_ReClassification(EventTable, SplicingGraph, cores = 1)
+Events_ReClassification(EventTable, SplicingGraph)
 }
 \arguments{
 \item{EventTable}{Table returned by EventDetection_transcriptome. 
@@ -13,8 +13,6 @@ Can be easily loaded using the function read.delim as data.frame.}
 \item{SplicingGraph}{A list with the splicing graph of all the genes of
 a reference transcriptome. This data is returned
  by the function EventDetection_transcriptome.}
-
-\item{cores}{Number of cores using in the parallel processing (by default = 1)}
 }
 \value{
 A data.frame containing a new column with the new classification ('EventType_new'):
@@ -46,8 +44,7 @@ EventTable <- read.delim(file=inputFile)
 #this table has the information of 5 complex events.
 
 EventTable_new <- Events_ReClassification(EventTable = EventTable,
-                                          SplicingGraph = SG_reclassify,
-                                          cores = 1)
+                                          SplicingGraph = SG_reclassify)
          
     
 

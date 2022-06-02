@@ -22,7 +22,6 @@
 #' @param SplicingGraph A list with the splicing graph of all the genes of
 #'  a reference transcriptome. This data is returned
 #'   by the function EventDetection_transcriptome.
-#' @param cores Number of cores using in the parallel processing (by default = 1)
 #'
 #' @return A data.frame containing a new column with the new classification ('EventType_new'):
 #' 
@@ -39,8 +38,7 @@
 #' #this table has the information of 5 complex events.
 #' 
 #' EventTable_new <- Events_ReClassification(EventTable = EventTable,
-#'                                           SplicingGraph = SG_reclassify,
-#'                                           cores = 1)
+#'                                           SplicingGraph = SG_reclassify)
 #'          
 #'     
 #'
@@ -60,7 +58,7 @@
 #' @importFrom S4Vectors queryHits subjectHits split
 #' @importFrom IRanges relist disjoin %over% reduce
 
-Events_ReClassification <- function(EventTable,SplicingGraph,cores = 1){
+Events_ReClassification <- function(EventTable,SplicingGraph){
   
   if (is.null(EventTable)) {
     stop("not EventTable")
@@ -76,11 +74,13 @@ Events_ReClassification <- function(EventTable,SplicingGraph,cores = 1){
   if(length(uux)==0){
     return(EventTable)
   }
-  
-  
-  registerDoParallel(cores = cores)
-  Result <- foreach(jj = seq_len(length(uux))) %dopar%
-    {
+  cat("\nStarting reclassification\n")
+  pb <- txtProgressBar(min = 0, max = length(uux), 
+                       style = 3)
+  misnewtype <- c()
+    for(jj in seq_len(length(uux))){
+      setTxtProgressBar(pb, jj)
+      # cat(jj,"\n")
       mievento <- EventTable$ID[uux][jj]
       # mievento
       ggx <- match(EventTable$GeneName[uux][jj],names(SplicingGraph))
@@ -90,14 +90,17 @@ Events_ReClassification <- function(EventTable,SplicingGraph,cores = 1){
       pp1 <- EventTable$Path.1[uux][jj]
       pp2 <- EventTable$Path.2[uux][jj]
       ppref <- EventTable$Path.Reference[uux][jj]
-      return(reclasify_intern(SG = SG,mievento = mievento,
-                              pp1=pp1,pp2=pp2,ppref=ppref))
+      misnewtype <- c(misnewtype,reclasify_intern(SG = SG,mievento = mievento,
+                                                  pp1=pp1,pp2=pp2,ppref=ppref))
       
     }
   
-  Result <- unlist(Result)
+  close(pb)
+  cat("\nReclassification Finished\n")
+  # Result <- unlist(Result)
+  # EventTable$EventType_new[uux] <- Result
   
-  EventTable$EventType_new[uux] <- Result
+  EventTable$EventType_new[uux] <- misnewtype
   
   return(EventTable)
   

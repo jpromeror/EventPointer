@@ -1033,7 +1033,7 @@ Thus, EventPointer reclassifies the complex events according to how similar the 
 
 The following code shows how this function works for a subset of 5 splicing events:
 
-```{r reclassify, eval=TRUE}
+```{r reclassification, eval=TRUE}
 #load splicing graph
 data("SG_reclassify")
 
@@ -1044,54 +1044,12 @@ EventTable <- read.delim(file=inputFile)
 #this table has the information of 5 complex events.
 
 EventTable_new <- Events_ReClassification(EventTable = EventTable,
-                                          SplicingGraph = SG_reclassify,
-                                          cores = 1)
+                        SplicingGraph = SG_reclassify)
 ```
 
 The following figures show the structure of these events and their corresponding gene:
 
 **Example 1** 
-![**Example 1** Complex Event reclassified as alternative 5' splice site and as complex casstte exon  ](example_1_alt5_ce.png)
-```{r example1, eval=TRUE}
-EventTable_new$EventType_new[[1]]
-```
-<br><br><br>
-**Example 2** 
-![**Example 2** Complex Event reclassified as Multiple Exon Skipping  ](example_2_multiple_exon_skipping.png)
-```{r example2, eval=TRUE}
-EventTable_new$EventType_new[[2]]
-```
-
-<br><br><br>
-**Example 3** 
-![**Example 3** Complex Event reclassified as Complex Cassette Exon  ](example3_ce.png)
-```{r example3, eval=TRUE}
-EventTable_new$EventType_new[[3]]
-```
-
-<br><br><br>
-**Example 4** 
-![**Example 4** Complex Event reclassified as Retained Intron and Complex Cassette Exon  ](example_4_ri_ce.png)
-```{r example4, eval=TRUE}
-EventTable_new$EventType_new[[4]]
-```
-
-<br><br><br>
-**Example 5** 
-![**Example 5** Complex Event reclassified as Complex Cassette Exon and complex Alternative 3' Splice Site  ](example_5_ce_alt3.png)
-```{r example5, eval=TRUE}
-EventTable_new$EventType_new[[5]]
-```
-
-
-Further, files needed to load these pictures in IGV are available:
-
-```{r source_pictures,eval=FALSE}
-PathFiles<-system.file("extdata",package="EventPointer")
-paste0(PathFiles,"/example_recla_events.gtf")
-paste0(PathFiles,"/example_recla_genes.gtf")
-```
-
 
 ## Statistical Tests
 
