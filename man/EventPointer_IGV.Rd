@@ -48,6 +48,7 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
 }
 \examples{
 
+\dontrun{
    PathFiles<-system.file('extdata',package='EventPointer')
    DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
@@ -77,5 +78,7 @@ Generates of files to be loaded in IGV for visualization and interpretation of e
                   PathGTF=Directory,
                  EventsFile= EventsFound,
                  microarray='HTA-2_0')
+                 
+}
 
 }

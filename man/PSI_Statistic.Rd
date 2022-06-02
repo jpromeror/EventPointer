@@ -24,6 +24,7 @@ Statistical analysis of the alternative splicing events. This function takes as 
 Perform a statistical analysis based on permutation test
 }
 \examples{
+\dontrun{
       data(ArraysData)
       PSI_Arrays_list<-EventPointer:::getPSI(ArraysData)
       PSI_Arrays <- PSI_Arrays_list$PSI
@@ -33,6 +34,7 @@ Perform a statistical analysis based on permutation test
       # Statistical analysis:
       
       table <- PSI_Statistic(PSI_Arrays,Design = Design, Contrast = Contrast, nboot = 50)
+ }
       
 
 }

@@ -11,10 +11,12 @@
 #' It also generates a file called EventsFound_RNASeq.txt with the information of each event.
 #'
 #' @examples
+#' \dontrun{
 #'   # Run EventDetection function
 #'    data(SG_RNASeq)
 #'    TxtPath<-tempdir()
 #'    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
+#'    }
 #'
 #' @export
 

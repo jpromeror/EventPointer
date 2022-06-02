@@ -32,6 +32,7 @@ of contrast and all these data.frame are sotred in an unique list.
 Statistical analysis of alternative splicing events with the output of GetPSI_FromTranRef
 }
 \examples{
+\dontrun{
    data(EventXtrans)
    data(PSIss)
    # Design and contrast matrix:
@@ -45,6 +46,7 @@ Statistical analysis of alternative splicing events with the output of GetPSI_Fr
    Fit <- EventPointer_RNASeq_TranRef(Count_Matrix =  PSIss$ExpEvs,
                                       Statistic = 'LogFC',Design = Design,
                                       Contrast = Contrast)
+}
 
 
 }

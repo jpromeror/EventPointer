@@ -29,10 +29,10 @@ FindPrimers(
 }
 \arguments{
 \item{SG}{Information of the graph of the gene where the selected event belongs.
-This information is avaible in the output of EventsGTFfromTranscriptomeGTF function.}
+This information is avaible in the output of EventDetection_transcriptome function.}
 
 \item{EventNum}{The "EventNum" variable can be found in the returned .txt file from
-the EventsGTFfromTranscriptomeGTF function in the column "EventNumber" or in the output of  EventPointer_RNASeq_TranRef,
+the EventDetection_transcriptome function in the column "EventNumber" or in the output of  EventPointer_RNASeq_TranRef,
 the number after the "_" character of the 'Event_ID'.}
 
 \item{Primer3Path}{Complete path where primer3_core.exe is placed.}

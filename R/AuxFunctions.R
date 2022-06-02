@@ -2758,9 +2758,9 @@ SG_creation <- function(SG_Gene) {
     # Build incidence matrix
     Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
         0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
@@ -2919,9 +2919,9 @@ SG_creation_RNASeq <- function(SG_Gene) {
     # Build incidence matrix
     Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 
         0))
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         2], seq_len(ncol(Inc)))] <- 1
-    Inc[cbind(which(Adj > 0, arr.ind = 1)[, 
+    Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 
         1], seq_len(ncol(Inc)))] <- -1
     
     rownames(Inc) <- rownames(Adj)
@@ -3106,8 +3106,8 @@ SG_creation_fast <- function(SG_Gene){
   
   ###incidence matrix
   Inc <- matrix(0, nrow = ncol(Adj), ncol = sum(Adj > 0))
-  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 2], seq_len(ncol(Inc)))] <- 1
-  Inc[cbind(which(Adj > 0, arr.ind = 1)[, 1], seq_len(ncol(Inc)))] <- -1
+  Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 2], seq_len(ncol(Inc)))] <- 1
+  Inc[cbind(which(Adj > 0, arr.ind = TRUE)[, 1], seq_len(ncol(Inc)))] <- -1
   
   rownames(Inc) <- rownames(Adj)
   colnames(Inc) <- seq_len(ncol(Inc))
@@ -7020,6 +7020,911 @@ rgl <- function(n, med = 0, iqr = 1, chi = 0, xi = 0.6){
 
 
 
+
+######### internal functions for SF prediction #############
+#' @rdname InternalFunctions
+callGRseq_parallel <- function(EventsFound,SG_List,cores,typeA,nt){
+  
+  
+  cl <- makeCluster(cores)
+  registerDoParallel(cl)
+  try(
+    GRseq3 <- foreach(i = seq_len(nrow(EventsFound)),.packages = "GenomicRanges") %dopar%
+      # suppressWarnings(GRseq <- foreach(i = seq_len(12),.combine = "c") %dopar%  
+      {
+        # i <- 1258 # para mutual exclusive
+        # i <- 3 #para alternative first
+        # i <- 1 #typeA
+        mygene <- EventsFound$GeneName[i]
+        mygeneid <- EventsFound$GeneID[i]
+        mytype <- EventsFound$EventType[i]
+        myeventsID <- EventsFound$EventID[i]
+        myp1 <- EventsFound$Path.1[i]
+        myp2 <- EventsFound$Path.2[i]
+        mypref <- EventsFound$Path.Reference[i]
+        myChr <- gsub(":.*","",EventsFound$GPos[i])
+        jjx <- which(names(SG_List)==mygene)
+        myEdges <- SG_List[[jjx]]$Edges
+        
+        
+        if(mytype %in% typeA){
+          X <- strsplit(unlist(strsplit(myp1,",")),"-")
+          # X
+          u1 <- which(myEdges$From == paste0(X[[1]][1],".b") & myEdges$To == paste0(X[[1]][2],".a"))
+          u2 <- which(myEdges$From == paste0(X[[3]][1],".b") & myEdges$To == paste0(X[[3]][2],".a"))
+          
+          centers <- c(myEdges$Start[u1],myEdges$End[u1],myEdges$Start[u2],myEdges$End[u2])
+          nc <- length(centers)
+          
+          GR <- data.frame(seqname = rep(myChr,nc),
+                           start = centers-(nt),
+                           end = centers+(nt),
+                           strand = myEdges$Strand[1])
+          GR <- GRanges(GR)
+          GR2 <- reduce(GR)
+          h <- length(GR2)
+          GR2 <- as.data.frame(GR2)
+          GR2$SeqID <- paste0(myeventsID,"-",1:h)
+          GR2$EventID <- myeventsID
+          GR2$Length.Seq <- GR2$end-GR2$start+1
+          # GRseq <- c(GRseq,GR2)
+          return(GR2)
+        }else if(mytype == "Mutually Exclusive Exons"){
+          
+          X <- strsplit(unlist(strsplit(myp1,",")),"-")
+          # X
+          u1 <- which(myEdges$From == paste0(X[[1]][1],".b") & myEdges$To == paste0(X[[1]][2],".a"))
+          u2 <- which(myEdges$From == paste0(X[[3]][1],".b") & myEdges$To == paste0(X[[3]][2],".a"))
+          
+          Y <- strsplit(unlist(strsplit(myp2,",")),"-")
+          # Y
+          u3 <- which(myEdges$From == paste0(X[[2]][1],".a") & myEdges$To == paste0(X[[2]][2],".b"))
+          
+          centers <- c(myEdges$Start[u1],myEdges$End[u1],myEdges$Start[u2],myEdges$End[u2],myEdges$Start[u3],myEdges$End[u3])
+          nc <- length(centers)
+          
+          GR <- data.frame(seqname = rep(myChr,nc),
+                           start = centers-(nt),
+                           end = centers+(nt),
+                           strand = myEdges$Strand[1])
+          GR <- GRanges(GR)
+          GR2 <- reduce(GR)
+          h <- length(GR2)
+          GR2 <- as.data.frame(GR2)
+          GR2$SeqID <- paste0(myeventsID,"-",1:h)
+          GR2$EventID <- myeventsID
+          GR2$Length.Seq <- GR2$end-GR2$start+1
+          # GRseq <- c(GRseq,GR2)
+          return(GR2)
+          
+        }else {
+          X <- strsplit(unlist(strsplit(myp1,",")),"-")
+          # X
+          
+          Y <- strsplit(unlist(strsplit(myp2,",")),"-")
+          # Y
+          
+          u1 <- sapply(X,function(X){
+            if(X[1]==X[2]){
+              c(paste0(X[1],".a"),paste0(X[2],".b"))
+            }else{
+              c(paste0(X[1],".b"),paste0(X[2],".a"))
+            }
+          })
+          
+          u1 <- t(u1)
+          u2 <- sapply(Y,function(X){
+            if(X[1]==X[2]){
+              c(paste0(X[1],".a"),paste0(X[2],".b"))
+            }else{
+              c(paste0(X[1],".b"),paste0(X[2],".a"))
+            }
+          })
+          
+          u2 <- t(u2)
+          a <- match(as.vector(myEdges$From),u1[,1])
+          b <- match(as.vector(myEdges$To),u1[,2])
+          indexc1 <- which(a==b)
+          
+          a2 <- match(as.vector(myEdges$From),u2[,1])
+          b2 <- match(as.vector(myEdges$To),u2[,2])
+          indexc2 <- which(a2==b2)
+          
+          # u1
+          # myEdges[indexc1,1:4]
+          
+          # u2
+          # myEdges[indexc2,1:4]
+          
+          centers <- c(myEdges$Start[indexc1],myEdges$End[indexc1],myEdges$Start[indexc2],myEdges$End[indexc2])
+          nc <- length(centers)
+          
+          GR <- data.frame(seqname = rep(myChr,nc),
+                           start = centers-(nt),
+                           end = centers+(nt),
+                           strand = myEdges$Strand[1])
+          GR <- GRanges(GR)
+          GR2 <- reduce(GR)
+          h <- length(GR2)
+          GR2 <- as.data.frame(GR2)
+          GR2$SeqID <- paste0(myeventsID,"-",1:h)
+          GR2$EventID <- myeventsID
+          GR2$Length.Seq <- GR2$end-GR2$start+1
+          # GRseq <- c(GRseq,GR2)
+          return(GR2)
+          
+        }
+      }
+  )
+  stopCluster(cl)
+  
+  GRseq3 <- do.call(rbind,GRseq3)
+  
+  GRseq3 <- GRanges(seqnames = GRseq3$seqnames,
+                    ranges = IRanges(GRseq3$start,GRseq3$end),
+                    strand = GRseq3$strand,
+                    SeqID=GRseq3$SeqID,
+                    EventID=GRseq3$EventID,
+                    Length.Seq=GRseq3$Length.Seq)
+  
+  return(GRseq3)
+  
+}
+
+#' @rdname InternalFunctions
+getpij <- function(A){
+  rSc <- rowSums(A)
+  cSc <- colSums(A)
+  rSums <- factor(rSc)
+  cSums <- factor(cSc)
+  
+  Xbig2small <- sparseMatrix(i = 1:(nrow(A)+ncol(A)),
+                             j = c(as.numeric(rSums), as.numeric(cSums)+length(levels(rSums))),
+                             x =1)
+  
+  rM <- sparseMatrix(i = as.numeric(rSums),
+                     j = 1:nrow(A),
+                     x =1)
+  cM <- sparseMatrix(i = 1:ncol(A),
+                     j = as.numeric(cSums),
+                     x =1)
+  
+  A1 <- rM %*% A %*% cM 
+  A0 <- rM %*% (1-A) %*% cM 
+  
+  X1 <- sparseMatrix(i = 1:(nrow(A1)*ncol(A1)),
+                     j = rep(1:nrow(A1), ncol(A1)),
+                     x = 1,
+                     dims = c((nrow(A1)*ncol(A1)), (nrow(A1)+ncol(A1))))
+  
+  X2 <- sparseMatrix(i = 1:(nrow(A1)*ncol(A1)),
+                     j = nrow(A1)+rep(1:ncol(A1), each = nrow(A1)),
+                     x = 1,
+                     dims = c((nrow(A1)*ncol(A1)), (nrow(A1)+ncol(A1))))
+  Xtxiki <- X1 + X2 # Matriz de diseño
+  Xtxiki <- rbind(Xtxiki, c(rep(1,nrow(A1)), rep(0,ncol(A1))))
+  Salida5 <- speedglm.wfit2(X=(Xtxiki),
+                            y=cbind(c(as.vector(A1),round(mean(A1))), c(as.vector(A0),round(mean(A0)))),
+                            family = binomial(), sparse=TRUE)
+  
+  cS5A <- coef(Salida5)
+  cS5 <- cS5A %*% t(Xbig2small)
+  elog5 <- matrix(exp(cS5[1:nrow(A)]), ncol = 1) %*% matrix(exp(cS5[nrow(A) + 1:ncol(A)]), nrow = 1)
+  p5 <- elog5 /(1+elog5)
+  
+  ## TODO: include a warning if the colSums (rowSums) of p5 is
+  # not similar to the colSums (rowSums) of A
+  deltar <- rowSums(p5) - rSc
+  if (max(abs(deltar))>1e-3) warning("Converge problems in the solution!!!")
+  rownames(p5) <- rownames(A)
+  colnames(p5) <- colnames(A)
+  return(p5)
+}
+
+#' @rdname InternalFunctions
+speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = NULL, 
+                            family = gaussian(), start = NULL, etastart = NULL, mustart = NULL, 
+                            offset = NULL, acc = 1e-08, maxit = 25, k = 2, sparselim = 0.9, 
+                            camp = 0.01, eigendec = TRUE, tol.values = 1e-07, tol.vectors = 1e-07, 
+                            tol.solve = .Machine$double.eps, sparse = NULL, method = c("eigen", 
+                                                                                       "Cholesky", "qr"), trace = FALSE, ...) 
+{
+  nobs <- NROW(y)
+  nvar <- ncol(X)
+  if (missing(y)) 
+    stop("Argument y is missing")
+  if (missing(X)) 
+    stop("Argument X is missing")
+  if (is.null(offset)) 
+    offset <- rep.int(0, nobs)
+  if (is.null(weights)) 
+    weights <- rep(1, nobs)
+  col.names <- dimnames(X)[[2]]
+  method <- match.arg(method)
+  fam <- family$family
+  link <- family$link
+  variance <- family$variance
+  dev.resids <- family$dev.resids
+  aic <- family$aic
+  linkinv <- family$linkinv
+  mu.eta <- family$mu.eta
+  if (is.null(sparse)) 
+    sparse <- is.sparse(X = X, sparselim, camp)
+  if (is.null(start)) {
+    if (is.null(mustart)) 
+      eval(family$initialize)
+    eta <- if (is.null(etastart)) 
+      family$linkfun(mustart)
+    else etastart
+    mu <- mustart
+    start <- rep(0, nvar)
+  }
+  else {
+    eta <- offset + as.vector(if (nvar == 1) 
+      X * start
+      else {
+        if (sparse) 
+          X %*% start
+        else tcrossprod(X, t(start))
+      })
+    mu <- linkinv(eta)
+  }
+  iter <- 0
+  dev <- sum(dev.resids(y, mu, weights))
+  tol <- 1
+  if ((fam == "gaussian") & (link == "identity")) 
+    maxit <- 1
+  C_Cdqrls <- getNativeSymbolInfo("Cdqrls", PACKAGE = getLoadedDLLs()$stats)
+  while ((tol > acc) & (iter < maxit)) {
+    iter <- iter + 1
+    beta <- start
+    dev0 <- dev
+    varmu <- variance(mu)
+    mu.eta.val <- mu.eta(eta)
+    z <- (eta - offset) + (y - mu)/mu.eta.val
+    W <- (weights * mu.eta.val * mu.eta.val)/varmu
+    X1 <- sqrt(W) * X
+    XTX <- crossprod(X1)
+    XTz <- t(crossprod((W * z), X))
+    if (iter == 1 & method != "qr") {
+      variable <- colnames(X)
+      ris <- if (eigendec)
+        control(XTX, , tol.values, tol.vectors, , method)
+      else list(rank = nvar, pivot = 1:nvar)
+      ok <- ris$pivot[1:ris$rank]
+      if (eigendec) {
+        XTX <- ris$XTX
+        X <- X[, ok]
+        XTz <- XTz[ok]
+        start <- start[ok]
+      }
+      beta <- start
+    }
+    if (method == "qr") {
+      ris <- .Call(C_Cdqrls, XTX, XTz, tol.values, FALSE)
+      start <- if (ris$rank < nvar) 
+        ris$coefficients[ris$pivot]
+      else ris$coefficients
+    }
+    else {
+      start <- solve(XTX, XTz, tol = tol.solve)
+    }
+    eta <-  drop(X %*% start)
+    mu <- linkinv(eta <- eta + offset)
+    dev <- sum(dev.resids(y, mu, weights))
+    tol <- max(abs(dev0 - dev)/(abs(dev) + 0.1))
+    if (trace) 
+      cat("iter", iter, "tol", tol, "\n")
+  }
+  wt <- sum(weights)
+  wtdmu <- if (intercept) 
+    sum(weights * y)/wt
+  else linkinv(offset)
+  nulldev <- sum(dev.resids(y, wtdmu, weights))
+  n.ok <- nobs - sum(weights == 0)
+  nulldf <- n.ok - as.integer(intercept)
+  rank <- ris$rank
+  dfr <- nobs - rank - sum(weights == 0)
+  aic.model <- aic(y, nobs, mu, weights, dev) + k * rank
+  #ll.nuovo <- speedglm:::ll.speedglm(fam, aic.model, rank)
+  res <- (y - mu)/mu.eta(eta)
+  resdf <- n.ok - rank
+  RSS <- sum(W * res * res)
+  var_res <- RSS/dfr
+  dispersion <- if (fam %in% c("poisson", "binomial")) 
+    1
+  else var_res
+  if (method == "qr") {
+    coefficients <- start
+    coefficients[coefficients == 0] = NA
+    ok <- ris$pivot[1:rank]
+  }
+  else {
+    coefficients <- rep(NA, nvar)
+    start <- as(start, "numeric")
+    coefficients[ok] <- start
+  }
+  names(coefficients) <- col.names
+  rval <- list(coefficients = coefficients, 
+               iter = iter, tol = tol, family = family, link = link, 
+               df = dfr, XTX = XTX, dispersion = dispersion, ok = ok, 
+               rank = rank, RSS = RSS, method = method, aic = aic.model, 
+               sparse = sparse, deviance = dev, nulldf = nulldf, nulldev = nulldev, 
+               ngoodobs = n.ok, n = nobs, intercept = intercept, convergence = (!(tol > 
+                                                                                    acc)))
+  class(rval) <- "speedglm"
+  rval
+}
+
+#' @rdname InternalFunctions
+hyperGeometricApproach <- function(ExS, nSel, P_value_PSI, significance, resPred,N){
+  
+  for(cSel in 1:ncol(P_value_PSI)){
+    
+    nmTopEv <- significanceFunction (P_value_PSI, cSel, nSel, significance)
+    nSel <- length(nmTopEv)
+    hyperM <- hyperMatrixRes(cSel, nSel, ExS, P_value_PSI , significance,N)
+    
+    mynselevents <- matrix(0,nrow=nrow(ExS),ncol=1)
+    rownames(mynselevents) <- rownames(ExS)
+    mynselevents[nmTopEv,1] <- 1
+    
+    mix <- as.numeric(t(ExS) %*% mynselevents)
+    # identical(hyperM$RBP,rownames(mix))
+    mid <- hyperM$nHits
+    miN_D <- N-mid
+    hyperM[, "Pvalue_hyp_PSI"] <- myphyper(mix, mid, miN_D, nSel, lower.tail = FALSE)
+    hyperM$x <- mix
+    hyperM$qhyp_0.5 <- qhyper(0.5, mid, miN_D, nSel, lower.tail = FALSE)
+    hyperM$Fc <- mix/hyperM$qhyp_0.5
+    
+    hyperM <- hyperM[order(hyperM$Pvalue_hyp_PSI), ]
+    resPred[[cSel]]<-hyperM
+    
+  }
+  
+  return(resPred)
+}
+
+#' @rdname InternalFunctions
+poissonBinomialApproach <- function(ExS, nSel, P_value_PSI, significance, resPred,N){
+  myP <- getpij(ExS)
+  
+  for(cSel in 1:ncol(P_value_PSI)){
+    
+    nmTopEv <- significanceFunction (P_value_PSI, cSel, nSel, significance )
+    nSel <- length(nmTopEv)
+    hyperM <- hyperMatrixRes(cSel, nSel, ExS, P_value_PSI , significance,N)
+    
+    mynselevents <- matrix(0,nrow=nrow(ExS),ncol=1)
+    rownames(mynselevents) <- rownames(ExS)
+    mynselevents[nmTopEv,1] <- 1
+    
+    mix <- as.numeric(t(ExS) %*% mynselevents)
+    
+    myP2 <- myP[which(rownames(myP)%in%nmTopEv),]
+    muk <- colSums(myP2)
+    QQ <- 1 - myP2
+    sigmak <- sqrt(diag(t(myP2)%*%QQ))
+    MM <- QQ*(1-2*myP2)
+    gammak <- diag(t(myP2)%*%MM)
+    ind = gammak/(6 * sigmak^3 )
+    
+    kk1 = (mix + 0.5 - muk)/sigmak
+    
+    vkk.r = pnorm(kk1) + ind * (1 - kk1^2) * dnorm(kk1)
+    vkk.r[vkk.r < 0] = 0
+    vkk.r[vkk.r > 1] = 1
+    
+    hyperM$Pvalue_hyp_PSI <- 1-vkk.r
+    
+    weit_correction <- colSums(ExS)/colSums(ExS)
+    if(any(is.na(weit_correction))){
+      hyperM$Pvalue_hyp_PSI[which(is.na(weit_correction))] <- 1
+    }
+    
+    hyperM$qhyp_0.5 <- t(myP) %*% mynselevents
+    
+    hyperM$x <- mix
+    # hyperM$qhyp_0.5 <- qhyper(0.5, mid, miN_D, nSel, lower.tail = FALSE)
+    
+    hyperM$Fc <- mix/hyperM$qhyp_0.5
+    
+    hyperM <- hyperM[order(hyperM$Pvalue_hyp_PSI), ]
+    resPred[[cSel]]<-hyperM
+    
+  }
+  return(resPred)
+}
+
+#' @rdname InternalFunctions
+significanceFunction <- function(P_value_PSI, cSel, nSel, significance ){
+  
+  # cSel <- 1
+  
+  if(is.null(significance)){
+    if (!is.null(nSel)) {
+      nmTopEv <- (rownames(P_value_PSI)[order(P_value_PSI[,cSel])])[1:nSel]
+    }else{
+      nmTopEv <- (rownames(P_value_PSI)[order(P_value_PSI[,cSel])])
+    }
+    
+    #name of the top nSel events differentially spliced in this contrast
+  }else{
+    if(is.numeric(significance)){
+      
+      if(is.na(significance[cSel])){
+        warning(paste0("no threshold selected for contrast ",cSel,". Top nSel events taken"))
+        if (!is.null(nSel)) {
+          nmTopEv <- (rownames(P_value_PSI)[order(P_value_PSI[,cSel])])[1:nSel]
+        }else{
+          nmTopEv <- (rownames(P_value_PSI)[order(P_value_PSI[,cSel])])
+        }
+      }else{
+        nmTopEv <- rownames(P_value_PSI)[which(P_value_PSI[,cSel] < significance[cSel])]
+      }
+      
+    }else{
+      stop("significance must be numeric")
+    }
+  }
+  return(nmTopEv)
+}
+
+#' @rdname InternalFunctions
+hyperMatrixRes <- function(cSel, nSel, ExS, P_value_PSI , significance,N){
+  hyperM <- data.frame(RBP = colnames(ExS),
+                       nHits = colSums(ExS),
+                       Pvalue_hyp_PSI =NA,
+                       N = N,
+                       d = colSums(ExS),
+                       n = nSel,
+                       x = NA,
+                       qhyp_0.5 = NA,
+                       Fc = NA,
+                       stringsAsFactors = FALSE)
+  return(hyperM)
+}
+
+#' @rdname InternalFunctions
+GseaApproach <- function(P_value_PSI,ExS, significance, resPred, PSI_table=NULL){
+  # P_value_PSI <- ResultBootstrap_kallisto_2$Pvalues
+  # ExS <- miExS
+  listRes <- vector(mode="list",length = ncol(ExS))
+  names(listRes) <- colnames(ExS)
+  for (RBP in colnames(ExS)) {
+    events_associatedRBP <- which(ExS[,RBP] == 1)
+    listRes[[RBP]] <- names(events_associatedRBP)
+    # listRes <- append(listRes, list(RBP=))
+  }
+  
+  for(cSel in 1:ncol(P_value_PSI)){
+    nmTopEv <- significanceFunction(P_value_PSI, cSel, nSel=NULL, significance)
+    if (!is.null(PSI_table)) {
+      ranks <- abs(PSI_table[nmTopEv,cSel])
+      fgseaRes <- fgsea(pathways = listRes,
+                        stats    = ranks)
+      resPred[[cSel]]<-fgseaRes[,c(1:7)]
+      
+    }else{
+      ranks <- 1-P_value_PSI[nmTopEv,cSel]
+      for(k in 1:5){
+        fgseaRes <- try(fgsea(pathways = listRes,stats    = ranks,minSize=0),silent = TRUE)
+        if(class(fgseaRes)=="try-error"){
+          gc()
+          cat("\014")
+          cat(k,"\n")
+        }else{
+          break()
+        }
+      }
+      
+      resPred[[cSel]]<-fgseaRes[,c(1:7)]
+    }
+    
+  }
+  
+  return(resPred)
+  
+}
+
+#' @rdname InternalFunctions
+WilcoxonApproach <- function(P_value_PSI,ExS, significance, resPred, PSI_table=NULL, nSel, N){
+  
+  for(cSel in 1:ncol(P_value_PSI)){
+    
+    nmTopEv <- significanceFunction(P_value_PSI, cSel, nSel=nSel, significance)
+    resDF <- MatrixRes(cSel, nSel, ExS, P_value_PSI , significance, N, nmTopEv)
+    setExS <- ExS[nmTopEv,]
+    if (!is.null(PSI_table)) {
+      resPred[[cSel]] <- Wilcoxon.z.matrix(ExprT = t(abs(PSI_table[nmTopEv,cSel])),GeneGO = setExS)
+      
+    }else{
+      resWilcox <- Wilcoxon.z.matrix(ExprT = t(abs(P_value_PSI[nmTopEv,cSel])),GeneGO = setExS)
+      resDF <- cbind(resDF,z.score=data.frame(resWilcox)[resDF$RBP,])
+      resPred[[cSel]] <- resDF[order(resDF$z.score),]
+      
+    }
+    
+  }
+  return(resPred)
+}
+
+#' @rdname InternalFunctions
+Wilcoxon.z.matrix <- function(ExprT, GeneGO, 
+                              alternative = c("two.sided", "less", "greater"),
+                              mu = 0, paired = FALSE, 
+                              exact = NULL, correct = TRUE, conf.int = FALSE, conf.level = 0.95) {
+  
+  # require(matrixStats)
+  # Transp_ENSTxGO <- Matrix::t(GeneGO)
+  RExprT <- rowRanks(ExprT, preserveShape = T)
+  
+  Prod <- t(RExprT %*% GeneGO)
+  
+  # Calculate the number of elements "0"(ny) and "1"(nx)
+  nx <-  as.vector(rep(1,nrow(GeneGO)) %*% GeneGO)
+  ny <- nrow(GeneGO) -nx
+  
+  # Calculate the estimated variance
+  Var <- (nx*ny*(nx+ny+1)/12)
+  
+  # Calculate the estimated mean
+  media <- nx*(nx + ny + 1)/2
+  
+  # Calculate the standard desviation
+  std <- sqrt(Var)
+  
+  z <- (Prod-media)/std
+  
+  return((z))
+}
+
+#' @rdname InternalFunctions
+MatrixRes <- function(cSel, nSel, ExS, P_value_PSI , significance, N, nmTopEv){
+  mynselevents <- matrix(0,nrow=nrow(ExS),ncol=1)
+  rownames(mynselevents) <- rownames(ExS)
+  mynselevents[nmTopEv,1] <- 1
+  
+  mix <- as.numeric(t(ExS) %*% mynselevents)
+  matrixRes <- data.frame(RBP = colnames(ExS),
+                          nHits = colSums(ExS),
+                          #Pvalue_hyp_PSI =NA,
+                          N = N,
+                          d = colSums(ExS),
+                          n = nSel,
+                          x = mix,
+                          # qhyp_0.5 = NA,
+                          # Fc = NA,
+                          stringsAsFactors = FALSE)
+  return(matrixRes)
+}
+
+#' @rdname InternalFunctions
+myphyper <- function(p, m, n, k,lower.tail=TRUE,log.p = FALSE) {
+  #enrichment = p1 > p2, one - sided test, critical region right
+  #this is the lower.tail = FALSE
+  if(lower.tail==FALSE){
+    pp <- phyper(p+1, m, n, k,lower.tail = FALSE) + .5 * dhyper(p, m, n, k)
+  }
+  
+  #depletion = p1 < p2 one - sided test, critical region left
+  #this is the lower.tail = TRUE
+  if(lower.tail==TRUE){
+    pp <- phyper(p-1, m, n, k) + .5 * dhyper(p, m, n, k)
+  }
+  
+  if(log.p == TRUE){
+    pp <- log(pp)
+  }
+  
+  return(pp)
+}
+
+
+####### events classification #########
+
+
+#' @rdname InternalFunctions
+reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
+  # randSol <- getRandomFlow(SG$Incidence,
+  #                          ncol = 10)
+  # Events <- findTriplets(randSol)
+  # Events <- getEventPaths(Events, SG)
+  # EventNum <- as.numeric(gsub(".*_",
+  #                             "",mievento))
+  # 
+  # Event<- Events[[EventNum]]
+  
+  pp1_2 <- strsplit(unlist(strsplit(pp1,",")),"-")
+  pp2_2 <- strsplit(unlist(strsplit(pp2,",")),"-")
+  ppref_2 <- strsplit(unlist(strsplit(ppref,",")),"-")
+  
+  pp1_2 <- unlist(lapply(pp1_2, function(X){
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
+    
+  }))
+  pp2_2 <- unlist(lapply(pp2_2, function(X){
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
+  }))
+  ppref_2 <- unlist(lapply(ppref_2, function(X){
+    if(identical(X[1],X[2])){
+      X <- paste0(X,c(".a",".b"))
+    }else{
+      X <- paste0(X,c(".b",".a"))
+    }
+    which(as.vector(SG$Edges$From)==X[1] & as.vector(SG$Edges$To)==X[2])
+  }))
+  
+  Event <- list(P1=SG$Edges[pp1_2,],P2=SG$Edges[pp2_2,],Ref=SG$Edges[ppref_2,])
+  
+  # Event
+  
+  generaldata <- getgeneraldata(SG,
+                                Event,2000)
+  
+  D <- generaldata$D
+  
+  namesP1 <- unique(as.vector(
+    as.matrix(Event$P1[,1:2])))
+  namesP1 <- namesP1[namesP1 %in%
+                       colnames(D)]
+  Primers1 <- findPotencialExons(D,
+                                 namesP1,
+                                 maxLength = Inf,
+                                 SG=SG,
+                                 minexonlength = 0)
+  
+  namesP2 <- unique(as.vector(
+    as.matrix(Event$P2[,1:2])))
+  namesP2 <- namesP2[namesP2 
+                     %in% colnames(D)]
+  Primers2 <- findPotencialExons(
+    D,
+    namesP2, maxLength = Inf,
+    SG=SG,minexonlength = 0)
+  
+  # Primers1
+  # Primers2
+  
+  commonForward <- intersect(
+    Primers1$Forward, Primers2$Forward)
+  commonReverse <- intersect(
+    Primers1$Reverse, Primers2$Reverse)
+  
+  if(length(commonForward) > 0 &
+     length(commonReverse) > 0){
+    
+    newStart <- commonForward[
+      which.max(as.numeric(gsub("\\..*","",commonForward)))]
+    newEnd <- commonReverse[
+      which.min(as.numeric(gsub("\\..*","",commonReverse)))]
+    
+    newAdj <- SG$Adjacency
+    
+    index_start <- match(
+      newStart,rownames(newAdj))
+    index_end <- match(
+      newEnd,rownames(newAdj))
+    
+    newAdj <- newAdj[
+      c(1,index_start:index_end,ncol(newAdj)),
+      c(1,index_start:index_end,ncol(newAdj))]
+    newAdj[1,] <- 0
+    newAdj[1,2] <- 1
+    newAdj[,ncol(newAdj)] <- 0
+    newAdj[
+      nrow(newAdj)-1,"E"] <- 1
+    
+    
+    while(TRUE){
+      torm <- which(rowSums(newAdj[-nrow(newAdj),])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          # ssx <- 2
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
+        }
+        newAdj <- newAdj[-torm_index,-torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    
+    
+    while(TRUE){
+      torm <- which(colSums(newAdj[,-1])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          # ssx <- 2
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
+        }
+        newAdj <- newAdj[-torm_index,-torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    
+    ref_junct_ford <- as.vector(
+      which(rowSums(abs(newAdj))>=2))[1]
+    names(ref_junct_ford) <- rownames(
+      newAdj)[ref_junct_ford]
+    
+    ref_junct_revs <- max(as.vector(
+      which(colSums(abs(newAdj))>=2)))
+    names(ref_junct_revs) <- rownames(
+      newAdj)[ref_junct_revs]
+    
+    
+    #possible paths:
+    numberOfPaths <- solve(
+      Diagonal(ncol(newAdj))-newAdj)
+    
+    if(numberOfPaths[
+      ref_junct_ford,ref_junct_revs] > 10){
+      return("Complex Event")
+    }
+    
+    distances_list <- vector(
+      mode="list",
+      length=numberOfPaths[
+        ref_junct_ford,ref_junct_revs])
+    
+    
+    SG$Edges$leng <- SG$Edges$End-SG$Edges$Start  
+    from_p1 <- names(ref_junct_ford)
+    newAdj_2 <- newAdj
+    # mis_distance_p1_list <- list()
+    misecuecia <- distances_list
+    misecuecia <- lapply(misecuecia,
+                         function(X) from_p1)
+    
+    ffx <- match(names(
+      ref_junct_revs),rownames(numberOfPaths))
+    
+    for(ttx in 1:length(distances_list)){
+      # ttx <- 2
+      from_p1 <- names(ref_junct_ford)
+      mis_distance_p1 <- c()
+      pos_sec <- 2
+      while(TRUE){
+        if(from_p1 == names(ref_junct_revs)){
+          distances_list[[ttx]] <- mis_distance_p1
+          break
+        }
+        bb <- 1
+        while(TRUE){
+          to_p1 <- names(
+            which(newAdj_2[from_p1,]==1))[bb]
+          ccx <- any(unlist(
+            sapply(misecuecia,
+                   function(X) X[pos_sec])) == to_p1)
+          if(is.na(ccx)){
+            break
+          }
+          if(ccx){
+            zzx <- which(
+              unlist(sapply(
+                misecuecia,
+                function(X) X[pos_sec])) == to_p1)
+            areidenticals <- c()
+            for(hhx in 1:length(zzx)){
+              areidenticals <- 
+                c(areidenticals,
+                  identical(c(
+                    misecuecia[[ttx]]
+                    [1:(pos_sec-1)],to_p1),
+                    misecuecia[[zzx[hhx]]][1:pos_sec]))
+            }
+            areidenticals <- areidenticals[areidenticals]
+            if(length(areidenticals) == 
+               numberOfPaths[to_p1,ffx]){
+              bb <- bb+1
+            }else{
+              break
+            }
+          }else{
+            break
+          }
+        }
+        misecuecia[[ttx]][pos_sec] <- to_p1
+        if(length(grep("a",from_p1))>0){
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+          next
+        }else{
+          mis_distance_p1 <- c(
+            mis_distance_p1,
+            SG$Edges$leng[
+              SG$Edges$From==from_p1 & SG$Edges$To==to_p1])
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+        }
+      }
+    }
+    
+    
+    structure_distances <- t(sapply(distances_list,function(X){
+      cbind(
+        max(X) == 1,
+        X[length(X)] == 1,
+        X[1] == 1,
+        length(X)==2 & min(X)>1,
+        length(X)>2 & min(X)>1 
+      )
+    }))
+    colnames(structure_distances) <- c("isretainedintron", 
+                                       "is_alt3", "is_alt5", 
+                                       "is_casstte", 
+                                       "is_multiple_casstte")
+    structure_distances <- as.data.frame(structure_distances)
+    
+    eventType <- c()
+    
+    ### complex retained Intron
+    if(any(structure_distances$isretainedintron)){
+      isri <- TRUE
+      eventType <- c(eventType,"Complex Retained Intron")
+      # break
+    }else{
+      isri <- FALSE
+    }
+    
+    ### complex alternative 3' or 5' splice site
+    if( (any(structure_distances$is_alt3) | 
+         any(structure_distances$is_alt5)) & isri == FALSE ){
+      if(as.vector(SG$Edges$Strand[1]) == "+"){
+        
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }
+        # break
+        
+      }else{
+        
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }
+        # break
+        
+      }
+    }
+    
+    #### complex casstte or multiple cassette exon
+    if(any(structure_distances$is_casstte)){
+      eventType <- c(eventType,"Complex Cassette Exon")
+    }
+    if(any(structure_distances$is_multiple_casstte)){
+      eventType <- c(eventType,"Multiple Exon Skipping")
+    }
+    
+  }else{
+    eventType <- "Complex Event"
+  }
+  eventType <- paste(eventType,collapse = " | ")
+  
+  return(eventType)
+  
+}
 
 
 

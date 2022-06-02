@@ -5,11 +5,11 @@ Title: An effective identification of alternative splicing events
 Version: 3.5.0
 Authors@R: c(person("Juan Pablo","Romero",role=c("aut"),email = "jpromero@ceit.es"),
   person("Juan A.", "Ferrer-Bonsoms",role=c("aut","cre"),email = "jafhernandez@tecnun.es"),
-  person("Pablo", "Sacristan"),
-  person("Ander", "Muniategui"),
-  person("Fernando", "Carazo"),
-  person("Ander", "Aramburu"),
-  person("Angel", "Rubio")
+  person("Pablo", "Sacristan",role=c("aut"),email = "a904719@alumni.unav.es"),
+  person("Ander", "Muniategui",role=c("aut")),
+  person("Fernando", "Carazo",role=c("aut")),
+  person("Ander", "Aramburu",role=c("aut")),
+  person("Angel", "Rubio",role=c("aut"),email = "arubio@tecnun.es")
     )
 Description: EventPointer is an R package to identify alternative splicing events 
 		that involve either simple (case-control experiment) or complex experimental designs 
@@ -59,7 +59,8 @@ Imports:
 	lpSolve,
 	poibin,
 	speedglm,
-	tximport
+	tximport,
+	fgsea
 Suggests:
     knitr,
     rmarkdown,

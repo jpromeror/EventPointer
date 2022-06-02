@@ -21,6 +21,7 @@
 #' recommended to have at least 1.5 GB of free space.
 #'
 #' @examples
+#'  \dontrun{
 #'    PathFiles<-system.file('extdata',package='EventPointer')
 #'    DONSON_GTF<-paste(PathFiles,'/DONSON.gtf',sep='')
 #'    PSRProbes<-paste(PathFiles,'/PSR_Probes.txt',sep='')
@@ -32,6 +33,7 @@
 #'
 #'    CDFfromGTF_Multipath(input='AffyGTF',inputFile=DONSON_GTF,PSR=PSRProbes,Junc=JunctionProbes,
 #'                         PathCDF=Directory,microarray=microarray,paths=3)
+#'  }
 #'
 #' @export
 #' @import Matrix

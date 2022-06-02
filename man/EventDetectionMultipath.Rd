@@ -23,9 +23,11 @@ It also generates a file called EventsFound_RNASeq.txt with the information each
 Identification of all the multipath alternative splicing events in the splicing graphs
 }
 \examples{
+\dontrun{
   # Run EventDetection function
    data(SG_RNASeq)
    TxtPath<-tempdir()
    AllEvents_RNASeq_MP<-EventDetectionMultipath(SG_RNASeq,cores=1,Path=TxtPath,paths=3)
+   }
 
 }

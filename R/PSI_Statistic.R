@@ -12,6 +12,7 @@
 #'  and the p.values for each contrast, and a third element (LocalFDR) with the information of the local false discovery rate.
 #'
 #' @examples
+#' \dontrun{
 #'       data(ArraysData)
 #'       PSI_Arrays_list<-EventPointer:::getPSI(ArraysData)
 #'       PSI_Arrays <- PSI_Arrays_list$PSI
@@ -21,6 +22,7 @@
 #'       # Statistical analysis:
 #'       
 #'       table <- PSI_Statistic(PSI_Arrays,Design = Design, Contrast = Contrast, nboot = 50)
+#'  }
 #'       
 #'
 #' @export
