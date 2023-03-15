@@ -750,16 +750,18 @@ Internally, given the TxD matrix *Protein_Domain_Enrichment* relates protein dom
 
 **NOTE**: Check that EventXtrans$transcritnames annotation type match to the rownames of the TxD matrix.
 
-```{r pd_enrichmetn, eval=TRUE, warning=FALSE, collapse=TRUE}
+```{r pd_enrichmetn, eval=FALSE, warning=FALSE, collapse=TRUE}
 
 data("TxD")
 
 #check same annotation for transcripts:
 EventXtrans$transcritnames[1]
+# [1] "ENST00000611540.4"
 rownames(TxD)[1]
+# [1] "ENST00000611540"
 
 
-## as si not the same, we change EventXtrans$transcritnames annotation
+## as is not the same, we change EventXtrans$transcritnames annotation
 transcriptnames <- EventXtrans$transcritnames
 transcriptnames <- gsub("\\..*","",transcriptnames)
 EventXtrans$transcritnames <- transcriptnames
