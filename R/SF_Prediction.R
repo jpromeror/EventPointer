@@ -21,7 +21,6 @@
 #' @import poibin
 #' @import Matrix
 #' @importFrom stats binomial phyper qhyper pnorm dnorm gaussian coef
-#' @importFrom speedglm control is.sparse
 #' @importFrom IRanges IRanges
 #' @importFrom fgsea fgsea
 #' @importFrom matrixStats rowRanks

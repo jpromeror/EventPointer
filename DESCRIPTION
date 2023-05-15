@@ -23,7 +23,7 @@ Description: EventPointer is an R package to identify alternative splicing event
 		splicing events in IGV. This eases the interpretation of results and the design 
 		of primers for standard PCR validation.
 Depends:
-    R (>= 3.4),
+    R (>= 3.4.1),
     SGSeq,
     Matrix,
     SummarizedExperiment
@@ -58,7 +58,6 @@ Imports:
 	iterators,
 	lpSolve,
 	poibin,
-	speedglm,
 	tximport,
 	fgsea
 Suggests:
@@ -71,7 +70,7 @@ Suggests:
 	kableExtra
 License: Artistic-2.0
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 biocViews: AlternativeSplicing, DifferentialSplicing, mRNAMicroarray, RNASeq, Transcription, Sequencing, TimeCourse, ImmunoOncology
 VignetteBuilder: knitr

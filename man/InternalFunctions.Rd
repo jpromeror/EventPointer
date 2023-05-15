@@ -88,6 +88,8 @@
 \alias{qdgl}
 \alias{qgl}
 \alias{rgl}
+\alias{control_2}
+\alias{is.sparse_2}
 \alias{hyperGeometricApproach}
 \alias{poissonBinomialApproach}
 \alias{significanceFunction}
@@ -433,7 +435,7 @@ get_table_Bootstrap(
   th
 )
 
-pvalue_incr_PSI(incr_PSI, th = 0, verbose = 0)
+pvalue_incr_PSI(incr_PSI, th = 0, verbose = 0, method = "quant")
 
 calculateCorrelationTest(A, B, method = c("pearson", "spearman"))
 
@@ -517,6 +519,17 @@ speedglm.wfit2(
   trace = FALSE,
   ...
 )
+
+control_2(
+  B,
+  symmetric = TRUE,
+  tol.values = 1e-07,
+  tol.vectors = 1e-07,
+  out.B = TRUE,
+  method = c("eigen", "Cholesky")
+)
+
+is.sparse_2(X, sparselim = 0.9, camp = 0.05)
 
 hyperGeometricApproach(ExS, nSel, P_value_PSI, significance, resPred, N)
 

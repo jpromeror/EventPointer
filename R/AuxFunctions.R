@@ -5962,8 +5962,8 @@ mclapplyPSI_Bootstrap <- function(PSI_boots,Design,Contrast,cores,ram,nbootstrap
   iqr_events <- list()
   # Both of these variables are for calculating the ETA.
   
-  indnan <- which(is.na(PSI_boots))
-  PSI_boots[indnan]<-runif(length(indnan),min=0,max=1)
+  # indnan <- which(is.na(PSI_boots))
+  # PSI_boots[indnan]<-runif(length(indnan),min=0,max=1)
   #Create matrix of the increase in PSI of events
   if(is.matrix(PSI_boots)){
     PSI_boots <- array(PSI_boots,dim = c(nrow(PSI_boots),1,ncol(PSI_boots)),dimnames = list(rownames(PSI_boots),c(),colnames(PSI_boots)))
@@ -6337,7 +6337,7 @@ get_table_Bootstrap <- function(PSI_arrayP,Design,Contrast,nbootstraps,KallistoB
       PSI_arrayP <- PSI_arrayP[,-1,]
       sample <- 0
       
-      for (event in 1:l) { 
+      for (event in 1:l) {
           # event <- 4
           # for(Clase in levels(Clases)) {
           for(iiq in 1:nclases) {
@@ -6349,15 +6349,17 @@ get_table_Bootstrap <- function(PSI_arrayP,Design,Contrast,nbootstraps,KallistoB
               for (sample in sampling){
                   # sample <- sampling[1]
                   if(any(is.na(PSI_arrayP[event,,sampling]))){
-                      if(any(!is.na(PSI_arrayP[event,,sampling]))){
+                      # if(any(!is.na(PSI_arrayP[event,,sampling]))){
                           A <- PSI_arrayP[event,,sampling]
                           nnx <- which(is.na(A))
-                          A[nnx] <- sample(A[-nnx],length(nnx),replace=TRUE)
-                          PSI_arrayP[event,,sampling] <- A  
+                          # A[nnx] <- sample(A[-nnx],length(nnx),replace=TRUE)
+                          # PSI_arrayP[event,,sampling] <- A  
+                          helper[sample,] <- sample(A[-nnx],nbootstraps,replace=TRUE)
                       }else{
+                        helper[sample,] <- sample(PSI_arrayP[event,,sampling],nbootstraps,replace=TRUE)
                       }
-                  }
-                  helper[sample,] <- sample(PSI_arrayP[event,,sampling],nbootstraps,replace=TRUE)
+                  # }
+                  # helper[sample,] <- sample(PSI_arrayP[event,,sampling],nbootstraps,replace=TRUE)
               }
           }
           incr_PSI[event,,-1] <- V %*% helper
@@ -6378,7 +6380,7 @@ get_table_Bootstrap <- function(PSI_arrayP,Design,Contrast,nbootstraps,KallistoB
 }
 
 #' @rdname InternalFunctions
-pvalue_incr_PSI <- function (incr_PSI, th = 0, verbose = 0){
+pvalue_incr_PSI <- function (incr_PSI, th = 0, verbose = 0,method="quant"){
   
   dims <- dim(incr_PSI)
   nevents <- dims[1]
@@ -6414,7 +6416,7 @@ pvalue_incr_PSI <- function (incr_PSI, th = 0, verbose = 0){
           p.value[events,contrasts] <- 1 * (abs(my_median) < 1e-3) #de aqui el pico en el 1
       }else{
         # try(param <- fitgl(aux2,start=c(my_median,my_iqr,0,0.3), method = "quant",len=500L)$par)
-          param <- try(fitgl(aux2,start=c(my_median,my_iqr,0,0.3), method = "quant",len=500L)$par)
+          param <- try(fitgl(aux2,start=c(my_median,my_iqr,0,0.3), method = method,len=500L)$par)
           
           if(is(param,"try-error")){
               p.value[events,contrasts] <- 1
@@ -7231,13 +7233,13 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
 {
   nobs <- NROW(y)
   nvar <- ncol(X)
-  if (missing(y)) 
+  if (missing(y))
     stop("Argument y is missing")
-  if (missing(X)) 
+  if (missing(X))
     stop("Argument X is missing")
-  if (is.null(offset)) 
+  if (is.null(offset))
     offset <- rep.int(0, nobs)
-  if (is.null(weights)) 
+  if (is.null(weights))
     weights <- rep(1, nobs)
   col.names <- dimnames(X)[[2]]
   method <- match.arg(method)
@@ -7248,22 +7250,22 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
   aic <- family$aic
   linkinv <- family$linkinv
   mu.eta <- family$mu.eta
-  if (is.null(sparse)) 
-    sparse <- is.sparse(X = X, sparselim, camp)
+  if (is.null(sparse))
+    sparse <- is.sparse_2(X = X, sparselim, camp)
   if (is.null(start)) {
-    if (is.null(mustart)) 
+    if (is.null(mustart))
       eval(family$initialize)
-    eta <- if (is.null(etastart)) 
+    eta <- if (is.null(etastart))
       family$linkfun(mustart)
     else etastart
     mu <- mustart
     start <- rep(0, nvar)
   }
   else {
-    eta <- offset + as.vector(if (nvar == 1) 
+    eta <- offset + as.vector(if (nvar == 1)
       X * start
       else {
-        if (sparse) 
+        if (sparse)
           X %*% start
         else tcrossprod(X, t(start))
       })
@@ -7272,7 +7274,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
   iter <- 0
   dev <- sum(dev.resids(y, mu, weights))
   tol <- 1
-  if ((fam == "gaussian") & (link == "identity")) 
+  if ((fam == "gaussian") & (link == "identity"))
     maxit <- 1
   C_Cdqrls <- getNativeSymbolInfo("Cdqrls", PACKAGE = getLoadedDLLs()$stats)
   while ((tol > acc) & (iter < maxit)) {
@@ -7289,7 +7291,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
     if (iter == 1 & method != "qr") {
       variable <- colnames(X)
       ris <- if (eigendec)
-        control(XTX, , tol.values, tol.vectors, , method)
+        control_2(XTX, , tol.values, tol.vectors, , method)
       else list(rank = nvar, pivot = 1:nvar)
       ok <- ris$pivot[1:ris$rank]
       if (eigendec) {
@@ -7302,7 +7304,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
     }
     if (method == "qr") {
       ris <- .Call(C_Cdqrls, XTX, XTz, tol.values, FALSE)
-      start <- if (ris$rank < nvar) 
+      start <- if (ris$rank < nvar)
         ris$coefficients[ris$pivot]
       else ris$coefficients
     }
@@ -7313,11 +7315,11 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
     mu <- linkinv(eta <- eta + offset)
     dev <- sum(dev.resids(y, mu, weights))
     tol <- max(abs(dev0 - dev)/(abs(dev) + 0.1))
-    if (trace) 
+    if (trace)
       cat("iter", iter, "tol", tol, "\n")
   }
   wt <- sum(weights)
-  wtdmu <- if (intercept) 
+  wtdmu <- if (intercept)
     sum(weights * y)/wt
   else linkinv(offset)
   nulldev <- sum(dev.resids(y, wtdmu, weights))
@@ -7331,7 +7333,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
   resdf <- n.ok - rank
   RSS <- sum(W * res * res)
   var_res <- RSS/dfr
-  dispersion <- if (fam %in% c("poisson", "binomial")) 
+  dispersion <- if (fam %in% c("poisson", "binomial"))
     1
   else var_res
   if (method == "qr") {
@@ -7345,16 +7347,76 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
     coefficients[ok] <- start
   }
   names(coefficients) <- col.names
-  rval <- list(coefficients = coefficients, 
-               iter = iter, tol = tol, family = family, link = link, 
-               df = dfr, XTX = XTX, dispersion = dispersion, ok = ok, 
-               rank = rank, RSS = RSS, method = method, aic = aic.model, 
-               sparse = sparse, deviance = dev, nulldf = nulldf, nulldev = nulldev, 
-               ngoodobs = n.ok, n = nobs, intercept = intercept, convergence = (!(tol > 
+  rval <- list(coefficients = coefficients,
+               iter = iter, tol = tol, family = family, link = link,
+               df = dfr, XTX = XTX, dispersion = dispersion, ok = ok,
+               rank = rank, RSS = RSS, method = method, aic = aic.model,
+               sparse = sparse, deviance = dev, nulldf = nulldf, nulldev = nulldev,
+               ngoodobs = n.ok, n = nobs, intercept = intercept, convergence = (!(tol >
                                                                                     acc)))
   class(rval) <- "speedglm"
   rval
 }
+
+
+#functions taken from speedglm 
+#a former CRAN R package:
+
+#' @rdname InternalFunctions 
+control_2 <- function(B, symmetric = TRUE, tol.values = 1e-07, tol.vectors = 1e-07,
+                      out.B = TRUE, method = c("eigen","Cholesky")){
+  method <- match.arg(method)
+  if (!(method %in% c("eigen","Cholesky"))) 
+    stop("method not valid or not implemented")
+  if (method=="eigen"){
+    n <- ncol(B)
+    sa <- 1:n
+    nok <- NULL
+    auto <- eigen(B, symmetric, only.values = TRUE)
+    totcoll <- sum(abs(auto$values) < tol.values)
+    ncoll <- totcoll
+    rank <- n - ncoll
+    i <- 1
+    while (ncoll != 0) {
+      auto <- eigen(B, symmetric)
+      j <- as.matrix(abs(auto$vectors[, n]) < tol.vectors)
+      coll <- which(!j)
+      coll <- coll[length(coll)]
+      B <- B[-coll, -coll]
+      nok[i] <- coll
+      ncoll <- sum(abs(auto$values) < tol.values) - 1
+      n <- ncol(B)
+      i <- i + 1
+    }
+    ok <- if (!is.null(nok))
+      sa[-nok] else sa
+  }
+  if (method=="Cholesky"){
+    A <- chol(B, pivot = TRUE)
+    pivot <- attributes(A)$"pivot"
+    rank <- attributes(A)$"rank"
+    ok <- sort(pivot[1:rank])
+    nok <- if (rank<length(pivot)) pivot[(rank+1):length(pivot)]  else NULL
+    B <- B[ok,ok]
+  }
+  rval <- if (out.B) list(XTX = B, rank = rank, pivot = c(ok, nok)) else
+    list(rank = rank, pivot =  c(ok, nok))
+  
+  rval
+}
+
+
+#' @rdname InternalFunctions 
+is.sparse_2 <- function(X,sparselim=.9,camp=.05){
+  if (prod(dim(X))<500) camp <- 1
+  subX<-sample(X,round((nrow(X)*ncol(X)*camp),digits=0),replace=FALSE)
+  p<-sum(subX==0)/prod(length(subX))
+  if (p > sparselim) sparse <- TRUE else sparse <- FALSE
+  attr(sparse,"proportion of zeros in the sample")<-p
+  sparse
+}
+
+
 
 #' @rdname InternalFunctions
 hyperGeometricApproach <- function(ExS, nSel, P_value_PSI, significance, resPred,N){
