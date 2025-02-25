@@ -1,4 +1,27 @@
 bibentry(bibtype = "article",
+         title={EventPointer 3.0: flexible and accurate splicing analysis that includes studying the differential usage of protein-domains}
+         author = personList(
+           as.person("Juan A. Ferrer-Bonsoms"),
+           as.person("Marian Gimeno"),
+           as.person("Danel Olaverri"),
+           as.person("Pablo Sacristan"),
+           as.person("Cesar Lobato"),
+           as.person("Carlos Castilla"),
+           as.person("Fernando Carazo"),
+           as.person("Angel Rubio")),
+         year = 2022,
+         journal = "{NAR Genomics and Bioinformatics}",
+         volume = "4",
+         number = "3",
+         pages = "lqac067",
+         doi = "10.1186/s12864-016-2816-x",
+         textVersion = paste("FERRER-BONSOMS, Juan A., et al. EventPointer 3.0: flexible",
+                             "and accurate splicing analysis that includes studying the",
+                             "differential usage of protein-domains. NAR Genomics and",
+                             "Bioinformatics, 2022, vol. 4, no 3, p. lqac067.",
+                             "doi.org/10.1093/nargab/lqac067"))
+
+bibentry(bibtype = "article",
          title = "EventPointer: an effective identification of alternative splicing events using junction arrays",
          author = personList(
            as.person("Juan P. Romero"),
