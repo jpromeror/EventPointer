@@ -27,7 +27,7 @@
 
 
 
-SF_Prediction <- function(P_value_PSI,ExS,nSel=1000,significance=NULL,method="Fisher"){
+SF_Prediction <- function(P_value_PSI,ExS,nSel=1000,significance=NULL,method="Fisher",valueRanking="Pvalue"){
   
   
   resPred <- vector(mode="list",length = ncol(P_value_PSI))
