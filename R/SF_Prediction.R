@@ -48,19 +48,13 @@ SF_Prediction <- function(P_value_PSI,ExS,nSel=1000,significance=NULL,method="Fi
            if (is.null(significance)) {
              significance = c(0.05,0.05,0.05,0.05)
            }
-           if (valueRanking == "PSI") {
-             resPred <- WilcoxonApproach(P_value_PSI, ExS, significance=c(0.05,0.05,0.05,0.05), resPred, PSI_table, nSel = nSel)
-           }else{
-             resPred <- WilcoxonApproach(P_value_PSI, ExS, significance=significance, resPred, nSel = nSel, N = N)
-           }
+           resPred <- WilcoxonApproach(P_value_PSI, ExS, significance=significance, resPred, nSel = nSel, N = N)
+          
            
          },
          Gsea ={
-           if (valueRanking == "PSI") {
-             resPred <- GseaApproach(P_value_PSI,ExS, significance=c(0.05,0.05,0.05,0.05), resPred, PSI_table)
-           }else{
-             resPred <- GseaApproach(P_value_PSI,ExS, significance=c(0.05,0.05,0.05,0.05), resPred)
-           }
+           resPred <- GseaApproach(P_value_PSI,ExS, significance=c(0.05,0.05,0.05,0.05), resPred)
+           
          } )
   
   return(resPred)
