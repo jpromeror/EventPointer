@@ -31,7 +31,7 @@ Depends:
     Matrix,
     SummarizedExperiment
 Imports:
-    GenomicFeatures,
+    txdbmaker,
     stringr,
     GenomeInfoDb,
     igraph,
