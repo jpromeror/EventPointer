@@ -29,6 +29,7 @@
 #'                             cores=1)
 #' }
 #' @export
+#' @importFrom txdbmaker makeTxDbFromBiomart makeTxDbFromUCSC makeTxDbFromGFF
 
 
 PrepareBam_EP <- function(Samples, SamplePath, 

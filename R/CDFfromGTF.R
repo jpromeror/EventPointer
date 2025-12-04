@@ -42,7 +42,7 @@
 #' @importFrom affxparser writeCdf
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach foreach %dopar%
-#' @importFrom GenomicFeatures makeTxDbFromBiomart makeTxDbFromUCSC makeTxDbFromGFF
+#' @importFrom txdbmaker makeTxDbFromBiomart makeTxDbFromUCSC makeTxDbFromGFF
 #' @importFrom utils read.delim txtProgressBar setTxtProgressBar combn write.table read.table
 #' @importFrom stringr str_count
 #' @importFrom GenomeInfoDb 'seqlevelsStyle<-' seqlevelsStyle seqnames
