@@ -34,13 +34,16 @@ GTF file to be used.}
 \item{EventsFile}{Path to EventsFound.txt file generated with CDFfromGTF function.}
 
 \item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0,
-ClariomD, RTA or MTA}
+ClariomD, RTA or MTA.}
 }
 \value{
 The function displays a progress bar to show the user the progress of the function.
 Once the progress bar reaches 100%, two .gtf files are written to the specified directory
-in PathGTF. The created files are: 1) paths.gtf : GTF file representing the alternative splicing
-events and 2) probes.gtf : GTF file representing the probes
+in PathGTF. 
+The created files are: 
+1) paths.gtf: GTF file representing the alternative splicing
+events.
+2) probes.gtf: GTF file representing the probes
 that measure each event and each path.
 }
 \description{

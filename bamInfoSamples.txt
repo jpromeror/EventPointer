@@ -1,0 +1,240 @@
+starting worker pid=5668 on localhost:11655 at 10:36:27.351
+Error en unserialize(node$con): error al leer desde conexión
+Calls: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Ejecución interrumpida
+starting worker pid=2724 on localhost:11466 at 13:13:41.755
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=14196 on localhost:11466 at 13:17:53.530
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=26452 on localhost:11466 at 13:21:03.683
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=10272 on localhost:11466 at 13:24:00.061
+Error en unserialize(node$con): error al leer desde conexión
+Calls: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Ejecución interrumpida
+starting worker pid=9384 on localhost:11466 at 13:24:28.361
+starting worker pid=16596 on localhost:11466 at 13:25:28.877
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+Error en unserialize(node$con): error al leer desde conexión
+Calls: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Ejecución interrumpida
+starting worker pid=25908 on localhost:11466 at 13:39:08.383
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=5552 on localhost:11466 at 13:42:34.834
+starting worker pid=24344 on localhost:11466 at 13:44:10.585
+starting worker pid=12936 on localhost:11466 at 13:45:49.858
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+Error en unserialize(node$con): error al leer desde conexión
+Calls: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Ejecución interrumpida
+starting worker pid=22776 on localhost:11466 at 13:50:14.485
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+Error en unserialize(node$con): error al leer desde conexión
+Calls: <Anonymous> ... doTryCatch -> recvData -> recvData.SOCKnode -> unserialize
+Ejecución interrumpida
+starting worker pid=29548 on localhost:11147 at 15:52:43.863
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=18796 on localhost:11147 at 15:54:11.660
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=10908 on localhost:11823 at 16:03:55.861
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=24724 on localhost:11663 at 16:08:57.524
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=9912 on localhost:11714 at 16:16:19.990
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=19336 on localhost:11605 at 16:27:05.449
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=4376 on localhost:11271 at 08:57:42.328
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=26608 on localhost:11591 at 09:24:03.665
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=26520 on localhost:11049 at 13:06:54.812
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=18664 on localhost:11573 at 13:42:29.332
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=25044 on localhost:11344 at 15:58:57.733
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=23596 on localhost:11344 at 16:01:06.149
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=18656 on localhost:11344 at 16:02:33.940
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=25440 on localhost:11344 at 16:03:40.080
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam
+starting worker pid=28400 on localhost:11344 at 16:47:48.759
+SRR1513329_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513329_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513329Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513330_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513330Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_A5_A3Aligned.sortedByCoord.out_chr3.bam
+SRR1513331_switched_SEAligned.sortedByCoord.out_chr3.bam
+SRR1513331Aligned.sortedByCoord.out_chr3.bam

@@ -5,26 +5,60 @@
 \title{Bam files preparation for EventPointer}
 \usage{
 PrepareBam_EP(
-  Samples,
-  SamplePath,
-  Ref_Transc = "Ensembl",
-  fileTransc = NULL,
+  PathSamplesAbundance,
+  PathTranscriptomeGTF = NULL,
+  region = NULL,
+  min_junction_count = 2,
+  max_complexity = 30,
+  min_n_sample = NULL,
+  min_anchor = 6,
   cores = 1,
-  Alpha = 2
+  PathSGResult = ".",
+  verbose = TRUE
 )
 }
 \arguments{
-\item{Samples}{Name of the .bam files to be analyzed (Sample1.bam,Sample2.bam,...,etc).}
+\item{PathSamplesAbundance}{Path to BAM and BAI files or path to folder
+containing BAM and BAI files.}
 
-\item{SamplePath}{Path where the bam files are stored.}
+\item{PathTranscriptomeGTF}{Path to file containing the regions to be analysed
+from the BAM files in GTF format.}
 
-\item{Ref_Transc}{Reference transcriptome used to name the genes found in bam files. Options are: Ensembl, UCSC or GTF.}
+\item{region}{Numerical vector indicating the index of positions (at chromosomal
+level) to be analysed from the GTF. Default is NULL so that all regions are
+analysed.}
 
-\item{fileTransc}{Path to the GTF reference transcriptome ff Ref_Transc is GTF.}
+\item{min_junction_count}{Minimum number of junctions detected in the alignment
+to be considered in the splicing graph. Default is 2.}
 
-\item{cores}{Number of cores used for parallel processing.}
+\item{max_complexity}{Maximum allowed complexity. If a locus exceeds this
+threshold, it is skipped with a warning. Complexity is defined as the maximum
+number of unique predicted splice junctions overlapping a given position.
+High complexity regions are often due to spurious read alignments and can
+slow down processing. Default is 30.}
 
-\item{Alpha}{Internal SGSeq parameter to include or exclude regions}
+\item{min_n_sample}{Minimum number of samples that a junction must have to be
+considered. Default is NULL (automatically set to minimum of 3 or total
+number of samples).}
+
+\item{min_anchor}{Minimum number of aligned bases at one end of an exon to
+consider a junction. Default is 6.}
+
+\item{cores}{Number of cores to use for parallel processing. Default is 1.}
+
+\item{PathSGResult}{Path where results will be saved. The following 4 files
+are generated:
+\itemize{
+  \item TotalEventsFound.csv: General data for total events detected in CSV format.
+  \item EventsDetection_EPBAM.RData: Raw data per event, paths of splicing graph and counts.
+  \item SgFC.RData: Contains the splicing graph in RData format.
+  \item PSI_boots.RData: $\Psi$ per event and sample in RData format.
+}
+Default is current directory (".").}
+
+\item{verbose}{Logical indicating whether to show warnings and messages.
+If FALSE, warnings from internal functions (e.g., makeTxDbFromGRanges)
+will be suppressed. Default is TRUE.}
 }
 \value{
 SGFeaturesCounts object. It contains a GRanges object with the corresponding elements to build
@@ -32,21 +66,4 @@ the different splicing graphs found and the counts related to each of the elemen
 }
 \description{
 Prepares the information contained in .bam files to be analyzed by EventPointer
-}
-\examples{
-\dontrun{
- # Obtain the samples and directory for .bam files
-
-   BamInfo<-si
-   Samples<-BamInfo[,2]
-   PathToSamples <- system.file('extdata/bams', package = 'SGSeq')
-   PathToGTF<-paste(system.file('extdata',package='EventPointer'),'/FBXO31.gtf',sep='')
-
-  # Run PrepareBam function
-   SG_RNASeq<-PrepareBam_EP(Samples=Samples,
-                            SamplePath=PathToSamples,
-                            Ref_Transc='GTF',
-                            fileTransc=PathToGTF,
-                            cores=1)
-}
 }

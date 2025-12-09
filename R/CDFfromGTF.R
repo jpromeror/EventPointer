@@ -6,17 +6,20 @@
 #'             'UCSC' , 'AffyGTF' or 'CustomGTF'.
 #' @param inputFile If input is 'AffyGTF' or 'CustomGTF', inputFile should point to the GTF
 #'                   file to be used.
-#' @param PSR Path to the Exon probes txt file
-#' @param Junc Path to the Junction probes txt file
-#' @param PathCDF Directory where the output will be saved
+#' @param PSR Path to the Exon probes txt file.
+#' @param Junc Path to the Junction probes txt file.
+#' @param PathCDF Directory where the output will be saved.
 #' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0,
-#'                    ClariomD, RTA or MTA
+#'                    ClariomD, RTA or MTA.
 #'
 #' @return The function displays a progress bar to show the user the progress of the function.
 #' However, there is no value returned in R as the function creates three files that are used
-#' later by other EventPointer functions.1) EventsFound.txt : Tab separated file with all the
-#' information of all the alternative splcing events found. 2) .flat file : Used to build the
-#' corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing
+#' later by other EventPointer functions.
+#' 1) EventsFound.txt : Tab separated file with all the
+#' information of all the alternative splcing events found. 
+#' 2) .flat file : Used to build the
+#' corresponding CDF file. 
+#' 3) .CDF file: Output required for the aroma.affymetrix preprocessing
 #' pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
 #' recommended to have at least 1.5 GB of free space.
 #'
@@ -46,7 +49,7 @@
 #' @importFrom utils read.delim txtProgressBar setTxtProgressBar combn write.table read.table
 #' @importFrom stringr str_count
 #' @importFrom GenomeInfoDb 'seqlevelsStyle<-' seqlevelsStyle seqnames
-#' @importFrom igraph graph_from_data_frame as_adj clusters graph_from_adjacency_matrix
+#' @importFrom igraph graph_from_data_frame as_adj components graph_from_adjacency_matrix
 #' @importFrom igraph graph.data.frame
 #' @importFrom MASS Null ginv
 #' @importFrom stats dist qnorm quantile runif
@@ -239,8 +242,12 @@ CDFfromGTF <- function(input = "Ensembl",
         
         GeN <- geneName(SplicingGraphFeatures[subjectHits(Overlap_Junc)])
         GeN <- sapply(GeN, function(X) {
-            A <- X[1]
-            return(A)
+            if(length(X) > 0) {
+                A <- X[1]
+                return(A)
+            } else {
+                return(NA)
+            }
         })
         
         GeN_iix <- cbind(queryHits(Overlap_Junc), 
@@ -255,8 +262,12 @@ CDFfromGTF <- function(input = "Ensembl",
         
         GeN <- geneName(SplicingGraphFeatures[subjectHits(Overlap_PSR)])
         GeN <- sapply(GeN, function(X) {
-            A <- X[1]
-            return(A)
+            if(length(X) > 0) {
+                A <- X[1]
+                return(A)
+            } else {
+                return(NA)
+            }
         })
         
         GeN_iix <- cbind(queryHits(Overlap_PSR), 

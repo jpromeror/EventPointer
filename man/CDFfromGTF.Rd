@@ -20,21 +20,24 @@ CDFfromGTF(
 \item{inputFile}{If input is 'AffyGTF' or 'CustomGTF', inputFile should point to the GTF
 file to be used.}
 
-\item{PSR}{Path to the Exon probes txt file}
+\item{PSR}{Path to the Exon probes txt file.}
 
-\item{Junc}{Path to the Junction probes txt file}
+\item{Junc}{Path to the Junction probes txt file.}
 
-\item{PathCDF}{Directory where the output will be saved}
+\item{PathCDF}{Directory where the output will be saved.}
 
 \item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0,
-ClariomD, RTA or MTA}
+ClariomD, RTA or MTA.}
 }
 \value{
 The function displays a progress bar to show the user the progress of the function.
 However, there is no value returned in R as the function creates three files that are used
-later by other EventPointer functions.1) EventsFound.txt : Tab separated file with all the
-information of all the alternative splcing events found. 2) .flat file : Used to build the
-corresponding CDF file. 3) .CDF file: Output required for the aroma.affymetrix preprocessing
+later by other EventPointer functions.
+1) EventsFound.txt : Tab separated file with all the
+information of all the alternative splcing events found. 
+2) .flat file : Used to build the
+corresponding CDF file. 
+3) .CDF file: Output required for the aroma.affymetrix preprocessing
 pipeline. Both the .flat and .CDF file take large ammounts of memory in the hard drive, it is
 recommended to have at least 1.5 GB of free space.
 }

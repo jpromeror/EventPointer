@@ -7,3 +7,5 @@
 .DS_Store
 src/*.dll
 src/*.o
+EP_Cesar
+inst/extdata/bams/refseq_hg19.formatted.gtf

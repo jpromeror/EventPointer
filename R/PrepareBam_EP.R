@@ -2,126 +2,141 @@
 #'
 #' Prepares the information contained in .bam files to be analyzed by EventPointer
 #'
-#' @param Samples Name of the .bam files to be analyzed (Sample1.bam,Sample2.bam,...,etc).
-#' @param SamplePath Path where the bam files are stored.
-#' @param Ref_Transc Reference transcriptome used to name the genes found in bam files. Options are: Ensembl, UCSC or GTF.
-#' @param fileTransc Path to the GTF reference transcriptome ff Ref_Transc is GTF.
-#' @param cores Number of cores used for parallel processing.
-#' @param Alpha Internal SGSeq parameter to include or exclude regions
+#' @param PathSamplesAbundance Path to BAM and BAI files or path to folder
+#'   containing BAM and BAI files.
+#' @param PathTranscriptomeGTF Path to file containing the regions to be analysed
+#'   from the BAM files in GTF format.
+#' @param region Numerical vector indicating the index of positions (at chromosomal
+#'   level) to be analysed from the GTF. Default is NULL so that all regions are
+#'   analysed.
+#' @param min_junction_count Minimum number of junctions detected in the alignment
+#'   to be considered in the splicing graph. Default is 2.
+#' @param max_complexity Maximum allowed complexity. If a locus exceeds this
+#'   threshold, it is skipped with a warning. Complexity is defined as the maximum
+#'   number of unique predicted splice junctions overlapping a given position.
+#'   High complexity regions are often due to spurious read alignments and can
+#'   slow down processing. Default is 30.
+#' @param min_n_sample Minimum number of samples that a junction must have to be
+#'   considered. Default is NULL (automatically set to minimum of 3 or total
+#'   number of samples).
+#' @param min_anchor Minimum number of aligned bases at one end of an exon to
+#'   consider a junction. Default is 6.
+#' @param cores Number of cores to use for parallel processing. Default is 1.
+#' @param PathSGResult Path where results will be saved. The following 4 files
+#'   are generated:
+#'   \itemize{
+#'     \item TotalEventsFound.csv: General data for total events detected in CSV format.
+#'     \item EventsDetection_EPBAM.RData: Raw data per event, paths of splicing graph and counts.
+#'     \item SgFC.RData: Contains the splicing graph in RData format.
+#'     \item PSI_boots.RData: $\Psi$ per event and sample in RData format.
+#'   }
+#'   Default is current directory (".").
+#' @param verbose Logical indicating whether to show warnings and messages.
+#'   If FALSE, warnings from internal functions (e.g., makeTxDbFromGRanges)
+#'   will be suppressed. Default is TRUE.
 #'
 #' @return SGFeaturesCounts object. It contains a GRanges object with the corresponding elements to build
 #' the different splicing graphs found and the counts related to each of the elements.
 #'
-#' @examples
-#' \dontrun{
-#'  # Obtain the samples and directory for .bam files
-#'
-#'    BamInfo<-si
-#'    Samples<-BamInfo[,2]
-#'    PathToSamples <- system.file('extdata/bams', package = 'SGSeq')
-#'    PathToGTF<-paste(system.file('extdata',package='EventPointer'),'/FBXO31.gtf',sep='')
-#'
-#'   # Run PrepareBam function
-#'    SG_RNASeq<-PrepareBam_EP(Samples=Samples,
-#'                             SamplePath=PathToSamples,
-#'                             Ref_Transc='GTF',
-#'                             fileTransc=PathToGTF,
-#'                             cores=1)
-#' }
 #' @export
 #' @importFrom txdbmaker makeTxDbFromBiomart makeTxDbFromUCSC makeTxDbFromGFF
 
 
-PrepareBam_EP <- function(Samples, SamplePath, 
-    Ref_Transc = "Ensembl", fileTransc = NULL, 
-    cores = 1, Alpha = 2) {
-    # Event Pointer for RNASeq Data
-    cat("Preparing BAM files for EventPointer...")
+PrepareBam_EP <- function(PathSamplesAbundance,
+                                PathTranscriptomeGTF = NULL,
+                                region = NULL,
+                                min_junction_count = 2,
+                                max_complexity = 30,
+                                min_n_sample = NULL,
+                                min_anchor = 6,
+                                cores = 1,
+                                PathSGResult = ".",
+                                verbose = TRUE) {
+    #first step: creating splicing graph ##########
+  cat("Getting BAM general information.../n")
+  
+  Bam_Info <- getBamInfo(PathSamplesAbundance,region = region, cores = cores)
+  
+  cat("Obtaining Reference Transcriptome...")
+
+  
+  if (verbose) {
+    TxDb <- makeTxDbFromGFF(file = PathTranscriptomeGTF,
+                            format = "gtf", dataSource = "External Transcriptome")
+  } else {
+    TxDb <- suppressWarnings(makeTxDbFromGFF(file = PathTranscriptomeGTF,
+                                             format = "gtf", dataSource = "External Transcriptome"))
+  }
+  
+  TxF_Ref <- convertToTxFeatures(TxDb)
+  
+  cat("Done")
+  
+  cat("\n Predicting Features from BAMs...")
+  if (is.null(region)) {
+    si <- seqinfo(BamFile(Bam_Info$file_bam[1]))
+    sl <- rep(seqlevels(si),2)
+    st <- c(rep(c("+"), length(si)),rep(c("-"), length(si)))
+    which <- GRanges(sl, IRanges(1, seqlengths(si)[sl]), st)
+    cat("\n Using this regions:\n")
+    print(data.frame(which@seqnames,which@ranges))
+  }else{
+    si <- seqinfo(BamFile(Bam_Info$file_bam[1]))
+    sl <- rep(seqlevels(si),2)
+    st <- c(rep(c("+"), length(si)),rep(c("-"), length(si)))
+    which <- GRanges(sl, IRanges(1, seqlengths(si)[sl]), st)
+    which <- which[region]
+    cat("\n Using this regions:\n")
+    print(data.frame(which@seqnames,which@ranges))
     
-    # Create DataFrame (required by SGSeq)
-    # with two columns: 1) Sample Name 2)
-    # Path to the .bam file
-    
-    Location <- paste(SamplePath, "/", Samples, 
-        sep = "")
-    Bams <- data.frame(sample_name = Samples, 
-        file_bam = Location, stringsAsFactors = FALSE)
-    
-    cat("\n Obtaining Bam Information")
-    cat("\n")
-    
-    # Get additional information from each
-    # bam with getBamInfo
-    Bam_Info <- cbind(Bams, getBamInfo(Bams, 
-        yieldSize = NULL, cores = cores))
-    
-    # A 'Reference' transcriptome is needed
-    # to, later, annotate the splicing events
-    # with corresponding genes.  The user
-    # should provide either ensembl,UCSC,or
-    # GTF File
-    
-    cat("Done")
-    
-    cat("\n Obtaining Reference Transcriptome...")
-    
-    stopifnot(Ref_Transc == "Ensembl" | Ref_Transc == 
-        "UCSC" | Ref_Transc == "GTF")
-    
-    if (Ref_Transc == "Ensembl") {
-        TxDb <- makeTxDbFromBiomart(biomart = "ENSEMBL_MART_ENSEMBL", 
-            dataset = "hsapiens_gene_ensembl", 
-            host = "grch37.ensembl.org")
-    } else if (Ref_Transc == "UCSC") {
-        TxDb <- makeTxDbFromUCSC(genome = "hg19", 
-            tablename = "knownGene")
-    } else if (Ref_Transc == "GTF") {
-        stopifnot(!is.null(fileTransc))
-        
-        TxDb <- makeTxDbFromGFF(file = fileTransc, 
-            format = "gtf", dataSource = "External Transcriptome")
-    } else {
-        stop("Unknown Reference Transcriptome")
-    }
-    
-    
-    # Steps for the Reference Transcriptome
-    
-    # Convert the TxDb to Features
-    # (GenomicFeatures)
-    TxF_Ref <- convertToTxFeatures(TxDb)
-    
-    # Convert from TxFeatures to Splicing
-    # Graph (Genomic Features) SgF_Ref <-
-    # convertToSGFeatures(TxF_Ref)
-    
-    # Steps for bam files
-    
-    cat("Done")
-    
-    cat("\n Predicting Features from BAMs...")
-    
-    # Predict TxFeatures from the input bam
-    # files
-    TxF <- predictTxFeatures(Bam_Info, cores = cores, 
-        alpha = Alpha)
-    
-    # Convert predicted Features to Splicing
-    # Graph
-    SgF <- convertToSGFeatures(TxF)
-    
-    # Get the reads for each subexon and
-    # junction
-    SgFC <- getSGFeatureCounts(Bam_Info, 
-        SgF, cores = cores)
-    
-    # Relate the SG Features with the
-    # Reference Transcriptome
-    seqlevelsStyle(TxF_Ref) <- seqlevelsStyle(SgFC)
-    SgFC <- annotate(SgFC, TxF_Ref)
-    # SgF<-GenomicRanges:::rowRanges(SgFC)
-    
-    # Result<-list(SgF=SgF,SgFC=SgFC)
-    
-    return(SgFC)
+  }
+  
+  if(is.null(min_n_sample)){
+    min_n_sample<-min(c(length(Bam_Info$file_bam),3))
+  }
+  
+  if (verbose) {
+    seqlevelsStyle(TxF_Ref) <- seqlevelsStyle(which)
+  } else {
+    suppressWarnings(seqlevelsStyle(TxF_Ref) <- seqlevelsStyle(which))
+  }
+  
+  TxF_RefLevels <- TxF_Ref[which(as.vector(seqnames(TxF_Ref)) %in% as.vector(seqnames(which)))]
+
+  cat("\n Creating the splicing graph from the alignment files. This will take some time...")
+  if (!is.null(which)) {
+    TxF_mod <- predictTxFeatures(Bam_Info, cores = cores, which = which, 
+                                 min_junction_count = min_junction_count,
+                                 min_n_sample = min_n_sample, 
+                                 max_complexity = max_complexity,
+                                 min_anchor = min_anchor)  
+  }else{
+    TxF_mod <- predictTxFeatures(Bam_Info, cores = cores, 
+                                 min_junction_count = min_junction_count,
+                                 min_n_sample = min_n_sample,
+                                 max_complexity = max_complexity,
+                                 min_anchor = min_anchor)  
+  }
+  closeAllConnections()
+  if (verbose) {
+    seqlevelsStyle(TxF_Ref) <- seqlevelsStyle(TxF_mod)
+  } else {
+    suppressWarnings(seqlevelsStyle(TxF_Ref) <- seqlevelsStyle(TxF_mod))
+  }
+  
+  features <- convertToSGFeatures(TxF_mod)
+  features <- annotate(features, TxF_RefLevels)
+  valid_rows <- which(lengths(features@geneName)>0)
+  features <- features[valid_rows]
+  cat("\n Assigning read counts to the paths in the splicing graph...")
+  SgFC <- getSGFeatureCounts(Bam_Info, features,
+                             min_anchor = min_anchor,
+                             cores = cores)
+  closeAllConnections()
+  #cat("\n Detect event from splicing graph...")
+  SgFC <- annotate(SgFC, TxF_RefLevels)
+  
+  save(SgFC,file=paste0(PathSGResult,"/SgFC.RData"))
+  #end of first step.
+  return(SgFC)
 }

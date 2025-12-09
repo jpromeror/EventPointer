@@ -124,7 +124,7 @@ Protein_Domain_Enrichment <- function(PathsxTranscript,TxD,Diff_PSI,method="spea
   Dmatrix <- model.matrix(~0+lacolumn)
   dim(Dmatrix)
   length(FinalExPF_2@x)
-  ppp <- crossprod(Dmatrix,FinalExPF_2@x)
+  ppp <- base::crossprod(Dmatrix,FinalExPF_2@x)
   qqq <- colSums(Dmatrix)
   jjx_2 <- which((qqq-ppp)==0)
   if(length(jjx_2) > 0){

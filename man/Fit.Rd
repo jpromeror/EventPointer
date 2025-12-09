@@ -4,7 +4,7 @@
 \alias{Fit}
 \title{Result of EventPointer_Bootstrap}
 \format{
-A \code{list} object
+A \code{list} object.
 }
 \usage{
 data(Fit)

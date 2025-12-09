@@ -3,14 +3,14 @@
 #' @description Statistical analysis of alternative splicing events with bootstrap technique.
 #' 
 #' @param PSI Array or matrix that contains the values of PSI calculated in the function GetPSIFromTranRef.
-#'   If bootstrap option was selected in GetPSIFromTranRef, input must be an array. If not, input must be a matrix
-#' @param Design Design matrix
-#' @param Contrast Contrast matrix
+#'   If bootstrap option was selected in GetPSIFromTranRef, input must be an array. If not, input must be a matrix.
+#' @param Design A matrix defining the experimental design. Rows represent samples and columns conditions.
+#' @param Contrast A numeric matrix with contrasts to be tested. Rows correspond to coefficients in the design matrix, and columns correspond to contrasts.
+#' @param nbootstraps How many layers, Bootstraps or samplings are going to be used. Caution, high numbers increase computational time.
+#' @param UsePseudoAligBootstrap TRUE (default) if bootstrap data from pseudoalignment want to be used or FALSe if not.
+#' @param Threshold it assigns a threshold to compute the pvalues. Default value is 0.
 #' @param cores The number of cores desired to use.
-#' @param nBootstraps How many layers, Bootstraps or samplings are going to be used. Caution, high numbers increase computational time.
 #' @param ram How many ram memory is used,in Gb.
-#' @param UsePseudoAligBootstrap TRUE (default) if bootstrap data from pseudoaligment want to be used or FALSe if not.
-#' @param Threshold it assigns a threshold to compute the pvalues. default = 0.
 #' 
 #' @examples
 #'        data(PSIss)
@@ -22,10 +22,11 @@
 #'        Fit <- EventPointer_Bootstraps(PSI = PSI,
 #'                                       Design = Dmatrix,
 #'                                       Contrast = Cmatrix,
+#'                                       nbootstraps = 10,
+#'                                       UsePseudoAligBootstrap = TRUE,
+#'                                       Threshold = 0,
 #'                                       cores = 1,
-#'                                       ram = 1,
-#'                                       nBootstraps = 10,
-#'                                       UsePseudoAligBootstrap = TRUE)
+#'                                       ram = 1)
 #' 
 #' @return A list containing the summary of the Bootstrap analysis: DeltaPSI, Pvalues, FDR. This info can be
 #' obtained in a simple table with the function ResulTable.
@@ -36,6 +37,7 @@
 #' @import doParallel
 #' @import foreach
 #' @import iterators
+#' @importFrom parallel makeCluster stopCluster
 #' @importFrom lpSolve lp
 #' @importFrom matrixStats iqr
 #' @importFrom abind abind
@@ -46,8 +48,9 @@
 #' @importFrom S4Vectors na.omit
 #' 
 
-EventPointer_Bootstraps <- function(PSI, Design, Contrast, cores=1,ram=0.1, nBootstraps=10000,
-                                    UsePseudoAligBootstrap=TRUE, Threshold = 0){
+EventPointer_Bootstraps <- function(PSI, Design, Contrast, nbootstraps=10000,
+                                    UsePseudoAligBootstrap=TRUE, Threshold = 0,
+                                    cores=1,ram=0.1){
   
   
   if(is.null(PSI)){
@@ -70,13 +73,18 @@ EventPointer_Bootstraps <- function(PSI, Design, Contrast, cores=1,ram=0.1, nBoo
     table <- mclapplyPSI_Bootstrap(PSI_boots = PSI,
                                    Design = Design,
                                    Contrast = Contrast,
-                                   cores = cores,
-                                   ram = ram,
-                                   nbootstraps = nBootstraps,
+                                   nbootstraps = nbootstraps,
                                    KallistoBootstrap = UsePseudoAligBootstrap,
-                                   th = Threshold)
-    
-    #Histograms ----
+                                   th = Threshold, 
+                                   cores = cores,
+                                   ram = ram)
+
+    cat("\n The program has succesfully ended. \n", sep ="\n")
+  }
+  return(table)
+}
+
+   #Histograms ----
     # if (dim(Cmatrix)[1]==1){
     #   hist(table[[2]],1000, main = paste("Histogram of contrast 1"), xlab = "p-values")
     #   }else{
@@ -84,7 +92,3 @@ EventPointer_Bootstraps <- function(PSI, Design, Contrast, cores=1,ram=0.1, nBoo
     #       hist(table[[2]][,i],1000, main = paste("Histogram of contrast " , i), xlab = "p-values")
     #     }
     #   }
-    cat("\n The program has succesfully ended. \n", sep ="\n")
-  }
-  return(table)
-}

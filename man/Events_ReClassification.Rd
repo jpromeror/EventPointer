@@ -30,20 +30,20 @@ EventPointer can detect splicing events that cannot
 Further, EP adds a new type of event: "multiple skipping exon". 
 These events are characterized by presenting several exons in a 
 row as alternative exons. If there is only one alternative exon
- we would be talking about a "Casstte Exon".
+ we would be talking about a "Cassette Exon".
 }
 \examples{
 
    #load splicing graph
-data("SG_reclassify")
+   data("SG_reclassify")
 
-#load table with info of the events
-PathFiles<-system.file("extdata",package="EventPointer")
-inputFile <- paste(PathFiles,"/Events_found_class.txt",sep="")
-EventTable <- read.delim(file=inputFile)
-#this table has the information of 5 complex events.
+   #load table with info of the events
+   PathFiles<-system.file("extdata",package="EventPointer")
+   inputFile <- paste(PathFiles,"/Events_found_class.txt",sep="")
+   EventTable <- read.delim(file=inputFile)
+   #this table has the information of 5 complex events.
 
-EventTable_new <- Events_ReClassification(EventTable = EventTable,
+   EventTable_new <- Events_ReClassification(EventTable = EventTable,
                                           SplicingGraph = SG_reclassify)
          
     

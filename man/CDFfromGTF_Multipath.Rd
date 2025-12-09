@@ -20,14 +20,14 @@ UCSC or GTF.}
 
 \item{inputFile}{If input is GTF, inputFile should point to the GTF file to be used.}
 
-\item{PSR}{Path to the Exon probes txt file}
+\item{PSR}{Path to the Exon probes txt file.}
 
-\item{Junc}{Path to the Junction probes txt file}
+\item{Junc}{Path to the Junction probes txt file.}
 
-\item{PathCDF}{Directory where the output will be saved}
+\item{PathCDF}{Directory where the output will be saved.}
 
 \item{microarray}{Microarray used to create the CDF file. Must be one of: HTA-2_0,
-ClariomD, RTA or MTA}
+ClariomD, RTA or MTA.}
 
 \item{paths}{Maximum number of paths of the events to find.}
 }

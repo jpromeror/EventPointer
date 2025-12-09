@@ -1,15 +1,14 @@
 #' Detect splicing multipath events using EventPointer methodology
 #'
-#' Identification of all the multipath alternative splicing events in the splicing graphs
+#' Identification of all the multipath alternative splicing events in the splicing graphs.
 #'
-#' @param Input Output of the PrepareBam_EP function
-#' @param cores Number of cores used for parallel processing
-#' @param Path Directory where to write the EventsFound_RNASeq.txt file
+#' @param Input Output of the PrepareBam_EP function.
+#' @param cores Number of cores used for parallel processing.
+#' @param Path Directory where to write the EventsFound_RNASeq.txt file.
 #' @param paths Maximum number of paths of the events to find.
 #'
 #'
-#' @return list with all the events found for all the genes present in the experiment.
-#' It also generates a file called EventsFound_RNASeq.txt with the information each event.
+#' @return List with all the events found for all the genes present in the experiment and a file called EventsFound_RNASeq.txt with the information each event.
 #'
 #' @examples
 #' \dontrun{

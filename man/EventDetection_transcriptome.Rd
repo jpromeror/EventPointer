@@ -4,17 +4,10 @@
 \alias{EventDetection_transcriptome}
 \title{EventDetection_transcriptome}
 \usage{
-EventDetection_transcriptome(
-  inputFile = NULL,
-  Transcriptome = NULL,
-  Pathtxt = NULL,
-  cores = 1
-)
+EventDetection_transcriptome(inputFile = NULL, Pathtxt = NULL, cores = 1)
 }
 \arguments{
 \item{inputFile}{Path to the GTF file of the reference transcriptome.}
-
-\item{Transcriptome}{Name of the transcriptome}
 
 \item{Pathtxt}{Directory to save the .txt of the events found}
 
@@ -23,13 +16,13 @@ EventDetection_transcriptome(
 \value{
 a list is returned with the following information:
 
-ExTP1  a sparce matrix of Events x Transcripts that relates which isoform build up the path1 of each event.
+ExTP1 a sparce matrix of Events x Transcripts that relates which isoform build up the path1 of each event.
 
-ExTP2  a sparce matrix of Events x Transcripts that relates which isoform build up the path2 of each event.
+ExTP2 a sparce matrix of Events x Transcripts that relates which isoform build up the path2 of each event.
 
-ExTPRef  a sparce matrix of Events x Transcripts that relates which isoform build up the pathRef of each event.
+ExTPRef a sparce matrix of Events x Transcripts that relates which isoform build up the pathRef of each event.
 
-transcritnames  a vector with the annotation names of the isoforms.
+transcritnames a vector with the annotation names of the isoforms.
 
 SG_List  A list containing the information of the splicing graph of each gene.
 }
@@ -44,14 +37,12 @@ input in downstream functions (Get_PSI_FromTranRef, FindPrimers, and EventPointe
    \dontrun{
          PathFiles<-system.file("extdata",package="EventPointer")
          inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
-         Transcriptome <- "Gencode24_2genes"
          Pathtxt <- tempdir()
          
          
          # Run the function 
          
          EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
-                                                      Transcriptome = Transcriptome,
                                                       Pathtxt=Pathtxt,
                                                       cores=1)
     }

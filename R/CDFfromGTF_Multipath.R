@@ -5,11 +5,11 @@
 #' @param input Reference transcriptome used to build the CDF file. Must be one of Ensembl,
 #'              UCSC or GTF.
 #' @param inputFile If input is GTF, inputFile should point to the GTF file to be used.
-#' @param PSR Path to the Exon probes txt file
-#' @param Junc Path to the Junction probes txt file
-#' @param PathCDF Directory where the output will be saved
+#' @param PSR Path to the Exon probes txt file.
+#' @param Junc Path to the Junction probes txt file.
+#' @param PathCDF Directory where the output will be saved.
 #' @param microarray Microarray used to create the CDF file. Must be one of: HTA-2_0,
-#'                  ClariomD, RTA or MTA
+#'                  ClariomD, RTA or MTA.
 #' @param paths Maximum number of paths of the events to find.
 #'
 #' @return The function displays a progress bar to show the user the progress of the function.

@@ -6,6 +6,7 @@
 #' @keywords internal
 #' @name InternalFunctions
 #' @return Internal outputs
+#' @noRd
 #'
 #'
 NULL
@@ -938,8 +939,7 @@ AnnotateEvents_RNASeq_MultiPath <- function(Events,
         if (kk == (paths + 1)) {
             command <- paste0(command, "'Path Ref')")
         } else {
-            command <- paste0(command, "'Path ", 
-                kk, "',")
+      command <- paste0(command, "'Path ", kk, "',")
         }
     }
     eval(parse(text = command))
@@ -1078,7 +1078,195 @@ AnnotateEvents_KLL <- function(Events, Gxx,
     }
 }
 
-
+reClassificationIntern <- function(SG, Event){
+  
+  generaldata <- getgeneraldata(SG,Event,2000)
+  
+  D <- generaldata$D
+  
+  namesP1 <- unique(as.vector(as.matrix(Event$P1[,1:2])))
+  namesP1 <- namesP1[namesP1 %in% colnames(D)]
+  Primers1 <- findPotencialExons(D,
+                                 namesP1,
+                                 maxLength = Inf,
+                                 SG=SG,
+                                 minexonlength = 0)
+  
+  namesP2 <- unique(as.vector(as.matrix(Event$P2[,1:2])))
+  namesP2 <- namesP2[namesP2 %in% colnames(D)]
+  Primers2 <- findPotencialExons(D,namesP2, maxLength = Inf,SG=SG,minexonlength = 0)
+  
+  commonForward <- intersect(Primers1$Forward, Primers2$Forward)
+  commonReverse <- intersect(Primers1$Reverse, Primers2$Reverse)
+  
+  if(length(commonForward) > 0 & length(commonReverse) > 0){
+    
+    newStart <- commonForward[which.max(as.numeric(gsub("\\..*","",commonForward)))]
+    newEnd <- commonReverse[which.min(as.numeric(gsub("\\..*","",commonReverse)))]
+    
+    newAdj <- SG$Adjacency
+    
+    index_start <- match(newStart,rownames(newAdj))
+    index_end <- match(newEnd,rownames(newAdj))
+    
+    newAdj <- newAdj[c(1,index_start:index_end,ncol(newAdj)),c(1,index_start:index_end,ncol(newAdj))]
+    newAdj[1,] <- 0
+    newAdj[1,2] <- 1
+    newAdj[,ncol(newAdj)] <- 0
+    newAdj[nrow(newAdj)-1,"E"] <- 1
+    
+    
+    while(TRUE){
+      torm <- which(rowSums(newAdj[-nrow(newAdj),])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
+        }
+        newAdj <- newAdj[-torm_index,-torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    while(TRUE){
+      torm <- which(colSums(newAdj[,-1])==0)
+      if(length(torm)>0){
+        torm_index <- c()
+        for(ssx in 1:length(torm)){
+          subexontoremove <- names(torm)[ssx]
+          torm_index <- c(torm_index,which(rownames(newAdj)==subexontoremove))
+        }
+        newAdj <- newAdj[-torm_index,-torm_index]     
+      }else{
+        break
+      }
+    }
+    
+    ref_junct_ford <- as.vector(which(rowSums(abs(newAdj))>=2))[1]
+    names(ref_junct_ford) <- rownames(newAdj)[ref_junct_ford]
+    
+    ref_junct_revs <- max(as.vector(which(colSums(abs(newAdj))>=2)))
+    names(ref_junct_revs) <- rownames(newAdj)[ref_junct_revs]
+    
+    numberOfPaths <- solve(Diagonal(ncol(newAdj))-newAdj)
+    
+    if(numberOfPaths[
+      ref_junct_ford,ref_junct_revs] > 10){
+      return("Complex Event")
+    }
+    
+    distances_list <- vector(mode="list",length=numberOfPaths[ref_junct_ford,ref_junct_revs])
+    
+    SG$Edges$leng <- as.numeric(SG$Edges$End)-as.numeric(SG$Edges$Start)  
+    from_p1 <- names(ref_junct_ford)
+    newAdj_2 <- newAdj
+    misecuecia <- distances_list
+    misecuecia <- lapply(misecuecia,function(X) from_p1)
+    
+    ffx <- match(names(ref_junct_revs),rownames(numberOfPaths))
+    
+    for(ttx in 1:length(distances_list)){
+      from_p1 <- names(ref_junct_ford)
+      mis_distance_p1 <- c()
+      pos_sec <- 2
+      
+      while(TRUE){
+        if(is.na(from_p1)){
+          print(from_p1)
+          return("Complex Event")
+        }else{
+          if(from_p1 == names(ref_junct_revs)){
+            distances_list[[ttx]] <- mis_distance_p1
+            break
+          }
+        }
+        bb <- 1
+        while(TRUE){
+          to_p1 <- names(which(newAdj_2[from_p1,]==1))[bb]
+          ccx <- any(unlist(sapply(misecuecia,function(X) X[pos_sec])) == to_p1)
+          if(is.na(ccx)){
+            break
+          }
+          if(ccx){
+            zzx <- which(unlist(sapply(misecuecia,function(X) X[pos_sec])) == to_p1)
+            areidenticals <- c()
+            for(hhx in 1:length(zzx)){
+              areidenticals <- c(areidenticals,identical(c(misecuecia[[ttx]][1:(pos_sec-1)],to_p1),misecuecia[[zzx[hhx]]][1:pos_sec]))
+            }
+            areidenticals <- areidenticals[areidenticals]
+            if(length(areidenticals) == numberOfPaths[to_p1,ffx]){
+              bb <- bb+1
+            }else{
+              break
+            }
+          }else{
+            break
+          }
+        }
+        misecuecia[[ttx]][pos_sec] <- to_p1
+        if(length(grep("a",from_p1))>0){
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+          next
+        }else{
+          mis_distance_p1 <- c(mis_distance_p1,SG$Edges$leng[SG$Edges$From==from_p1 & SG$Edges$To==to_p1])
+          from_p1 <- to_p1
+          pos_sec <- pos_sec+1
+        }
+      }
+    }
+    
+    
+    structure_distances <- t(sapply(distances_list,function(X){
+      cbind(max(X) == 1,X[length(X)] == 1,X[1] == 1,length(X)==2 & min(X)>1,length(X)>2 & min(X)>1 )
+    }))
+    colnames(structure_distances) <- c("isretainedintron", 
+                                       "is_alt3", "is_alt5", 
+                                       "is_casstte", 
+                                       "is_multiple_casstte")
+    structure_distances <- as.data.frame(structure_distances)
+    
+    eventType <- c()
+    
+    if(any(structure_distances$isretainedintron)){
+      isri <- TRUE
+      eventType <- c(eventType,"Complex Retained Intron")
+    }else{
+      isri <- FALSE
+    }
+    
+    if( (any(structure_distances$is_alt3) | any(structure_distances$is_alt5)) & isri == FALSE ){
+      if(as.vector(SG$Edges$Strand[1]) == "+"){
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }
+      }else{
+        if(any(structure_distances$is_alt3)){
+          eventType <- c(eventType,"Complex Alt 5' Splice Site")
+        }else{
+          eventType <- c(eventType,"Complex Alt 3' Splice Site")
+        }
+      }
+    }
+    
+    if(any(structure_distances$is_casstte)){
+      eventType <- c(eventType,"Complex Cassette Exon")
+    }
+    if(any(structure_distances$is_multiple_casstte)){
+      eventType <- c(eventType,"Multiple Exon Skipping")
+    }
+  }else{
+    eventType <- "Complex Event"
+  }
+  eventType <- paste(eventType,collapse = " | ")
+  
+  return(eventType)
+  
+}
 #' @rdname InternalFunctions
 ClassifyEvents <- function(SG, Events, twopaths) {
     Events <- lapply(seq_along(Events), function(XX) {
@@ -1244,7 +1432,18 @@ ClassifyEvents <- function(SG, Events, twopaths) {
             }
             
             if (is.null(Events[[XX]]$Type)) {
-                Events[[XX]]$Type <- "Complex Event"
+        Events[[XX]]$Type <- tryCatch(
+          {
+            # Intentamos ejecutar la función
+            reClassificationIntern(SG, Events[[XX]])
+          },
+          error = function(e) {
+            # Esto se ejecuta si ocurre un error
+            # Asignamos un valor por defecto, por ejemplo, "Complex Event"
+            "Complex Event"
+          }
+        )
+        # Events[[XX]]$Type <- "Complex Event"
                 return(Events[[XX]])
             }
         } else {
@@ -1335,8 +1534,8 @@ estimateAbsoluteConc <- function(Signal1,
         offset <- w/(1 - u - v)  # some times the offset is way too large (1-u-v = 0)
         T1est <- Signal1 * u
         T2est <- Signal2 * v
-        Relerror <- as.numeric(crossprod((A[, 
-            seq_len(2)]) %*% c(u, v) - b)/crossprod(b))
+    Relerror <- as.numeric(base::crossprod((A[, 
+    seq_len(2)]) %*% c(u, v) - b)/base::crossprod(b))
         
         residuals <- resultado$residuals[seq_len(cols), 
             , drop = FALSE]
@@ -1367,8 +1566,8 @@ estimateAbsoluteConc <- function(Signal1,
     offset <- w/(1 - u - v)  # some times the offset is way too large (1-u-v = 0)
     T1est <- Signal1 * u
     T2est <- Signal2 * v
-    Relerror <- as.numeric(crossprod(cbind(Signal1, 
-        Signal2) %*% c(u, v) - SignalR)/crossprod(SignalR))
+  Relerror <- as.numeric(base::crossprod(cbind(Signal1, 
+      Signal2) %*% c(u, v) - SignalR)/base::crossprod(SignalR))
     # if(Relerror==0){browser()}
     residuals <- resultado$residuals[seq_len(cols), 
         , drop = FALSE]
@@ -1408,8 +1607,8 @@ estimateAbsoluteConcmultipath <- function(datos,
         }
         w <- 0
         offset <- w/(1 - sum(u))
-        Relerror <- as.numeric(crossprod((A[, 
-            seq_len((l - 1))]) %*% u - b)/crossprod(b))
+        Relerror <- as.numeric(base::crossprod((A[, 
+            seq_len((l - 1))]) %*% u - b)/base::crossprod(b))
         residuals <- resultado$residuals[seq_len(cols), 
             , drop = FALSE]
         return(list(Tset = Tset, offset = offset, 
@@ -1438,8 +1637,8 @@ estimateAbsoluteConcmultipath <- function(datos,
     w <- 0
     offset <- w/(1 - sum(u))
     
-    Relerror <- as.numeric(crossprod((A[seq_len(cols), 
-        seq_len((l - 1))]) %*% u - b[seq_len(cols)])/crossprod(b[seq_len(cols)]))
+  Relerror <- as.numeric(base::crossprod((A[seq_len(cols), 
+                                            seq_len((l - 1))]) %*% u - b[seq_len(cols)])/base::crossprod(b[seq_len(cols)]))
     
     residuals <- resultado$residuals[seq_len(cols), 
         , drop = FALSE]
@@ -1467,7 +1666,7 @@ findTriplets <- function(randSol, tol = 1e-08) {
     # matrix and find the connected
     # components
     g <- graph_from_adjacency_matrix(Inc)
-    Groups <- clusters(g)
+    Groups <- components(g)
     
     EdgG_Flux <- randSol[match(seq_len(Groups$no), 
         Groups$membership), ]
@@ -1732,38 +1931,48 @@ getPathFPKMsMP <- function(x, readsC, widthinit) {
 
 #' @rdname InternalFunctions
 getEventPaths <- function(Events, SG) {
-    Groups <- Events$groups
-    Triplets <- Events$triplets
+  
+  Result<- lapply(seq_len(nrow(Events$triplets)), function(x){
+    event<-Events$triplets[x,]
+    P1_nodes<-SG$Edges[as.numeric(names(which(Events$groups==event["P1"]))),]
+    P2_nodes<- SG$Edges[as.numeric(names(which(Events$groups==event["P2"]))),]
+    Ref_nodes <- SG$Edges[as.numeric(names(which(Events$groups==event["Ref"]))),]
+    Ref_nodes_Start <- Ref_nodes[order(abs(as.numeric(Ref_nodes$End)-min(c(as.numeric(P1_nodes$Start),as.numeric(P2_nodes$Start))))),]
+    Ref_nodes_End <- Ref_nodes[order(abs(as.numeric(Ref_nodes$Start)-max(c(as.numeric(P1_nodes$End),as.numeric(P2_nodes$End))))),]
+    namesReff <- c()
+    posStart <- cumsum(as.numeric(Ref_nodes_Start$End)-as.numeric(Ref_nodes_Start$Start))<250
+    if(all(posStart)){
+      namesReff <- rownames(Ref_nodes_Start[which(posStart),])
+    }else if(!any(posStart)){
+      namesReff <- rownames(Ref_nodes_Start[1,])
+    }else{
+      namesReff <- rownames(Ref_nodes_Start[seq_len(max(which(posStart))+1),])
+    }
     
-    P1 <- lapply(seq_len(nrow(Triplets)), 
-        function(x) {
-            A <- SG$Edges[which(Groups == 
-                Triplets[x, 1]), ]
-            return(A)
-        })
-    P2 <- lapply(seq_len(nrow(Triplets)), 
-        function(x) {
-            A <- SG$Edges[which(Groups == 
-                Triplets[x, 2]), ]
-            return(A)
-        })
-    Ref <- lapply(seq_len(nrow(Triplets)), 
-        function(x) {
-            A <- SG$Edges[which(Groups == 
-                Triplets[x, 3]), ]
-            return(A)
-        })
+    posEnd <- cumsum(as.numeric(Ref_nodes_End$End)-as.numeric(Ref_nodes_End$Start))<250
+    if(all(posEnd)){
+      namesReff <- c(namesReff,rownames(Ref_nodes_End[which(posEnd),]))
+    }else if(!any(posEnd)){
+      namesReff <- c(namesReff,rownames(Ref_nodes_End[1,]))
+    }else{
+      namesReff <- c(namesReff,rownames(Ref_nodes_End[seq_len(max(which(posEnd))+1),]))
+    }
+    namesReff <- unique(namesReff)
+    Ref_nodes <- Ref_nodes[namesReff,]
+    Result<-list()
     
-    Result <- lapply(seq_along(P1), function(X) {
-        if (nrow(P1[[X]]) > nrow(P2[[X]])) {
-            A <- list(P1 = P1[[X]], P2 = P2[[X]], 
-                Ref = Ref[[X]])
-        } else {
-            A <- list(P1 = P2[[X]], P2 = P1[[X]], 
-                Ref = Ref[[X]])
+    ExonP2 <- P2_nodes[which(P2_nodes$Type=="E"),]
+    ExonP2Length <- sum(as.numeric(ExonP2$End)-as.numeric(ExonP2$Start))
+    ExonP1 <- P1_nodes[which(P1_nodes$Type=="E"),]
+    ExonP1Length <- sum(as.numeric(ExonP1$End)-as.numeric(ExonP1$Start))
+    
+    if (ExonP1Length > ExonP2Length){
+      Result <- list(P1=P1_nodes, P2=P2_nodes, Ref=Ref_nodes)
+    }else{
+      Result <- list(P1=P2_nodes, P2=P1_nodes, Ref=Ref_nodes)
         }
         
-        return(A)
+        return(Result)
     })
     
     return(Result)
@@ -1896,7 +2105,7 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
             Str <- as.vector(rep(Path1[ii, 
                 "Strand"], 2))
             Gn <- as.vector(rep(Gene, 2))
-            Trs <- rep("A", 2)
+      Trs <- rep("path1", 2)
             Res <- data.frame(chromosome = Chr, 
                 start = St, end = Ed, width = Wd, 
                 strand = Str, gene = Gn, 
@@ -1914,7 +2123,7 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
             Res <- data.frame(chromosome = Chr, 
                 start = St, end = Ed, width = Wd, 
                 strand = Str, gene = Gene, 
-                transcript = "A", stringsAsFactors = FALSE)
+                        transcript = "path1", stringsAsFactors = FALSE)
             PlotPath1 <- rbind(PlotPath1, 
                 Res)
         }
@@ -1937,7 +2146,7 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
             Str <- as.vector(rep(Path2[ii, 
                 "Strand"], 2))
             Gn <- as.vector(rep(Gene, 2))
-            Trs <- rep("B", 2)
+      Trs <- rep("path2", 2)
             Res <- data.frame(chromosome = Chr, 
                 start = St, end = Ed, width = Wd, 
                 strand = Str, gene = Gn, 
@@ -1955,7 +2164,7 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
             Res <- data.frame(chromosome = Chr, 
                 start = St, end = Ed, width = Wd, 
                 strand = Str, gene = Gene, 
-                transcript = "B", stringsAsFactors = FALSE)
+                        transcript = "path2", stringsAsFactors = FALSE)
             PlotPath2 <- rbind(PlotPath2, 
                 Res)
         }
@@ -1963,7 +2172,8 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
     
     Ref.Group <- connectedComp(ftM2graphNEL(as.matrix(SG_Edges_Orig[rownames(PathR), 
         seq_len(2)])))
-    
+  # Ref.Group <- RBGL:::connectedComp(graph:::ftM2graphNEL(as.matrix(SG_Edges_Orig[rownames(PathR), 
+  #                                                                                +         seq_len(2)])))
     
     for (ii in seq_along(Ref.Group)) {
         LL <- length(Ref.Group[[ii]])
@@ -1983,6 +2193,7 @@ GetIGVPaths <- function(EventInfo, SG_Edges) {
     }
     
     Reference <- do.call(rbind, Ref.Group)
+    Reference <- Reference[which(!is.na(Reference$Type)),]
     PlotReference <- c()
     
     for (ii in seq_len(nrow(Reference))) {
@@ -2200,6 +2411,271 @@ getPSI_RNASeq <- function(Result, lambda = 0.1) {
     
     return(list(PSI = PSI, Residuals = Residuals))
 }
+getCountMatrix <- function(Result, modeFill = "FPKM"){
+  CountMatrix <- vector("list", length = length(Result))
+  Vec <- c()
+  
+  for (jj in seq_along(Result)) {
+    # print(jj)
+    A <- Result[[jj]]
+    
+    if (!is.null(A)) {
+      Evs_Counts <- lapply(A, function(X) {
+        if (modeFill == "FPKM") {
+          Res <- X$FPKM
+        }else{
+          Res <- X$Counts
+        }
+        
+        return(Res)
+      })
+      names(Evs_Counts) <- seq_len(length(Evs_Counts))
+      Ids <- paste(A[[1]]$Gene, "_", 
+                   names(Evs_Counts), sep = "")
+      Ids <- rep(Ids, each = 3)
+      Vec <- c(Vec, Ids)
+      Evs_Counts <- do.call(rbind, 
+                            Evs_Counts)
+      
+      if (!any(is.na(Evs_Counts))) {
+        CountMatrix[[jj]] <- Evs_Counts
+      } else {
+        CountMatrix[[jj]] <- NULL
+      }
+    } else {
+      
+      
+    }
+  }
+  
+  
+  Ids <- rep(c("_P1", "_P2", "_Ref"), length(Vec)/3)
+  CountMatrix <- do.call(rbind, CountMatrix)
+  rownames(CountMatrix) <- paste(Vec, Ids, 
+                                 sep = "")
+  return(CountMatrix)
+}
+
+#' @rdname InternalFunctions
+getPSI_RNASeq_boot<- function(Result, lambda = NULL, cores=1, nboot=20){
+  if (is.null(lambda)) {
+    lambda <- 0.1
+  }
+  # print(lambda)
+  FCountMatrix <- getCountMatrix(Result)
+  CountMatrix <- getCountMatrix(Result, modeFill = "Counts")
+  
+  # library(aroma.light) # Now imported via @importFrom in EventsDetection_BAM.R
+  leq <- CountMatrix/FCountMatrix 
+  Prueba <- medianPolish(log(leq), na.rm = T)
+  l1eq <- exp(Prueba$overall + Prueba$row[c(T,F,F)])
+  l2eq <- exp(Prueba$overall + Prueba$row[c(F,T,F)])
+  lReq <- exp(Prueba$overall + Prueba$row[c(F,F,T)])
+  
+  l1eq[is.na(l1eq)] <- 1
+  l2eq[is.na(l2eq)] <- 1
+  lReq[is.na(lReq)] <- 1
+  
+  # nboot <- 20
+  
+  # PSI <- estimatePSI(CountMatrix, l1eq, l2eq, lReq, lambda = NULL, refine = F)
+  cl <- makePSOCKcluster(cores) #not to overload your computer
+  # registerDoParallel(cl)
+  rowCounts <- seq_len(nrow(CountMatrix)/3)
+  rowProcess <- split(rowCounts, ceiling(rowCounts/as.integer(length(rowCounts)/cores)))
+  PSI_boot <- array(NA, c(ncol(CountMatrix), nrow(CountMatrix)/3, nboot))
+  # PSI_boot <- calcBootstrapPSI(rowProcess = rowCounts,
+  #                  PSI_boot=PSI_boot, 
+  #                   CountMatrix = CountMatrix,
+  #                   l1eq = l1eq,
+  #                   l2eq = l2eq,
+  #                   lReq = lReq,
+  #                   lambda = lambda,
+  #                   refine = F,
+  #                   nboot = nboot)
+  # resCalcPSI <- foreach(i = 1:length(rowProcess)) %dopar% {
+  #   calcBootstrapPSI(rowProcess[[i]], PSI_boot, CountMatrix, l1eq, l2eq, lReq, lambda, refine, nboot)
+  # }
+  resCalcPSI <- clusterApplyLB(cl = cl, x = rowProcess, fun = calcBootstrapPSI,
+                               PSI_boot=PSI_boot,
+                               CountMatrix = CountMatrix,
+                               l1eq = l1eq,
+                               l2eq = l2eq,
+                               lReq = lReq,
+                               lambda = lambda,
+                               nboot = nboot)
+  stopCluster(cl)
+  closeAllConnections()
+  gc()
+  for (i in c(1:length(resCalcPSI))) {
+    minRow <- min(rowProcess[[i]])
+    maxRow <- max(rowProcess[[i]])
+    PSI_boot[, c(minRow:maxRow),] <-  resCalcPSI[[i]][, c(minRow:maxRow),]
+  }
+  PSI_boot <- aperm(PSI_boot,c(2,3,1))
+  PSI <- estimatePSI(CountMatrix, l1eq, l2eq, lReq, lambda = lambda)
+  PSI_boot <- abind(PSI, PSI_boot, along = 2)
+  return(PSI_boot)
+}
+#' @rdname InternalFunctions
+estimateAbsoluteConc_boot <- function (Signal1, Signal2, SignalR, lambda = NULL,
+                                       l1=1, l2=1, lR=1)
+{
+  # print(lambda)
+  cols <- length(Signal1)
+  A <- cbind(Signal1, Signal2)
+  b <- SignalR
+  if (lambda == 0) {
+    resultado <- nnls(A, b)
+    Salida <- resultado$x
+    u <- Salida[1]
+    v <- Salida[2]
+    T1est <- Signal1 * u
+    T2est <- Signal2 * v
+    return(list(T1est = T1est, T2est = T2est))
+  }
+  if (is.null(lambda)) {
+    lambda <- 0.1
+  }
+  Salida <- nnls(A, b)
+  penalty <- lambda * ((Salida$deviance)/(1e-3+sum((Salida$x - c(lR/l1, lR/l2))^2)))
+  penalty <- sqrt(penalty)
+  Ab <- rbind(A, c(penalty, 0), c(0, penalty))
+  bb <- c(SignalR, penalty*lR/l1, penalty*lR/l2)
+  resultado <- nnls(base::crossprod(Ab), base::crossprod(Ab,bb))
+  u <- resultado$x[1]
+  v <- resultado$x[2]
+  T1est <- Signal1 * u
+  T2est <- Signal2 * v
+  if(F) {
+    Signals <- rbind(Signal1, Signal2, SignalR)
+    w <- 1/sqrt(.1+rowMeans(Signals))
+    # w <- c(1,1,1)
+    D <- cbind(c(w[1]/(u+.001),0,w[3]),c(0,w[2]/(v+.001),w[3]))
+    S <- matnnls(D, Signals*w)
+    T1est <- S[1,]
+    T2est <- S[2,]
+  }
+  return(list(T1est = T1est, T2est = T2est))
+}
+# estimateAbsoluteConc_boot <- function (Signal1, Signal2, SignalR, lambda = NULL, 
+#                                   l1=1, l2=1, lR=1) 
+# {
+#   cols <- length(Signal1)
+#   
+#   A <- cbind(Signal1, Signal2)
+#   b <- SignalR
+#   resultado <- nnls(A, b)
+#   Salida <- resultado$x
+#   u <- Salida[1]
+#   v <- Salida[2]
+#   T1est <- Signal1 * u
+#   T2est <- Signal2 * v
+#   
+#   D <- cbind(c(1/(u+.000001),0,1),c(0,1/(v+.000001),1))
+#   Abig <- rbind(t(A),b)
+#   # w <- sqrt(rowMeans(Abig)+1e-4)
+#   w <- 1
+#   S <- nnls.solvefast(D*w, Abig*w)
+#   T1est <- S[1,]
+#   T2est <- S[2,]
+#   
+#   return(list(T1est = T1est, T2est = T2est))
+# }
+# 
+# nnls.solve <- function(A,B) {
+#   coeficientes <- matrix(NA, ncol(A), ncol(B))
+#   for (n in 1:ncol(B)) {
+#     b <- B[,n]
+#     salida <- nnls(A,b)
+#     coeficientes[,n] <- salida$x
+#   }
+#   return(coeficientes)
+# }
+# 
+# 
+# 
+# nnls.solvefast <- function(A,B) {
+#   library(matrixStats)
+#   coeficientes <- matrix(NA, ncol(A), ncol(B))
+#   coeficientes <- solve(base::crossprod(A), base::crossprod(A,B))
+#   
+#   # Fix negative values for first path
+#   # Fix negative values for second path
+#   
+#   if (min(coeficientes) < 0) {
+#     coeficientes[,which(colMins(coeficientes) <0)] <- nnls.solve(A, B[,which(colMins(coeficientes) <0), drop = F])
+#   }
+#   
+#   return(coeficientes)
+# }
+
+
+#' @rdname InternalFunctions
+estimatePSI <- function(CountMatrix, l1eq, l2eq, lReq, lambda = NULL) {
+  if (is.null(lambda)) {
+    lambda <- 0.1
+  }
+  # print(lambda)
+  PSI <- matrix(NA, ncol = ncol(CountMatrix), nrow = nrow(CountMatrix)/3)
+  for (n in seq_len(nrow(CountMatrix)/3)) {
+    Signal1 <- CountMatrix[1 + 3 * (n - 1), ]
+    Signal2 <- CountMatrix[2 + 3 * (n - 1), ]
+    SignalR <- CountMatrix[3 + 3 * (n - 1), ]
+    
+    Output <- estimateAbsoluteConc_boot(Signal1, Signal2, SignalR, 
+                                        lambda,
+                                        l1eq[n], l2eq[n], lReq[n])
+    
+    psi <- Output$T1est/(Output$T1est + Output$T2est)
+    PSI[n, ] <- psi
+  }
+  # Names of the events
+  name <- rownames(CountMatrix[c(T,F,F), ])
+  rownames(PSI) <- str_sub(name,1,nchar(name)-3)
+  return(PSI)
+}
+#' @rdname InternalFunctions
+calcBootstrapPSI <- function(rowProcess, PSI_boot, CountMatrix, l1eq, l2eq, lReq, lambda, nboot) {
+  # library(nnls) # Now imported via @importFrom in EventsDetection_BAM.R
+  # PSI_boot <- array(NA, c(ncol(CountMatrix), nrow(CountMatrix)/3, nboot));
+  
+  for (n in rowProcess) {
+    Signal1 <- CountMatrix[1 + 3 * (n - 1), ]
+    Signal2 <- CountMatrix[2 + 3 * (n - 1), ]
+    SignalR <- CountMatrix[3 + 3 * (n - 1), ]
+    ST <- Signal1+Signal2+SignalR
+    M <- apply(cbind(Signal1, Signal2, SignalR), 1,
+               function(x) {
+                 ST <- x[1] + x[2] + x[3]
+                 rmultinom(nboot, ST, prob = c((x[1]+1e-4)/(ST+1e-4), (x[2]+1e-4)/(ST+1e-4), (x[3]+1e-4)/(ST+1e-4)))
+               })
+    # Posible mejora de velocidad
+    # M <- apply(cbind(Signal1, Signal2, SignalR), 1,
+    #            function(x) {
+    #              ST <- sum(x)
+    #              rmultinom(nboot, ST, prob = (x+1e-4)/(ST+1e-4))
+    #            })
+    
+    
+    # M is a matrix of nboot * 3 * number of samples
+    
+    for (m in 1:nboot) {
+      Signal1b <- M[3*(m-1)+1,]
+      Signal2b <- M[3*(m-1)+2,]
+      SignalRb <- M[3*(m-1)+3,]
+      Output <- estimateAbsoluteConc_boot(Signal1b, 
+                                          Signal2b, SignalRb, lambda,
+                                          l1eq[n], l2eq[n], lReq[n])
+      psib <- Output$T1est/(Output$T1est + Output$T2est)
+      PSI_boot[,n,m] <- psib
+    }
+    
+    
+  }
+  return(PSI_boot)
+}
+
 
 #' @rdname InternalFunctions
 getPSI_RNASeq_MultiPath <- function(Result, 
@@ -3238,9 +3714,9 @@ WriteGTF <- function(PATH, Data, Probes,
         # browser()
         if (Probes[i, 6] == "Ref") {
             COL <- "#B0B0B0"
-        } else if (Probes[i, 6] == "Path1") {
+    } else if (Probes[i, 6] == "path1") {
             COL <- "#D00000"
-        } else if (Probes[i, 6] == "Path2") {
+    } else if (Probes[i, 6] == "path2") {
             COL <- "#00CC33"
         }
         PROBES <- paste(Probes[i, 2], "\t", 
@@ -3291,13 +3767,13 @@ WriteGTF <- function(PATH, Data, Probes,
             aaaaaa <- 3
         }
         # if (all(!is.na(match('A',PATHS[i])))){
-        if (length(!is.na(grep("A", PATHS[i]))) != 
+    if (length(!is.na(grep("path1", PATHS[i]))) != 
             0) {
             COL <- "#D00000"
             aaaaaa <- 2
         }
         # if (all(!is.na(match('B',PATHS[i])))){
-        if (length(!is.na(grep("B", PATHS[i]))) != 
+    if (length(!is.na(grep("path2", PATHS[i]))) != 
             0) {
             COL <- "#00CC33"
             aaaaaa <- 1
@@ -3395,13 +3871,13 @@ WriteGTF_RNASeq <- function(PATH, Data, Paths) {
             aaaaaa <- 3
         }
         # if (all(!is.na(match('A',PATHS[i])))){
-        if (length(!is.na(grep("A", PATHS[i]))) != 
+    if (length(!is.na(grep("path1", PATHS[i]))) != 
             0) {
             COL <- "#D00000"
             aaaaaa <- 2
         }
         # if (all(!is.na(match('B',PATHS[i])))){
-        if (length(!is.na(grep("B", PATHS[i]))) != 
+    if (length(!is.na(grep("path2", PATHS[i]))) != 
             0) {
             COL <- "#00CC33"
             aaaaaa <- 1
@@ -3759,13 +4235,15 @@ sacartranscritos <- function(edgetr, events) {
                 ss <- paste0(ss, ".b")
                 ee <- paste0(ee, ".a")
             }
+            idx <- which(edgetr$From == ss & edgetr$To == ee)
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)])
+                if(length(idx) > 0) {
+                    trans <- paste0(trans, edgetr$transcripts[idx])
+                }
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)], 
-                  sep = "|")
+                if(length(idx) > 0) {
+                    trans <- paste(trans, edgetr$transcripts[idx], sep = "|")
+                }
             }
         }
         trans <- sapply(strsplit(trans, "\\|"), 
@@ -3799,13 +4277,15 @@ sacartranscritos <- function(edgetr, events) {
                 ss <- paste0(ss, ".b")
                 ee <- paste0(ee, ".a")
             }
+            idx <- which(edgetr$From == ss & edgetr$To == ee)
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)])
+                if(length(idx) > 0) {
+                    trans <- paste0(trans, edgetr$transcripts[idx])
+                }
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)], 
-                  sep = "|")
+                if(length(idx) > 0) {
+                    trans <- paste(trans, edgetr$transcripts[idx], sep = "|")
+                }
             }
         }
         
@@ -3841,12 +4321,15 @@ sacartranscritos <- function(edgetr, events) {
                 ee <- paste0(ee, ".a")
             }
             if (i == 1) {
-                trans <- paste0(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)])
+                idx <- which(edgetr$From == ss & edgetr$To == ee)
+                if(length(idx) > 0) {
+                    trans <- paste0(trans, edgetr$transcripts[idx])
+                }
             } else {
-                trans <- paste(trans, edgetr$transcripts[which(edgetr$From == 
-                  ss & edgetr$To == ee)], 
-                  sep = "|")
+                idx <- which(edgetr$From == ss & edgetr$To == ee)
+                if(length(idx) > 0) {
+                    trans <- paste(trans, edgetr$transcripts[idx], sep = "|")
+                }
             }
         }
         
@@ -5856,7 +6339,7 @@ get_table <- function(PSI_arrayP, nevents,
       Yb1 <- Yb[, sample(ncol(Yb), 
                          replace = TRUE)]
       # Samples the Yb (mixes data)
-      output <- tcrossprod(V, Yb1)  # Obtain the increase in PSI
+      output <- base::tcrossprod(V, Yb1)  # Obtain the increase in PSI
       for (boot3 in seq_len(ncontrastes)) {
         combboots[[boot3]][, boot2 + 
                              nbootin * (boot - 1)] <- output[boot3, 
@@ -5914,8 +6397,8 @@ getInfo <- function(table, ncontrast) {
 #' @rdname InternalFunctions
 checkContrastDesignMatrices <- function(C,D) {
   result <- TRUE
-  V <- crossprod(C,solve(crossprod(D),t(D)))
-  f.con <- crossprod(t(D),solve(crossprod(D),t(D))) # New version
+  V <- base::crossprod(C,solve(base::crossprod(D),t(D)))
+  f.con <- base::crossprod(t(D),solve(base::crossprod(D),t(D))) # New version
   f.dir <- rep("<=", ncol(V))
   f.rhs <- rep(1,ncol(V))
   contrasts <- nrow(V)
@@ -6110,6 +6593,11 @@ mclapplyPSI_Bootstrap <- function(PSI_boots,Design,Contrast,cores,ram,nbootstrap
       }
       
     LocalFDR <-apply(Pvalues,2,function(X){
+      if(max(X)==1){
+        milambda <- seq(0.05, 0.95, 0.05)
+      }else{
+        milambda <- seq(0.05, max(X), 0.05)
+      }
       result <- qvalue(X,trunc = FALSE, monotone = FALSE,lambda = milambda)
       salida <- suppressWarnings(cobs(x=log(result$pvalues+eps),y=result$lfdr, constraint = "incr",
                                       pointwise = matrix(c(-1,0,1,1,min(log(result$pvalues+eps),na.rm = TRUE),0),byrow = TRUE,ncol = 3), lambda = 1,
@@ -6210,7 +6698,7 @@ get_table_Bootstrap <- function(PSI_arrayP,Design,Contrast,nbootstraps,KallistoB
   m <- dims[3]
   ncontrastes <- ncol(Contrast)
   
-  V <- crossprod(Contrast,solve(crossprod(Design),t(Design)))
+  V <- base::crossprod(Contrast,solve(base::crossprod(Design),t(Design)))
   
   # This chunk of code is used to get the different types of samples there are is the experiment, and the amount 
   # of each sample there is in each type.
@@ -6478,7 +6966,7 @@ calculateCorrelationTest <- function(A,B,method = c("pearson", "spearman")){
   
   # miscolnames <- rownames(Gene_Expression)
   
-  mycor <- tcrossprod(Asd,Bsd) 
+  mycor <- base::tcrossprod(Asd,Bsd) 
   mycor <- as.matrix(mycor)
   #get pvalues
   n <- ncol(A)
@@ -6751,7 +7239,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
             else {
                 if (sparse) 
                     X %*% start
-                else tcrossprod(X, t(start))
+        else base::tcrossprod(X, t(start))
             })
         mu <- linkinv(eta)
     }
@@ -6770,8 +7258,8 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
         z <- (eta - offset) + (y - mu)/mu.eta.val
         W <- (weights * mu.eta.val * mu.eta.val)/varmu
         X1 <- sqrt(W) * X
-        XTX <- crossprod(X1)
-        XTz <- t(crossprod((W * z), X))
+    XTX <- base::crossprod(X1)
+    XTz <- t(base::crossprod((W * z), X))
         if (iter == 1 & method != "qr") {
             variable <- colnames(X)
             ris <- if (eigendec)
@@ -7265,7 +7753,7 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
       else {
         if (sparse) 
           X %*% start
-        else tcrossprod(X, t(start))
+        else base::tcrossprod(X, t(start))
       })
     mu <- linkinv(eta)
   }
@@ -7284,8 +7772,8 @@ speedglm.wfit2 <- function (y, X, intercept = TRUE, weights = NULL, row.chunk = 
     z <- (eta - offset) + (y - mu)/mu.eta.val
     W <- (weights * mu.eta.val * mu.eta.val)/varmu
     X1 <- sqrt(W) * X
-    XTX <- crossprod(X1)
-    XTz <- t(crossprod((W * z), X))
+    XTX <- base::crossprod(X1)
+    XTz <- t(base::crossprod((W * z), X))
     if (iter == 1 & method != "qr") {
       variable <- colnames(X)
       ris <- if (eigendec)
@@ -7802,10 +8290,16 @@ reclasify_intern <- function(SG,mievento,pp1,pp2,ppref){
       from_p1 <- names(ref_junct_ford)
       mis_distance_p1 <- c()
       pos_sec <- 2
+      # if(!is.character(from_p1)) return("Complex Event")
       while(TRUE){
+        if(is.na(from_p1)){
+          print(from_p1)
+          return("Complex Event")
+        }else{
         if(from_p1 == names(ref_junct_revs)){
           distances_list[[ttx]] <- mis_distance_p1
           break
+          }
         }
         bb <- 1
         while(TRUE){

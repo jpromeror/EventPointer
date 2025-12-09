@@ -2,15 +2,15 @@
 #'
 #' Generates the Events x RBP matrix for the splicing factor enrichment analysis.
 #'
-#' @param pathtoeventstable Path to eventsFound.txt with the information of all the events
-#' @param SG_List List with the information of the splicing graph of the genes. Returned by the funciotn EventDetectio_transcriptome
-#' @param nt Number of nt up and down for the splicing regions of each event 
-#' @param Peaks Table with the peaks 
+#' @param pathtoeventstable Path to eventsFound.txt with the information of all the events.
+#' @param SG_List List with the information of the splicing graph of the genes. Returned by the function EventDetection_transcriptome.
+#' @param nt Number of nt up and down for the splicing regions of each event.
+#' @param Peaks Table with the peaks. 
 #' @param POSTAR Table with peaks of POSTAR
-#' @param EventsRegions Events regions if calculated prevously. Not need to calculated again.
+#' @param EventsRegions Events regions if calculated previously. Not need to calculated again.
 #' @param cores Number of cores if user want to run in parallel.
 #'
-#' @return The function returns a list with the ExS matrix and with the splicing regions of the events. If the Splicign regions
+#' @return The function returns a list with the ExS matrix and with the splicing regions of the events. If the Splicing regions
 #'     is an input of the function then only the ExS matrix will be returned. The ExS matrix is the input for the Splicing Factor
 #'     enrichment analysis. 
 #'

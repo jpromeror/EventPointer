@@ -2,9 +2,8 @@
 #'
 #' Identification of all the alternative splicing events in the splicing graphs
 #'
-#' @param Input Output of the PrepareBam_EP function
-#' @param cores Number of cores used for parallel processing
-#' @param Path Directory where to write the EventsFound_RNASeq.txt file
+#' @param Input Output of PrepareBam_EP function.
+#' @param cores Number of cores used for parallel processing.
 #'
 #'
 #' @return list with all the events found for all the genes present in the experiment.
@@ -15,13 +14,17 @@
 #'   # Run EventDetection function
 #'    data(SG_RNASeq)
 #'    TxtPath<-tempdir()
-#'    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
+#'    AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1)
 #'    }
 #'
 #' @export
+#' @importFrom SummarizedExperiment rowRanges
+#' @importFrom SGSeq geneID type featureID
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach %dopar%
+#' @importFrom utils txtProgressBar setTxtProgressBar write.table
 
-EventDetection <- function(Input, cores, 
-    Path) {
+EventDetection <- function(Input, cores) {
     ################################### Detect AS Events Using EP Methodology
     
     if (is.null(Input)) {
@@ -33,9 +36,6 @@ EventDetection <- function(Input, cores,
         stop("Number of cores incorrect")
     }
     
-    if (is.null(Path)) {
-        stop("Path field is empty")
-    }
     
     SgF <- rowRanges(Input)
     SgFC <- Input
@@ -83,9 +83,7 @@ EventDetection <- function(Input, cores,
                 GeneName <- " "
             }
             
-            
-            if (nrow(as.data.frame(SG_Gene)) != 
-                1) {
+      if ((nrow(as.data.frame(SG_Gene)) != 1) & sum(type(SG_Gene)=="J")!=0) {
                 featureID(SG_Gene) <- seq_len(nrow(as.data.frame(SG_Gene)))
                 
                 SG_Gene_Counts <- SgFC[geneID(SgFC) == 
@@ -147,6 +145,7 @@ EventDetection <- function(Input, cores,
                       Events <- ClassifyEvents(SG, 
                         Events, twopaths)
                       
+              
                       # A simple piece of code to get the
                       # number of counts for the three paths in
                       # every event within a gene
@@ -172,7 +171,11 @@ EventDetection <- function(Input, cores,
                       
                       
                       Info <- AnnotateEvents_RNASeq(Events)
-                      # browser()
+              
+              for(i in seq_along(Events)){
+                Events[[i]]$EventID <- Info$EventID[i]
+                Events[[i]]$Info <- Info[i,]
+              }
                       
                       return(list(Events = Events, 
                         Info = Info))
@@ -192,24 +195,7 @@ EventDetection <- function(Input, cores,
     
     for (jj in seq_len(length(Result))) {
         Events[[jj]] <- Result[[jj]]$Events
-        TxtInfo[[jj]] <- Result[[jj]]$Info
-    }
-    
-    # browser()
-    TxtInfo <- do.call(rbind, TxtInfo)
-    iix <- which(TxtInfo[, 2] == " ")
-    
-    if (length(iix) > 0) {
-        Info <- matrix(unlist(strsplit(as.vector(TxtInfo[iix, 
-            1]), "_")), ncol = 2, byrow = TRUE)[, 
-            1]
-        TxtInfo[iix, 2] <- Info
-    }
-    
-    write.table(TxtInfo, file = paste(Path, 
-        "/EventsFound_RNASeq.txt", sep = ""), 
-        sep = "\t", row.names = FALSE, col.names = TRUE, 
-        quote = FALSE)
-    
-    return(Events)
+  }
+  
+  return(Events)
 }

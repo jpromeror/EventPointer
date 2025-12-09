@@ -2,7 +2,7 @@
 % Please edit documentation in R/EventXtrans.R
 \name{EventXtrans}
 \alias{EventXtrans}
-\title{relationship between isoforms and events}
+\title{Relationship between isoforms and events.}
 \format{
 A \code{list} object \code{EventXtrans[[1]]} displays the isoform
 that build up the path1 of each event.
@@ -14,8 +14,8 @@ data(EventXtrans)
 EventXtrans object contains the relationship between the
 isoforms and the events. It is a list of 4 elements. the first three
 stored sparse matrices relating the isoforms with the events. The fourth
-element stores de names of the reference annotation used (isoforms names)
+element stores de names of the reference annotation used (isoforms names).
 }
 \description{
-relationship between isoforms and events
+Relationship between isoforms and events.
 }

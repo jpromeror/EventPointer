@@ -7,19 +7,18 @@
 #'
 #'
 #' @param inputFile Path to the GTF file of the reference transcriptome.
-#' @param Transcriptome Name of the transcriptome
 #' @param Pathtxt Directory to save the .txt of the events found
 #' @param cores Number of cores using in the parallel processing (by default = 1)
 #'
 #' @return a list is returned with the following information:
 #' 
-#' ExTP1  a sparce matrix of Events x Transcripts that relates which isoform build up the path1 of each event.
+#' ExTP1 a sparce matrix of Events x Transcripts that relates which isoform build up the path1 of each event.
 #' 
-#' ExTP2  a sparce matrix of Events x Transcripts that relates which isoform build up the path2 of each event.
+#' ExTP2 a sparce matrix of Events x Transcripts that relates which isoform build up the path2 of each event.
 #' 
-#' ExTPRef  a sparce matrix of Events x Transcripts that relates which isoform build up the pathRef of each event.
+#' ExTPRef a sparce matrix of Events x Transcripts that relates which isoform build up the pathRef of each event.
 #' 
-#' transcritnames  a vector with the annotation names of the isoforms.
+#' transcritnames a vector with the annotation names of the isoforms.
 #' 
 #' SG_List  A list containing the information of the splicing graph of each gene.
 #'
@@ -28,14 +27,12 @@
 #'    \dontrun{
 #'          PathFiles<-system.file("extdata",package="EventPointer")
 #'          inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
-#'          Transcriptome <- "Gencode24_2genes"
 #'          Pathtxt <- tempdir()
 #'          
 #'          
 #'          # Run the function 
 #'          
 #'          EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
-#'                                                       Transcriptome = Transcriptome,
 #'                                                       Pathtxt=Pathtxt,
 #'                                                       cores=1)
 #'     }
@@ -70,25 +67,19 @@
 
 
 EventDetection_transcriptome <- function(inputFile = NULL, 
-                                         Transcriptome = NULL,
                                          Pathtxt = NULL,
                                          cores = 1){
   if (is.null(inputFile)) {
-    stop("not inputFile")
-  }
-  if (is.null(Transcriptome)) {
-    stop("not Transcriptome")
+    stop("not PathTranscriptomeGTF")
   }
   if (is.null(Pathtxt)) {
-    stop("not Pathtxt")
+    stop("not PathEventsGTFResults")
   }
-  
   
   cat("Creating SG Information...")
   
   
-  TxDb <- makeTxDbFromGFF(file = inputFile, 
-                          format = "gtf", dataSource = "Custom GTF")
+  TxDb <- makeTxDbFromGFF(file = inputFile,  format = "gtf", dataSource = "Custom GTF")
   TranscriptFeatures <- convertToTxFeatures(TxDb)
   
   transcritnames <- txName(TranscriptFeatures)
@@ -102,13 +93,11 @@ EventDetection_transcriptome <- function(inputFile = NULL,
   SG_List <- vector("list", length = numberofgenes)
   names(SG_List) <- genes22
   
-  pb <- txtProgressBar(min = 0, max = numberofgenes, 
-                       style = 3)
+  pb <- txtProgressBar(min = 0, max = numberofgenes, style = 3)
   
   registerDoParallel(cores = cores)
   Result <- foreach(jj = seq_len(numberofgenes)) %dopar%
     {
-      # jj <- 1
       setTxtProgressBar(pb, jj)
       Gene <- genes22[jj]
       SG_Gene <- TranscriptFeatures[which(any(geneName(TranscriptFeatures) == Gene)), ]
@@ -124,44 +113,32 @@ EventDetection_transcriptome <- function(inputFile = NULL,
         }else{
           
           SG <- try(SG_creation_fast(SG_Gene),silent=TRUE)
-          # if(classsss(SG)=="try-error"){
           if(is(SG,"try-error")){
             return(list(Result2 = NULL,SG_List=NULL))
           }else{
-            # SG_List[[jj]] <- SG
-            # plot(ftM2graphNEL(as.matrix(SG$Edges[,1:2]),edgemode='directed'))
             
-            randSol <- getRandomFlow(SG$Incidence, 
-                                     ncol = 10)
+            randSol <- getRandomFlow(SG$Incidence, ncol = 10)
             
             if (any(round(randSol) != 1)) {
               
               Events <- findTriplets(randSol)
               
-              if (nrow(Events$triplets) > 
-                  0) {
-                twopaths <- which(rowSums(Events$triplets != 
-                                            0) == 3)
-                
-                Events <- getEventPaths(Events, 
-                                        SG)
+              if (nrow(Events$triplets) > 0) {
+                twopaths <- which(rowSums(Events$triplets != 0) == 3)
+                Events <- getEventPaths(Events, SG)
                 
                 if (length(Events) > 0) {
                   
-                  Events <- ClassifyEvents(SG, 
-                                           Events, twopaths)
+                  Events <- ClassifyEvents(SG, Events, twopaths)
                   
                   GenI <- jj
-                  Events <- AnnotateEvents_KLL(Events, 
-                                               Gene, GenI)
+                  Events <- AnnotateEvents_KLL(Events, Gene, GenI)
                   
                   if (is.null(Events)) {
-                    # Result2[[jj]] <- Events
                     return(list(Result2 = NULL,SG_List = SG))
                   } else {
                     
-                    transcrits <- sacartranscritos(edgetr = SG$Edges, 
-                                                   Events)
+                    transcrits <- sacartranscritos(edgetr = SG$Edges,Events)
                     
                     Events$tran_P1 <- ""
                     Events$tran_P2 <- ""
@@ -171,7 +148,6 @@ EventDetection_transcriptome <- function(inputFile = NULL,
                     Events$tran_P2 <- as.vector(transcrits$p2)
                     Events$tran_Ref <- as.vector(transcrits$ref)
                     
-                    # Result2[[jj]] <- Events
                     return(list(Result2 = Events,SG_List = SG))
                   }
                   
@@ -181,28 +157,18 @@ EventDetection_transcriptome <- function(inputFile = NULL,
               return(list(Result2 = NULL,SG_List=NULL))
             }
             return(list(Result2 = NULL,SG_List=NULL))
-            
-            
-            
           }
         }  
       }
-      
-      
     }
   
   close(pb)
   
   cat("\nCreating .txt ...")
   
-  Result2 <- lapply(Result,function(X){
-    X$Result2
-  })
-  SG_List <- lapply(Result,function(X){
-    X$SG_List
-  })
+  Result2 <- lapply(Result,function(X){X$Result2})
+  SG_List <- lapply(Result,function(X){X$SG_List})
   names(SG_List) <- genes22
-  
   
   Result2 <- Filter(Negate(is.null), Result2)
   Result2 <- do.call(rbind, Result2)
@@ -211,77 +177,46 @@ EventDetection_transcriptome <- function(inputFile = NULL,
   
   Result2 <- Result2[goodone2, ]
   
-  
   colnames(Result2) <- c("GeneName", "GeneID", 
                          "EventNumber", "EventType", "GPos", 
                          "Path.1", "Path.2", "Path.Reference", 
                          "tran_P1", "tran_P2", "tran_Ref")
   
-  write.table(Result2, file = paste(Pathtxt, 
-                                    "/EventsFound_", Transcriptome, ".txt", 
-                                    sep = ""), sep = "\t", quote = FALSE, 
-              col.names = TRUE, row.names = FALSE)
+  write.table(Result2, file = paste(Pathtxt, "/EventsFound.txt", sep = ""), sep = "\t", quote = FALSE, col.names = TRUE, row.names = FALSE)
   
   cat("\n.txt created")
   
-  
-  # paths x transcipts matrices
-  
   cat("\nCreating the sparseMatrix of paths x transcripts...")
   
-  rnames <- paste(Result2$GeneName, Result2$EventNumber, 
-                  sep = "_")
+  rnames <- paste(Result2$GeneName, Result2$EventNumber, sep = "_")
   
   
   ListaNombres <- strsplit(Result2$tran_P1, 
                            "\\|")
   nTperPath <- sapply(ListaNombres, length)
-  # TrNames <- unique(unlist(ListaNombres))
-  # # TrNames includes all the possible
-  # transcripts.  In transcritnames is
-  # sotored the names of all the Isoforms
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(seq_len(length(ListaNombres)), 
-           nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
-  ExTP1 <- sparseMatrix(i, j, x = 1, dims = c(max(i), 
-                                              length(transcritnames)))
+  ExTP1 <- sparseMatrix(i, j, x = 1, dims = c(max(i),length(transcritnames)))
   rownames(ExTP1) <- rnames
-  # image(ExTP1)
   
   ListaNombres <- strsplit(Result2$tran_P2, 
                            "\\|")
   nTperPath <- sapply(ListaNombres, length)
-  # TrNames <- unique(unlist(ListaNombres))
-  # # TrNames includes all the possible
-  # transcripts.  In transcritnames is
-  # sotored the names of all the Isoforms
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(seq_len(length(ListaNombres)), 
-           nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
-  ExTP2 <- sparseMatrix(i, j, x = 1, dims = c(max(i), 
-                                              length(transcritnames)))
+  ExTP2 <- sparseMatrix(i, j, x = 1, dims = c(max(i), length(transcritnames)))
   rownames(ExTP2) <- rnames
-  # image(ExTP2)
   
   ListaNombres <- strsplit(Result2$tran_Ref, 
                            "\\|")
   nTperPath <- sapply(ListaNombres, length)
-  # TrNames <- unique(unlist(ListaNombres))
-  # # TrNames includes all the possible
-  # transcripts.  In transcritnames is
-  # sotored the names of all the Isoforms
   TrInPaths <- unlist(ListaNombres)
-  i <- rep(seq_len(length(ListaNombres)), 
-           nTperPath)
+  i <- rep(seq_len(length(ListaNombres)), nTperPath)
   j <- match(TrInPaths, transcritnames)
-  ExTPRef <- sparseMatrix(i, j, x = 1, 
-                          dims = c(max(i), length(transcritnames)))
+  ExTPRef <- sparseMatrix(i, j, x = 1, dims = c(max(i), length(transcritnames)))
   rownames(ExTPRef) <- rnames
-  # image(ExTPRef)
-  
-  # identical(ExTP1+ExTP2,ExTPRef)
   
   PathsxTranscript <- list(ExTP1 = ExTP1, 
                            ExTP2 = ExTP2, ExTPRef = ExTPRef, 
