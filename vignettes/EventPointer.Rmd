@@ -52,35 +52,38 @@ BiocManager::install("EventPointer")
 # Introduction
 
 *EventPointer* R package provides users a simplified way to identify,
-classify and visualize alternative splicing events. The steps required
-by the algorithm are almost identical for both technologies. The
-algorithm only differs in its inital step.
+classify and visualize alternative splicing events. EventPointer can work
+with arrays and bulk-RNA-Seq data. For arrays there is a unique pipeline.
+For RNA-Seq there are two main pipelines: one able to detect novel events
+and the other one relying on annotated events.
+The steps required by the algorithm are almost the same for all approaches:
 
 -   *Splicing Graph Creation* The Splicing Graph (SG) is a directed
     graph used to represent the structure of a gene. EventPointer relies
-    on SGSeq package to obtain the corresponding SGs for every gene
-    present in the experiment. For arrays, the SG is built according to
+    on SGSeq package to obtain the corresponding SGs for every gene.
+    For arrays, the SG is built according to
     the reference transcriptome selected by the user and for RNA-Seq, it
     is created by predicting the features in the .bam files provided by
-    the user.
+    the user or by the reference transcriptome.
 
--   *Event Identification* Once the graphs are created, EventPointer
+-   *Event Detection* Once the graphs are created, EventPointer
     analyzes each SG in order to find the alternative splicing events.
     The definition of splicing events by EventPointer consists in a
     triplet of subgraphs (P1,P2 and PR) i.e. for a cassette exon, PR
     correspond to the flanking exons, P1 the junctions and exon, and P2
     the junction that skips the exon. This is depicted in Figure 1.
 
-![**Figure 1.** Definition of alternative splicing events for
-EventPointer](Figure2.png)
+![**Figure 1.** Definition of alternative splicing events for EventPointer](Figure2.png)
 
 -   *Statistical Analysis* With all the detected events, EventPointer
     performs a statistical analysis to obtain the statistical
-    significance of every splicing event. Briefly, EventPointer
-    considers there is a differential splicing event if the isoforms in
-    the associated paths change their expression in opposite directions.
-    Different and specific statistical tests can be applied (see
-    Advanced Use).
+    significance of every splicing event:
+      - for RNA-Seq EventPointer use bootstrap approeach to perform
+      the statistical test.
+      - for arrays, EventPointer considers there is a differential splicing
+      event if the isoforms in the associated paths change
+      their expression in opposite directions.
+      Different and specific statistical tests can be applied.
 
 -   *Visualization* To ease the interpretation of the splicing events,
     EventPointer generates .gtf files that can be loaded into
@@ -95,12 +98,14 @@ since been adapted for bulk RNA-Seq. This vignette is structured into
 two main sections: RNA-Seq analysis and array analysis. The RNA-Seq
 section is divided into two parts:
 
--   Alignment-based analysis, which detects novel events specific to the
-    samples.
+-   **EventPointerBAM**: Alignment-based analysis, which detects novel events specific to the
+    samples (novel version).
 
--   Analysis of events annotated in a reference transcriptome.
+-   **EventPonterST**: Analysis of events annotated in a reference transcriptome.
 
 To cite *EventPointer*:
+
+For EventPonterST:
 
 -   Ferrer-Bonsoms JA, Gimeno M, Olaverri D, Sacristan P, Lobato C,
     Castilla C, Carazo F, Rubio A (2022). "EventPointer 3.0: flexible
@@ -108,6 +113,9 @@ To cite *EventPointer*:
     differential usage of protein-domains." *NAR Genomics &
     Bioinformatics*, **4**(3), lqac067.
     [doi:10.1093/nargab/lqac067](https://doi.org/10.1093/nargab/lqac067).
+
+
+For EventPointer for arryas:
 
 -   Romero, Juan P., et al. "EventPointer: an effective identification
     of alternative splicing events using junction arrays." BMC genomics
@@ -129,50 +137,67 @@ EventPointer has two pipelines for RNA-Seq analysis:
     quantification of splicing events is carried out using the **BAM**
     **files generated from RNA-seq sequence alignment**. It should be
     noted that the **alignment must be performed using an aligner that**
-    **takes splicing** **into account (recommended tool: STAR)**. The main
-    advantage of this methodology is its ability to **detect de novo**
-    **events** based on reads alignment.
+    **takes splicing** **into account (recommended tool: STAR)**. The
+    main advantage of this methodology is its ability to **detect de**
+    **novo** **events** based on reads alignment.
 
 -   **EventPointerST (EP_ST)**: The detection and classification of
-    events are determined by the **corresponding transcriptome annotation**
+    events are determined by the **corresponding transcriptome annotation** 
     in GTF format. In this case, the quantification files
     of transcripts come from pseudoaligners (examples: salmon or
     kallisto).
 
-EventPointer consists of several core steps: building the splicing
-graph, detecting and classifying events, quantification, and performing
-statistical analysis. To simplify the alternative splicing analysis
-workflow, each pipeline (EP_BAM and EP_ST) is divided into two main
-stages, as shown in Figure 3. The first stage covers the detection and
-classification of events and the calculation of Percent Spliced In (PSI)
-values, while the second stage focuses on the statistical analysis of
-PSI changes between conditions. At the end of this section, additional
-intermediate steps that may be useful for advanced users are also
-described.
+As mentioned above, EventPointer consists of several core steps:
+(i) building the splicing graph, (ii) detecting and classifying events,
+(iii) quantification, and (iv) performing statistical analysis. Finally, users
+can visualize the results with IGV by files generated by EventPointer.
 
-![Figure 3 (A) Worflow and advantages and disadvantages of
-EventPointerBAM. (B) Worflow and advantages and disadvantages of
-EventPointerST.](1_workflowEP.png)
+<!-- ![Figure 3 (A) Worflow and advantages and disadvantages of -->
+<!-- EventPointerBAM. (B) Worflow and advantages and disadvantages of -->
+<!-- EventPointerST.](1_workflowEP.png) -->
 
-Figure 4 illustrates the process of event identification and
-classification within each workflow, highlighting a common element: the
-creation of a splicing graph. In the EventPointerBAM workflow, the
-splicing graph is generated from aligned reads using junction-aware
-aligners (e.g., STAR). In contrast, EventPointerST constructs the
-splicing graph from existing exon annotations derived from gene
-isoforms, requiring only the relative abundances of these isoforms for
-its analysis.
+<!-- Figure 4 illustrates the process of event identification and -->
+<!-- classification within each workflow, highlighting a common element: the -->
+<!-- creation of a splicing graph. In the EventPointerBAM workflow, the -->
+<!-- splicing graph is generated from aligned reads using junction-aware -->
+<!-- aligners (e.g., STAR). In contrast, EventPointerST constructs the -->
+<!-- splicing graph from existing exon annotations derived from gene -->
+<!-- isoforms, requiring only the relative abundances of these isoforms for -->
+<!-- its analysis. -->
 
-![Figure 4. (A) Reads alignment and event identification. (B) Splicing
-graph construction. (C) Events classification in EventPointerST and
-EventPointerBAM.](2_EventDefinition.png)
+<!-- ![Figure 4. (A) Reads alignment and event identification. (B) Splicing -->
+<!-- graph construction. (C) Events classification in EventPointerST and -->
+<!-- EventPointerBAM.](2_EventDefinition.png) -->
 
 ## EventPointerBAM
 
-The aim of EventPointerBAM is to perform detection, classification,
+The aim of `EventPointerBAM` is to perform detection, classification,
 quantification and differential analysis between conditions, using as
 input data sequence alignments of RNA-seq data performed using aligners
 sensitive to junction reads.
+
+There are two requirements for the BAM files in order
+to get `EventPointerBAM` working correctly:
+
+1.  The BAM files should include the **XS-flag**, the flag can be
+    included in the files when running the alignment. Most of the
+    available software has parameters to incude the flag. For example,
+    in the case of [STAR](https://github.com/alexdobin/STAR) the flag
+    *--outSAMattributes XS* must be included when mapping.
+
+2.  All files to be analyzed should have the corresponding index files
+    **(.bai)** in the same directory as the BAM files. Create the index
+    before running EventPointer.
+    
+
+To demonstrate the use of EventPointer, we utilise synthetically generated
+FASTQ files containing genes with predefined alternative splicing events,
+including alternative 3' sites, alternative 5' sites, and cassette exons.
+These FASTQ files are first processed with the STAR aligner to generate
+the BAM files required as input for EventPointer.
+In order to reduce computation time in this example, the data have
+been limited to genes from chromosome 3 with positive strand (strand +).
+
 
 ### Events Detection
 
@@ -193,12 +218,39 @@ described below:
 
 -   **region**: Numerical vector indicating the index of positions (at
     chromosomal level) to be analysed from the GTF. Default value is
-    NULL so that all regions are analysed.
+    NULL so that all regions are analysed. Note that the index position
+    depends on the bam file. In order to see which is the specific index
+    of the region of interest we can use the `Rsamtools` library:
+    
+```{r}
+path_bam_files = system.file("extdata/bams", package = "EventPointer")
+path_file_1 = dir(path_bam_files,pattern = "*.bam$",full.names = TRUE)[1]
+
+file_tmp <- BamFile(path_file_1)
+si <- seqinfo(file_tmp)
+sl <- rep(seqlevels(si),2)
+st <- c(rep(c("+"), length(si)),rep(c("-"), length(si)))
+ranges_info <- GRanges(sl, IRanges(1, seqlengths(si)[sl]), st)
+```
+
+```{r,echo=FALSE}
+ranges_info = as.data.frame(ranges_info)
+
+ranges_info$index = 1:nrow(ranges_info)
+ranges_info = ranges_info[,c(6,1:5)]
+levels(ranges_info$strand) = c("p","n","o")
+# ranges_info
+kable(ranges_info) %>%
+  kable_paper() %>%
+  scroll_box(width = "500px", height = "200px")
+```
+
+
+In this case, as we are interested in the chr3 with + starnd, we want the
+region 16. Therefore, we will set the parameter `region` to 16.
 
 -   **min_junction_count**: Minimum number of junctions detected in the
-    alignment to be considered in the splicing graph. Default value is
-
-    2.  
+    alignment to be considered in the splicing graph. Default value is 2.  
 
 -   **max_complexity**: Maximum allowed complexity. If a locus exceeds
     this threshold, it is skipped, resulting in a warning. Complexity is
@@ -207,7 +259,7 @@ described below:
     to spurious read alignments and can slow down processing. Default
     value is 30.
 
--   **min_n\_sample**: Minimum number of samples that a junction must
+-   **min_n_sample**: Minimum number of samples that a junction must
     have to be considered. Default value is 3.
 
 -   **min_anchor**: Minimum number of aligned bases at one end of an
@@ -224,9 +276,9 @@ described below:
 
 -   **cores**: Nº of cores used for the function. Default value is 1.
 
--   **verbose**: Logical indicating whether to show warnings and messages.
-      If FALSE, warnings from internal functions (e.g., makeTxDbFromGRanges)
-      will be suppressed. Default is FALSE.
+-   **verbose**: Logical indicating whether to show warnings and
+    messages. If FALSE, warnings from internal functions (e.g.,
+    makeTxDbFromGRanges) will be suppressed. Default is FALSE.
 
 *Results parameters*
 
@@ -263,33 +315,38 @@ EventsDetection_BAM(PathSamplesAbundance,
 
 ```
 
-The function doesn't return anything, but store the 4 files mentioned above:
+The 4 files created by this function are:
 
--   **SgFC.RData**: Contains the splicing graph in RData format.
--   **TotalEventsFound.csv**: General data for total events detected
-        in csv format.
+-   **SgFC.RData**: Contains the needed information to create the splicing graph.
+-   **TotalEventsFound.csv**: General data for total events detected in
+    csv format.
 -   **EventsDetection_EPBAM.RData**: Raw data per event, paths of
-        splicing graph and counts in RData format.
--   **PSI_boots.RData**: $\Psi$ per event and sample in RData
-        format.
+    splicing graph and counts in RData format.
+-   **PSI_boots.RData**: $\Psi$ per event and sample in RData format.
 
-A further explanation of these files are depicted in the following subsecction "step-by-step"
+A further explanation of these files are depicted in the following
+subsecction "step-by-step"
 
 #### step-by-step
 
-The function `EventsDetection_BAM` unifies the three main functions: creating the splicing graph, detecting and classifying events, and finally calculating the PSI for each event. As each task has a long duration and it may be of interest to a user to perform any of these tasks separately, the following section explains how to execute this function step by step. At each step, the four files generated by function `EventsDetection_BAM` will be explained. In order to run the examples, the four files corresponding to the example are saved within the library.
+As mentioned above, the function `EventsDetection_BAM` unifies  three main steps.
+As each task has a long duration and it may be of interest
+to a user to perform any of these
+tasks separately, the following section explains how to execute this
+function step by step.
 
+**get Information for the Splicing graph**
 
-**get Splicing graph**
-
-The first step of `EventsDetection_BAM` is to create the splicing graph. For this, the function `PrepareBam_EP` is called. The parameters of this functions are depicted above.
+The first step of `EventsDetection_BAM` is to get information to build the splicing graph.
+For this, the function `PrepareBam_EP` is called. The parameters of this
+functions are depicted above.
 
 ```{r,eval=FALSE}
 PathSamplesAbundance <- system.file("extdata/bams", package = "EventPointer")
 PathTranscriptomeGTF <- list.files(PathSamplesAbundance,"*.gtf",full.names = T)
 PathSGResult <- tempdir()
 
-SgFC_2 <- PrepareBam_EP(PathSamplesAbundance = PathSamplesAbundance,
+SgFC <- PrepareBam_EP(PathSamplesAbundance = PathSamplesAbundance,
                         PathTranscriptomeGTF = PathTranscriptomeGTF,
                         region = 16,
                         min_junction_count = 2,
@@ -301,33 +358,48 @@ SgFC_2 <- PrepareBam_EP(PathSamplesAbundance = PathSamplesAbundance,
                         verbose = FALSE)
 ```
 
-```{r,echo=FALSE}
+This functions is the most demading regarding time computing. The SgFC object can be laoded from the EventPointer package:
+<br><br>
+```{r,eval=TRUE}
 load(system.file("extdata/SgFC.RData", package = "EventPointer"))
-```
-
-```{r,eval=FALSE}
 SgFC
 ```
-
-The SgFC object is a SGFeatureCounts object. for
-more information check [SGSeq Vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html).
+<br>
+The SgFC object is a SGFeatureCounts object. for more information check
+[SGSeq
+Vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html).
 Briefly the SGFeaturesCounts contains a GRanges object with all the
 required elements to create the different splicing graphs found in the
 given samples. It also contains the number of counts associated with
 each element of the splicing graph.
 
-
 **Event Detection**
 
-The second step of `EventsDetection_BAM` takes the SgFC object to detect and classify splicing events by calling the function `EventDetection`. This function only requieres two parameters: the SgFC object, and the number of cores:
+The second step of `EventsDetection_BAM` takes the SgFC object to create
+the splicing graph and then detect and classify splicing events.
+This is done by calling the function `EventDetection`.
+This function only requieres two parameters: the SgFC object, and the
+number of cores:
 
 ```{r,eval=FALSE}
-#data(SgFC)
 EventsDetection_EPBAM<-EventDetection(SgFC, cores=1)
 ```
 
-The function retunes a list called EventsDetection_EPBAM that corresponds to the `EventsDetection_EPBAM.RData` generated by `EventsDetection_BAM` function. <br>
-The output is a list vector with one element for each gene. Each gene (element of the list) is itself a list with a length equal to the number of events in that gene. Finally, each event is also a list containing the event information. In order to see the values of this object, the follownig code chunk show an example of how to see the information of the first event of the first gene.
+```{r,echo=FALSE}
+load(system.file("extdata/EventsDetection_EPBAM.RData", package = "EventPointer"))
+```
+
+
+The function retunes a list called EventsDetection_EPBAM that
+corresponds to the `EventsDetection_EPBAM.RData` generated by
+`EventsDetection_BAM` function. 
+<br>
+The output is a list vector with
+one element for each gene. Each gene (element of the list) is itself a
+list with a length equal to the number of events in that gene. Finally,
+each event is also a list containing the event information. In order to
+see the values of this object, the follownig code chunk show an example
+of how to see the information of the first event of the first gene.
 
 ```{r,eval=FALSE}
 index_gene <- 1
@@ -336,9 +408,9 @@ length(EventsDetection_EPBAM) #number of genes
 length(EventsDetection_EPBAM[[index_gene]]) #number of events in the corresponding gene
 names(EventsDetection_EPBAM[[index_gene]][[index_event]]) #the different information stored in the object.
 ```
-
-
-In order to replicate the `.csv` file stored by the `EventsDetection_BAM` function, you can use the following code chunk to replicate how to create this file:
+<br><br>
+In order to replicate the `.csv` file stored by the
+`EventsDetection_BAM` function, you can use the following code chunk:
 
 ```{r,eval=FALSE}
 event_list <- list()
@@ -353,292 +425,137 @@ totalEventTable <- do.call(rbind, event_list)
 write.csv(totalEventTable, file = paste0(PathSGResult, "/TotalEventsFound.csv"), row.names = FALSE)
 
 ```
-
-
-
+<br><br>
 **Get PSI**
 
-Finally, the `EventsDetection_BAM` function compute the PSI values by calling the function `getPSI_RNASeq_boot` which needs the following parameters: lambda, and nboot (depicted above).
+Finally, the `EventsDetection_BAM` function compute the PSI values by
+calling the function `getPSI_RNASeq_boot` which needs the following
+parameters: lambda, and nboot (depicted above).
 
 ```{r,eval=FALSE}
 cores <- 1
 lambda <- NULL
 nboot <- 20
-PSI_boots <- getPSI_RNASeq_boot(EventsDetection_EPBAM, lambda = lambda, cores = cores, nboot = nboot)
+PSI_boots <- getPSI_RNASeq_boot(EventsDetection_EPBAM, lambda = lambda,
+                                cores = cores, nboot = nboot)
 ```
 
 
-
-
-
-
--   `TotalEventsFound.csv` is a csv file with the information of the
-    splicing events found in the samples. This file can be loaded from
-    the `PathSGResult` directory.
-
-```{r,eval=FALSE}
-Events_info <- read.csv(file = paste0(PathSGResult,"/TotalEventsFound.csv"))
-```
-
-If you don't have already create the TotalEventsFound.csv file, you can
-loaded from EventPointer package:
-
-```{r,eval=FALSE}
-file_ep <- system.file("extdata", package = "EventPointer")
-Events_info <- read.csv(file = paste0(file_ep,"/TotalEventsFound.csv"))
-
-kbl(Events_info) %>%
-  kable_paper() %>%
-  scroll_box(width = "100%", height = "400px")
-```
-
--   `EventsDetection_EPBAM.RData` RData with the information of the
-    events found. This file can be loaded from the `PathSGResult`
-    directory. If you d
-
-```{r,eval=FALSE}
-load(paste0(PathSGResult,"./EventsDetection_EPBAM.RData"))
-```
-
-If you don't have already create the EventsDetection_EPBAM.RData file,
-you can loaded from EventPointer package. 
-
--   `PSI_boots.RData` RData with the information of the PSI values of
-    each event
-
-```{r}
-#code to show PSI 
-```
-
-#### step by step
-
-The function `EventsDetection_BAM` is interlly split in 3 main steps:
-creating of the splicing graph, detecting of splicing events and
-computing of PSI values. Time required for these steps can be demading,
-specially for the first step. If any user want to apply the 3 steps
-sepparatetly, EventPointer export these steps as main functions as well.
-
-
-## Analysis from BAM files
-
-### Overview of RNA-Seq
-
-*EventPointer* is also able to identify alternative splicing events from
-RNA-Seq data. The only required files are the corresponding .BAM files
-from the experiment.
-
-Each time an experiment is analyzed with EventPointer, the complete
-process needs to be executed which may cause long waiting times to get
-the results. To avoid this issue, we have divided every step of the
-algorithm in different functions so as the user can reuse previous
-result and thus reduce computational time.
-
-For the examples in this part of the vignette, we will use .bam files
-depicted in the [SGSeq
-vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html)
-that correspond to paired-end RNA-seq data from four tumor and four
-normal colorectal samples, which are part of a data set published in
-[Seshagiri et al. 2012](http://dx.doi.org/10.1038/nature11282). As
-stated in [SGSeq
-vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html)
-the bam files only include reads mapping to a single gene of interest
-(FBXO31).
-
-[**Note:**]{style="color:red"} For sequencing data, there are two
-requirements for the BAM files in order to get EventPointer working
-correctly:
-
-1.  The BAM files should include the **XS-flag**, the flag can be
-    included in the files when running the alignment. Most of the
-    available software has parameters to incude the flag. For example,
-    in the case of [STAR](https://github.com/alexdobin/STAR) the flag
-    *--outSAMattributes XS* must be included when mapping
-
-2.  All files to be analyzed should have the corresponding index files
-    **(.bai)** in the same directory as the BAM files. Create the index
-    before running EventPointer.
-
-### BAM Preparation
-
-The first step to analyze alternative splicing events in RNA-Seq data,
-is the creation of the splicing graphs. This step relies entirely on
-SGSeq R package.
-
-The function PrepareBam_EP transforms all the information found in the
-bam files into splicing graph features and counts
-
--   **Samples** : Name of the .bam files to be analyzed
-    (Sample1.bam,Sample2.bam,...,etc)
--   **SamplePath**: Path where the bam files are stored
--   **Ref_Transc**: Reference transcriptome used to name the genes
-    found. Options are: "Ensembl","UCSC" or "GTF".
--   **fileTransc**: Path to the GTF reference transcriptome if
-    Ref_Transc is "GTF".
--   **cores**: Number of cores used for parallel processing
--   **Alpha**: Internal SGSeq parameter to include or exclude regions
-    (See Advanced Use)
-
-```{r PrepareBam, eval=FALSE, collapse=TRUE}
-# Obtain the samples and directory for .bam files
-
-# the object si contains example sample information from the SGSeq R package 
-# use ?si to see the corresponding documentation 
-   
-   BamInfo<-si
-   Samples<-BamInfo[,2]
-   PathToSamples <- system.file("extdata/bams", package = "SGSeq")
-   PathToGTF<-paste(system.file("extdata",package="EventPointer"),"/FBXO31.gtf",sep="")
-
-  # Run PrepareBam function
-   SG_RNASeq<-PrepareBam_EP(Samples=Samples,
-                            SamplePath=PathToSamples,
-                            Ref_Transc="GTF",
-                            fileTransc=PathToGTF,
-                            cores=1)
-```
-
-The output of PrepareBam_EP function is a SGFeaturesCounts object, for
-more information check [SGSeq
-Vignette](https://bioconductor.org/packages/release/bioc/vignettes/SGSeq/inst/doc/SGSeq.html).
-Briefly the SGFeaturesCounts contains a GRanges object with all the
-required elements to create the different splicing graphs found in the
-given samples. It also contains the number of counts associated with
-each element of the splicing graph.
-
-### Event Detection
-
-After running PrepareBam_EP, we have all the elements to analyze each of
-the splicing graphs. The next step is to identify and classify all the
-events, that are present in the BAM files.
-
-For this purpose, the function EventDetection is used.
-
--   **Input** : Output of the PrepareBam_EP function
--   **cores**: Number of cores used for parallel processing
--   **Path**: Directory where to write the EventsFound.txt file
-
-```{r EventDetection, eval=TRUE}
-  # Run EventDetection function
-   data(SG_RNASeq)
-   TxtPath<-tempdir()
-   AllEvents_RNASeq<-EventDetection(SG_RNASeq,cores=1,Path=TxtPath)
-   
-```
-
-This function retireves a list with all the events found for all the
-genes present in the experiment. It also generates a file called
-EventsFound_RNASeq.txt with the information for every detected event.
-
-The list is organized in the following way:
-
-```{r ListofLists, eval=FALSE}
-Events[[i]][[j]]
-```
-
-The list will have as many $i$ values as genes and $j$ values as many
-events detected for the $i_{th}$ gene. In other words, the command above
-will display the $j_{th}$ event detected for the $i_{th}$ gene.
+PSI_boots is an array of number_of_events x (number_of_boots+1) x number_of_samples.
+In the second dimension, we have the PSI values corresponding to the maximum likelihood estimation of the expression and the PSI corresponding to the nboot bootstraps.
+<br>
 
 ### Statistical Analysis
 
-The statistical analysis of the alternative splicing events is done in
-exactly the same way as for junction arrays. With the Design and
-Contrast matrices, the algorithm gives the statistical significance and
-$\Delta \Psi$.
+The main function to perform the statistical analysis is `EventPointerStats_BAM`.
 
-The function for the statistical analysis using EventPointer method.
+```{r}
+data(PSI_boots)
+Design <- cbind(rep(1, 9), rep(c(1, 0, 0), 3), rep(c(0, 1, 0), 3))
+Contrast <- cbind(c(0, 1, 0), c(0, 0, 1))
 
--   **Events** : Output from EventDetection function
--   **Design**: The design matrix for the experiment.
--   **Contrast**: The contrast matrix for the experiment.
--   **Statistic**: Statistical test to identify differential splicing
-    events, must be one of : "LogFC","Dif_LogFC" and "DRS".
--   **PSI**: Boolean variable to indicate if $\Delta \Psi$ should be
-    calculated for every splicing event.
-
-The algorithm displays the different parameters that are selected to
-perform the analysis.
-
-Following our example, the code chunk to obtain the results:
-
-```{r EP_RNASeq, eval=TRUE}
-   Dmatrix<-matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1),ncol=2,byrow=FALSE)
-   Cmatrix<-t(t(c(0,1)))
-   Events <- EventPointer_RNASeq(AllEvents_RNASeq,Dmatrix,Cmatrix,Statistic="LogFC",PSI=TRUE)
+PathSGResult <- tempdir()
+result = EventPointerStats_BAM(PSI_boots,
+                               Design,
+                               Contrast,
+                               Threshold = 0,
+                               nbootstraps = 1000,
+                               cores = 1,
+                               ram = 0.1,
+                               pathResult = PathSGResult)
 ```
 
-Table 2 displays the output of EventPointer function
+`EventPointerStats_BAM` returns a list with the reulsts of the statistical analysis.
+The list contains the summary of the Bootstrap analysis: deltaPSI, Pvalues, iqr_events,
+median_events, and LocalFDR. The first for are data.frame with the corresponding information
+for each event (row) and contrast. LocalFDR is a list of length equal to the number 
+of contrast. Each elemnt has information of the local flase dicovery rate.
+Brielfy:
 
-```{r EP_RNASeq_Res_Table, echo=FALSE}
-kable(Events[1:5,],digits=5,row.names=TRUE,align="c",caption = "Table 2: EventPointer RNASeq results")
-```
+- **deltaPSI**: the increment of PSI of each event in each contrast.
+- **Pvalues**: p.values obteined from the bootstrap test.
+- **iqr_events**: 
+- **median_events**: 
+- **LocalFDR**: multiple hypothesis correction information.
+
+`EventPointerStats_BAM` also return files with the results of the statistical analysis
+for each contrast in a .csv file.
+
 
 ### IGV visualization
 
-EventPointer creates one GTF file that can be loaded into IGV to
-visualize the alternative splicing events. Figure 6 displays an example
-result showed in IGV (5th ranked event in Table 2). Also, in the figure
-a reference transcriptome is displayed (blue track), and it can be seen
-that the displayed event corresponds to a novel event discovered with
-sequencing data and that it will not be detected using junction arrays.
+Alternative splicing events detected by EventPointerBAM can be visualized using the `EventPointerBAM_IGV()` function as shown in Figure 4. This function displays the paths that make up the splicing graph of each event in a gtf format that can be viewed using the IGV program. Each event is composed of 3 paths: path1, path2, and Reference, which will be indicated along with the event id for identification as "path1\_", "path2\_", "Ref_1", and "Ref_2".
 
-![**Figure 6.** EventPointer visualization using IGV](Figure8.png)
+To create the GTF files, the algorithm uses the `EventPointerBAM_IGV()` function that
+has the following parameters:
 
-To create the GTF files, the algorithm uses the following code.
+*Events and reference transcriptome parameters*
 
--   **Events** : Data.frame generated by EventPointer_RNASeq with the
-    events to be included in the GTF file.
--   **SG_RNASeq**: Output from PrepareBam_EP function. Contains splicing
-    graphs components.
--   **EventsTxt**: Path to EventsFound.txt file generated with
-    EventDetection function
--   **PathGTF**: Directory where to write the GTF files.
+-  **SG_RNASeq**: Data.frame generated by `EventsDetection_BAM` with the events to be included in the GTF file.
+-   **EventsTxt**: Reference transcriptome. Must be one of: "Ensembl", "UCSC", "AffyGTF" or       "CustomGTF".
 
-A progress bar is displayed to the user to inform about the progress of
-the function.
+*Results parameters*
 
-Once the process is completed the GTF file is generated in the specified
-directory:
+-  **PathGTF**: Folder where to save the generated GTF file. 
 
--   **paths_RNASeq.gtf** : GTF file representing the alternative
-    splicing events.
 
-```{r RNAS_IGV, eval=TRUE, collapse=TRUE}
+```{r, eval=FALSE, collapse=TRUE}
 
-   # IGV Visualization
-   EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/EventsFound_RNASeq.txt",sep="")
-   PathGTF<-tempdir()
-   EventPointer_RNASeq_IGV(Events,SG_RNASeq,EventsTxt,PathGTF)
+EventsTxt<-paste(system.file("extdata",package="EventPointer"),"/TotalEventsFound.csv",sep="")
+load(paste(system.file("extdata",package="EventPointer"),"/SgFC.RData",sep=""))
+SG_RNASeq <- SgFC
+PathGTF <- tempdir()
+
+EventPointerBAM_IGV(SG_RNASeq = SgFC,
+                    EventsCSV =  EventsTxt,
+                    PathGTF =  "./")
 ```
 
-## Analysis From Transcriptome Reference
+The GTF file can be loaded in IGV and will display as following:
+
+
+![**Figure 4.** EventPointer visualization using IGV.](4_IGV.png)
+
+
+### summary
+
+This approach of EventPointer can be run with tow main functions: `EventsDetection_BAM()` and `EventPointerStats_BAM()`. The former functin can be run step by step by using the function: 
+`PrepareBam_EP`, `EventDetection`, and `getPSI_RNASeq_boot`.
+<br>
+When running both `EventsDetection_BAM()` and `EventPointerStats_BAM()`, the resulting files at the defined output folder will be those shown in Figure 5. 
+
+![Figure 5. Output EventPointerBAM functions.](3_ficheros_EPBAM.drawio.png)
+
+Finally, results can be visualized using the function `EventPointerBAM_IGV`.
+
+
+## EventPointerST
 
 In this pipeline alternative splicng events are detected from a
-reference transcriptome without finding novel events as do the method
-above explained in section 4.1. The events quantification relies on
+**reference transcriptome without finding novel events**. 
+
+The events quantification relies on
 isoform expression estimate from pseudo-alignment process such as
 *Kallisto* or *Salmon*. Besides, we provide a function to leverage the
 bootstrap data from *kallisto* or *salmon*. Preveous statistical
 analysis have also been adapted to this data. Further, Primers design
 for PCR validation and protein domain enrichment analysis can be
-performed. Figure 7 shows an overview of this branch of EventPointer.
+performed. Figure 6 shows an overview of this branch of EventPointer.
 
-![**Figure 7.** Analysis of RNA-Seq data with kallisto
-output](Figure7_2.png)
+![**Figure 6.** Analysis of RNA-Seq data with kallisto output](Figure7_2.png)
 
 ### Event Detection
 
-We use *EventDetection_transcriptome* to identify and classify
+We use `EventDetection_transcriptome` to identify and classify
 alternative splicing events of a given reference transcriptome. The
 required parameters are:
 
 -   **inputFile** = inputFile should point to the GTF file to be used.
--   **Transcriptome** = the name of the transcriptome.
 -   **Pathtxt** = Directory to save the .txt file of the events found.
 -   **cores** = Number of cores using in the parallel processing (by
     default = 1).
 
-Following code shows how to apply *EventDetection_transcriptome*
+Following code shows how to apply `EventDetection_transcriptome`
 function using the Gencode 24 transcriptome (GRCH 38) as reference
 annotation. In this example we do not use the full reference but only
 two genes (ENSG00000185252.17 and ENSG00000254709.7).
@@ -649,15 +566,12 @@ two genes (ENSG00000185252.17 and ENSG00000254709.7).
 # Set input variables
 PathFiles<-system.file("extdata",package="EventPointer")
 inputFile <- paste(PathFiles,"/gencode.v24.ann_2genes.gtf",sep="")
-Transcriptome <- "Gencode24_2genes"
 Pathtxt <- tempdir()
 ```
 
 ```{r GTFfGTF_2, eval=FALSE, warning=FALSE, collapse=TRUE}
 # Run the function
-inputFile <- "/home/external_HDD/HDD_1/EventPointer/inst/extdata/gencode.v24.ann_2genes_prueba.gtf"
 EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
-                                             Transcriptome = Transcriptome,
                                              Pathtxt=Pathtxt,
                                              cores=1)
 
@@ -665,11 +579,11 @@ EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
 
 This function takes a couple of hours to complete (depending on the
 computer), and creates a file called
-**EventsFound\_**<Transcriptome>.txt: a .txt file with the information
+**EventsFound.txt**. This file contains the information
 of the events. This .txt file will be used as an input in further
 functions.
 
-This function also returns a list containing five elements: three sparce
+The object returned by the function is a list containing five elements: three sparce
 matrices that relate which isoforms build up the paths (path1,path2 and
 pathRef) of each event. The fourth element contains the name of the
 reference annotation: only appear the name of the transcript. The final
@@ -682,9 +596,13 @@ names(EventXtrans)
 
 ```
 
+**NOTE**: as the events are detected based on the reference transcriptome, the function
+`EventDetection_transcriptome` can be applied only once for each reference
+transcriptome.
+
 ### Get expression and PSI ($\Psi$)
 
-Given (I) the output of *EventDetection_transcriptome*, which contains
+Given (I) the output of `EventDetection_transcriptome`, which contains
 events information and (II) the result of pseudo-alignment, EventPointer
 is able to get the expression of the path of each event and also to
 compute the PSI value.
@@ -693,12 +611,12 @@ To first step is to load the data from pseudo-alignment. EventPointer
 works with both *Kallisto* and *Salmon* methods.
 
 In this example we have applied *kallisto* to the samples ERR315326,
-ERR315400, ERR315407 and ERR315494 using the same reference used before.
+ERR315400, ERR315407 and ERR315494 using the transcriptome reference used before.
 These samples have been download from *EMBL-EBI* dataset.
 
 EventPointer offers the option to take advantage of bootstraps that
 return both Kallisto and Salmon. In case we want to leverage the
-Bootstrap data we have to use the function *getbootstrapdata*:
+Bootstrap data we have to use the function `getbootstrapdata`:
 
 ```{r getbootstrpdata, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -710,7 +628,7 @@ data_exp <- getbootstrapdata(PathSamples = PathSamples,type = "kallisto")
 
 ```
 
-*getbootstrapdata* returns a list containing the quantification data
+`getbootstrapdata` returns a list containing the quantification data
 with the bootstrap information. The list is of length equal to the
 number of samples. Each element of the list storage a matrix where the
 number of rows is equal to the number of transcripts and the number of
@@ -718,8 +636,8 @@ columns is equal to the number of bootstrats + 1. (the first column
 corresponds to the maximum likelihood expression and the rest to the
 bootstrap data).
 
-In case **you don't want to use the bootstrap returned by the
-pseudo-alignmnet step (or is no available)**, you should load a matrix
+In case **you don't want to use the bootstrap returned by the**
+**pseudo-alignmnet step (or is no available)**, you should load a matrix
 with the expression of the transcripts. The following code chunk shown
 an example of how to do this:
 
@@ -744,11 +662,11 @@ colnames(RNASeq) <- filesnames
 ```
 
 Once we have the expression of the isoforms loaded, the next step is to
-compute the PSI value. For both cases (with or withuot bootstrap data
+compute the PSI value. For both cases (with and withuot bootstrap data
 from psudoaligment) EventPointer provides the function
-*GetPSI_FromTranRef* for this purpose.
+`GetPSI_FromTranRef` for this purpose.
 
-The function *GetPSI_FromTranRef* returns the values of $\Psi$ and the
+The function `GetPSI_FromTranRef` returns the values of $\Psi$ and the
 expression of the paths of each events. This functions requires the
 following inputs:
 
@@ -767,7 +685,7 @@ been used in both the pseudo-alignment and event detections steps.
 Besides, in the variable *Samples* the type of annotation used must be
 equal to the one used in the variable *EventXtrans*.
 
-**Get psi if no bootstrap from pseudo-alignmnet is used**
+**Get psi if NO bootstrap from pseudo-alignmnet is used**
 
 First step is to verify if same annotation is used in *RNASeq* and
 *EventXtrans*:
@@ -778,7 +696,7 @@ EventXtrans$transcritnames[1:5]
 ```
 
 We need to change the rownames of RNASeq variable before applying
-*GetPSI_FromTranRef* function:
+`GetPSI_FromTranRef` function:
 
 ```{r PSI_Statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -800,9 +718,9 @@ Expression <- PSIss_nb$ExpEvs
 The output of the function is a list containing two elements: a matrix
 with the $\Psi$ values, and a list containing as many matrices as number
 of events. In each matrix is stored the expression of the different
-paths of an event along the samples.
+paths of the correspondig event along the samples.
 
-**If bootstrap data from pseudo-alignment is required**
+**If bootstrap data from pseudo-alignment IS required**
 
 As done above, we need to check if same annotation is used in *data_exp*
 and *EventXtrans*. The difference from above is that *data_exp* is a
@@ -817,7 +735,7 @@ EventXtrans$transcritnames[1:5]
 ```
 
 We need to change the rownames of the first element of the list
-*data_exp* before applying *GetPSI_FromTranRef* function:
+*data_exp* before applying `GetPSI_FromTranRef` function:
 
 ```{r psi_with_bootstrap, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -837,14 +755,52 @@ The output of the function is a list containing two elements: an array
 with the $\Psi$ values with dimension = c(number of events, number of
 bootstrap+1,number of samples), and a list containing as many matrices
 as number of events. In each matrix is stored the expression of the
-different paths of an event along the samples.
+different paths of the corresponding event along the samples.
 
-### Statistical Analysis
+
+### Statistical Analysis (Bootstrap Test)
+
+We have implemented a bootstrap test to evaluate the difference in
+$\Psi$ among the conditions under study. This test can be done both for
+PSI values that contain information from the pseudo-alignment bootstrap
+and for cases in which we do not have this information.
+
+The function `EventPointer_Bootstraps` proceed to calculate the increase
+in PSI and its p.values by performing bootstrap statistic test. This
+function can be parallelized. Users may set the number of Cores (by
+default 1) and the ram available (by default 1 Gb).
+
+```{r ep_bootstrp_statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+Dmatrix <- cbind(1,rep(c(0,1),each=2))
+Cmatrix <- matrix(c(0,1),nrow=2)
+
+Fit_bots <- EventPointer_Bootstraps(PSI = PSI,
+                               Design = Dmatrix,
+                               Contrast = Cmatrix,
+                               cores = 1,
+                               ram = 1,
+                               nbootstraps = 10,
+                               UsePseudoAligBootstrap = TRUE)
+
+```
+
+You can extract a table of the top-ranked events from the results with
+the function *ResulTable*
+
+```{r ResultTable, eval=TRUE, warning=FALSE, collapse=TRUE}
+
+ResulTable(EP_Result = Fit_bots,coef = 1,number = 5)
+
+```
+
+
+### Statistical Analysis (NO bootstrap)
 
 The statistical analysis of the alternative splicing events is done in
-exactly the same way as for junction arrays.
+exactly the same way as for junction arrays (section 4).
 
-The function *EventPointer_RNASeq_TranRef* perform this statistical
+The function `EventPointer_RNASeq_TranRef` perform this statistical
 analysis and requires the following parameters:
 
 -   **Count_Matrix** The list containing the expression data taken from
@@ -877,41 +833,7 @@ list.
 kable(Fit,digits=5,row.names=FALSE,align="c",caption = "Table 3: PSI_Statistic results")
 ```
 
-### Statistical Analysis (Bootstrap Test)
 
-We have implemented a bootstrap test to evaluate the difference in
-$\Psi$ among the conditions under study. This test can be done both for
-PSI values that contain information from the pseudo-alignment bootstrap
-and for cases in which we do not have this information.
-
-The function *EventPointer_Bootstraps* proceed to calculate the increase
-in PSI and its p.values by performing bootstrap statistic test. This
-function can be parallelized. Users may set the number of Cores (by
-default 1) and the ram available (by default 1 Gb).
-
-```{r ep_bootstrp_statistic, eval=TRUE, warning=FALSE, collapse=TRUE}
-
-Dmatrix <- cbind(1,rep(c(0,1),each=2))
-Cmatrix <- matrix(c(0,1),nrow=2)
-
-Fit <- EventPointer_Bootstraps(PSI = PSI,
-                               Design = Dmatrix,
-                               Contrast = Cmatrix,
-                               cores = 1,
-                               ram = 1,
-                               nBootstraps = 10,
-                               UsePseudoAligBootstrap = TRUE)
-
-```
-
-You can extract a table of the top-ranked events from the results with
-the function *ResulTable*
-
-```{r ResultTable, eval=TRUE, warning=FALSE, collapse=TRUE}
-
-ResulTable(EP_Result = Fit,coef = 1,number = 5)
-
-```
 
 ### IGV visualization
 
@@ -921,20 +843,19 @@ result showed in IGV (5th ranked event in Table 2). Also, in the figure
 a reference transcriptome is displayed (blue track).
 
 To create the GTF files, the algorithm uses the
-*EventPointer_RNASeq_TranRef_IGV* functions with the following
+`EventPointer_RNASeq_TranRef_IGV` functions with the following
 parameters:
 
 -   **SG_List**: List with the Splicing Graph information of the events.
-    This list is created by EventDetection_transcriptome function.
+    This list is created by `EventDetection_transcriptome` function.
 -   **pathtoeventstable**: Complete path to the table returned by
-    EventDetection_transcriptome that contains the information of each
+    `EventDetection_transcriptome` that contains the information of each
     event, or table with specific events that the user want to load into
     IGV to visualize.
 -   **PathGTF**: Directory where to write the GTF files.
 
-As EventDetection_transcriptome function returns the splicing graph
+As `EventDetection_transcriptome` function returns the splicing graph
 information, this function does not need to create the splicing graph.
-(EventPointer_IGV is equivalent function for array platform).
 
 ```{r ep_tranref_igv, eval=TRUE, warning=FALSE, collapse=TRUE}
 
@@ -952,7 +873,7 @@ EventPointer_RNASeq_TranRef_IGV(SG_List = SG_List,pathtoeventstable = PathEvents
 The main idea of protein domain analysis is to analyze whether the
 presence of a protein domain increases or decreases in the condition
 under study. To do this, we have implemented the function
-*Protein_Domain_Enrichment*. This function requires the following
+`Protein_Domain_Enrichment`. This function requires the following
 parameters:
 
 -   **PathsxTranscript**: the output of EventDetection_transcriptome.
@@ -966,8 +887,8 @@ parameters:
 
 As mentioned, it is first necessary to know the structure of protein
 domains within the transcriptome or in other words: to relate the
-isoforms to protein domains. This can be done using *'bioMart' R
-package.* The input needed by EP to perform this analysis is a matrix
+isoforms to protein domains. This can be done using `bioMart` R
+package. The input needed by EP to perform this analysis is a matrix
 that relates transcripts to protein domains (TxD matrix). Therefore, you
 can work either with Pfam, Interpro or superfamily annotation.
 
@@ -1033,7 +954,7 @@ EventXtrans$transcritnames <- transcriptnames
 
 Result_PDEA <- Protein_Domain_Enrichment(PathsxTranscript = EventXtrans,
                                          TxD = TxD,
-                                         Diff_PSI = Fit$deltaPSI)
+                                         Diff_PSI = Fit_bots$deltaPSI)
 
 
 ```
@@ -1096,7 +1017,7 @@ following main parameters:
     EventPointer_RNASeq_TranRef, the number after the "\_" character of
     the 'Event_ID'.
 -   **Primer3Path**: Complete path where primer3_core.exe is placed.
--   **Dir**: Complete path where primer3web_v4_0\_0_default_settings.txt
+-   **Dir**: Complete path where primer3web_v4_0_0_default_settings.txt
     file and primer3_config directory are placed.
 -   **taqman**: 1 if you want to get probes and primers for TaqMan. 0 if
     you want to get primers for conventional PCR.
@@ -1229,27 +1150,9 @@ represented in red as long as the gene is transcribed from the forward
 strand. Otherwise the colors we will be swapped. TaqMan probes will
 always have the color of the forward primers.
 
-![**Figure 8.** Transcriptome, paths and primers visualization using
+![**Figure 7.** Transcriptome, paths and primers visualization using
 IGV.](Figure11.png)
 
-### RBP prediction (Future Lines)
-
-Various processes (probably many of them yet to be discovered) are
-involved in the regulation of alternative splicing. One of this
-regulators are the RNA-binding proteins (RBPs).<br> we have integrated
-several databases of CLIP-seq experiments with an algorithm that detects
-differential splicing events to discover RBPs that are especially
-enriched. Thus, EP proposes a ranking of which RBP is likely to be
-driving the observed changes in the splicing. <br><br> To perform this
-analysis it is necessary to execute the following steps:
-
--   Create a matrix that relates AS events with RBP binding sites using
-    the function *EventPointer:::CreateExSmatrix*
--   Run the prediction algorithm using the function
-    *EventPointer:::SF_Prediction*
-
-A detailed explanation of how to use this pipeline is desribed in
-<https://github.com/clobatofern/SFPointer_testPipeline>.
 
 # Analysis of junction arrays
 
@@ -1369,7 +1272,7 @@ has at least 1.5 GB of free space.
 
 Figure 3 shows a screen shot with the output of the CDFfromGTF function
 
-![**Figure 3.** Output of CDFfromGTF](Figure3.png)
+![**Figure 9.** Output of CDFfromGTF](Figure3.png)
 
 Once the file is created, the name of the cdf file can be changed.
 Internally, the algorithm gives the name as HTA-2_0, but the actual name
@@ -1501,7 +1404,7 @@ reference path is shown in gray color, the path 1 in red and path 2 in
 green. Below the transcripts, the different probes that are measuring
 each of the paths are represented in the same colors.
 
-![**Figure 4.** EventPointer visualization using IGV](Figure5.png)
+![**Figure 10.** EventPointer visualization using IGV](Figure5.png)
 
 To create the GTF files, the algorithm uses the EventPointer_IGV
 functions with the following parameters:
@@ -1531,7 +1434,7 @@ specified directory:
 2.  probes.gtf : GTF file representing the probes that measure each
     event and each path.
 
-![**Figure 5.** GTF files generated with EventPointer_IGV](Figure6.png)
+![**Figure 11.** GTF files generated with EventPointer_IGV](Figure6.png)
 
 ```{r Arrays_IGV, eval=FALSE, collapse=TRUE}
 
@@ -1565,7 +1468,7 @@ are composed of more elements than a triplet where the concentration of
 the reference path should be equal to the sum of the concentration of
 the rest of paths. This is depicted in Figure 8.
 
-![**Figure 9.** Multi-Path alternative splicing events for
+![**Figure 12.** Multi-Path alternative splicing events for
 EventPointer](Figure10.png)
 
 EventPointer identify Multi-Path events and estimate the percent spliced
@@ -1715,6 +1618,9 @@ The following figures show the structure of these events and their
 corresponding gene:
 
 **Example 1**
+![**Figure 13.** Structure of example 1](example_1_alt5_ce.png)
+
+
 
 ## Statistical Tests
 

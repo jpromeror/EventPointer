@@ -16,7 +16,7 @@ EventsDetection_BAM(
   lambda = NULL,
   cores = 1,
   PathSGResult = ".",
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -65,7 +65,7 @@ Default is current directory (".").}
 
 \item{verbose}{Logical indicating whether to show warnings and messages.
 If FALSE, warnings from internal functions (e.g., makeTxDbFromGRanges)
-will be suppressed. Default is TRUE.}
+will be suppressed. Default is FALSE}
 }
 \value{
 Invisibly returns NULL. Results are saved to files in PathSGResult.

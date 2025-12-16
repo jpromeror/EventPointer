@@ -2456,67 +2456,8 @@ getCountMatrix <- function(Result, modeFill = "FPKM"){
   return(CountMatrix)
 }
 
-#' @rdname InternalFunctions
-getPSI_RNASeq_boot<- function(Result, lambda = NULL, cores=1, nboot=20){
-  if (is.null(lambda)) {
-    lambda <- 0.1
-  }
-  # print(lambda)
-  FCountMatrix <- getCountMatrix(Result)
-  CountMatrix <- getCountMatrix(Result, modeFill = "Counts")
-  
-  # library(aroma.light) # Now imported via @importFrom in EventsDetection_BAM.R
-  leq <- CountMatrix/FCountMatrix 
-  Prueba <- medianPolish(log(leq), na.rm = T)
-  l1eq <- exp(Prueba$overall + Prueba$row[c(T,F,F)])
-  l2eq <- exp(Prueba$overall + Prueba$row[c(F,T,F)])
-  lReq <- exp(Prueba$overall + Prueba$row[c(F,F,T)])
-  
-  l1eq[is.na(l1eq)] <- 1
-  l2eq[is.na(l2eq)] <- 1
-  lReq[is.na(lReq)] <- 1
-  
-  # nboot <- 20
-  
-  # PSI <- estimatePSI(CountMatrix, l1eq, l2eq, lReq, lambda = NULL, refine = F)
-  cl <- makePSOCKcluster(cores) #not to overload your computer
-  # registerDoParallel(cl)
-  rowCounts <- seq_len(nrow(CountMatrix)/3)
-  rowProcess <- split(rowCounts, ceiling(rowCounts/as.integer(length(rowCounts)/cores)))
-  PSI_boot <- array(NA, c(ncol(CountMatrix), nrow(CountMatrix)/3, nboot))
-  # PSI_boot <- calcBootstrapPSI(rowProcess = rowCounts,
-  #                  PSI_boot=PSI_boot, 
-  #                   CountMatrix = CountMatrix,
-  #                   l1eq = l1eq,
-  #                   l2eq = l2eq,
-  #                   lReq = lReq,
-  #                   lambda = lambda,
-  #                   refine = F,
-  #                   nboot = nboot)
-  # resCalcPSI <- foreach(i = 1:length(rowProcess)) %dopar% {
-  #   calcBootstrapPSI(rowProcess[[i]], PSI_boot, CountMatrix, l1eq, l2eq, lReq, lambda, refine, nboot)
-  # }
-  resCalcPSI <- clusterApplyLB(cl = cl, x = rowProcess, fun = calcBootstrapPSI,
-                               PSI_boot=PSI_boot,
-                               CountMatrix = CountMatrix,
-                               l1eq = l1eq,
-                               l2eq = l2eq,
-                               lReq = lReq,
-                               lambda = lambda,
-                               nboot = nboot)
-  stopCluster(cl)
-  closeAllConnections()
-  gc()
-  for (i in c(1:length(resCalcPSI))) {
-    minRow <- min(rowProcess[[i]])
-    maxRow <- max(rowProcess[[i]])
-    PSI_boot[, c(minRow:maxRow),] <-  resCalcPSI[[i]][, c(minRow:maxRow),]
-  }
-  PSI_boot <- aperm(PSI_boot,c(2,3,1))
-  PSI <- estimatePSI(CountMatrix, l1eq, l2eq, lReq, lambda = lambda)
-  PSI_boot <- abind(PSI, PSI_boot, along = 2)
-  return(PSI_boot)
-}
+
+
 #' @rdname InternalFunctions
 estimateAbsoluteConc_boot <- function (Signal1, Signal2, SignalR, lambda = NULL,
                                        l1=1, l2=1, lR=1)
@@ -3184,7 +3125,7 @@ SG_Info <- function(SG_Gene) {
     
     iijj <- match(rownames(Incidence), rownames(Adjacency))
     Adjacency <- Adjacency[iijj, iijj]
-    Adjacency <- as(Adjacency, "dgTMatrix")
+    Adjacency <- as(Adjacency, "TsparseMatrix")
     
     # Return All Information
     

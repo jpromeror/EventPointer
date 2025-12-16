@@ -52,6 +52,9 @@ Protein_Domain_Enrichment <- function(PathsxTranscript,TxD,Diff_PSI,method="spea
     stop("Diff_PSI field is empty")
   }
   
+  if(is.na(ncol(Diff_PSI))){
+    Diff_PSI = data.frame(Diff_PSI)
+  }
   
   
   transcriptnames <- PathsxTranscript$transcritnames
@@ -70,6 +73,7 @@ Protein_Domain_Enrichment <- function(PathsxTranscript,TxD,Diff_PSI,method="spea
   eventsxpfam_path1 <- ExTP1 %*% TxD
   eventsxpfam_path2 <- ExTP2 %*% TxD
   
+  
   #every transcript of the event must have the protein domain
   numbtrans_path1 <- rowSums(ExTP1)
   numbtrans_path2 <- rowSums(ExTP2)
@@ -82,6 +86,8 @@ Protein_Domain_Enrichment <- function(PathsxTranscript,TxD,Diff_PSI,method="spea
   eventsxpfam_path2@x <- (eventsxpfam_path2@x==1)*1
   eventsxpfam_path2 <- drop0(eventsxpfam_path2)
   
+  rownames(eventsxpfam_path1) = rownames(ExTP1)
+  rownames(eventsxpfam_path2) = rownames(ExTP2)
   
   FinalExPF <- eventsxpfam_path1 - eventsxpfam_path2
   #FinalExPF == 1: Domain that win the path 1

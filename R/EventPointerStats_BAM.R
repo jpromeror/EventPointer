@@ -76,17 +76,17 @@ EventPointerStats_BAM <- function(PSI_boots,
   if (result == TRUE){
     UseBootstrap <- T
     resBootstrap <- EventPointer_Bootstraps(PSI=PSI_boots, Design=Design,
-                                            Contrast=Contrast,nBootstraps=nbootstraps,
+                                            Contrast=Contrast,nbootstraps=nbootstraps,
                                             UsePseudoAligBootstrap =T,
                                             Threshold =Threshold,
                                             cores=cores, ram=ram)
     pathResultBootstrap <- paste0(pathResult, "bootstrapResult/")
-    dir.create(pathResultBootstrap)
+    dir.create(pathResultBootstrap,showWarnings = FALSE)
     for (coef in c(1:dim(resBootstrap$Pvalues)[2])){
       tableRes <- ResulTable(resBootstrap, coef = coef)
       write.csv(tableRes,file = paste0(pathResultBootstrap,"ResBootstrapContrast",coef,".csv"))
     }
-
+    return(resBootstrap)
   }
   
   

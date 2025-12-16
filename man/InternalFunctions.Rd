@@ -21,7 +21,6 @@
 \alias{GetIGVPaths}
 \alias{getPSI}
 \alias{getPSI_RNASeq}
-\alias{getPSI_RNASeq_boot}
 \alias{estimateAbsoluteConc_boot}
 \alias{estimatePSI}
 \alias{calcBootstrapPSI}
@@ -183,8 +182,6 @@ GetIGVPaths(EventInfo, SG_Edges)
 getPSI(ExFit, lambda = 0.1)
 
 getPSI_RNASeq(Result, lambda = 0.1)
-
-getPSI_RNASeq_boot(Result, lambda = NULL, cores = 1, nboot = 20)
 
 estimateAbsoluteConc_boot(
   Signal1,

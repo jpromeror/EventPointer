@@ -70,10 +70,10 @@ EventDetection_transcriptome <- function(inputFile = NULL,
                                          Pathtxt = NULL,
                                          cores = 1){
   if (is.null(inputFile)) {
-    stop("not PathTranscriptomeGTF")
+    stop("not inputFile")
   }
   if (is.null(Pathtxt)) {
-    stop("not PathEventsGTFResults")
+    stop("not Pathtxt")
   }
   
   cat("Creating SG Information...")

@@ -7,5 +7,13 @@
 .DS_Store
 src/*.dll
 src/*.o
+src/*.so
 EP_Cesar
 inst/extdata/bams/refseq_hg19.formatted.gtf
+bamInfoSamples.txt
+reportCount.txt
+reportPrediction.txt
+vignettes/bamInfoSamples.txt
+vignettes/paths_RNASeq.txt
+vignettes/reportPrediction.txt
+vignettes/paths_RNASeq.gtf
