@@ -34,7 +34,7 @@
 #'     \item TotalEventsFound.csv: General data for total events detected in CSV format.
 #'     \item EventsDetection_EPBAM.RData: Raw data per event, paths of splicing graph and counts.
 #'     \item SgFC.RData: Contains the splicing graph in RData format.
-#'     \item PSI_boots.RData: $\Psi$ per event and sample in RData format.
+#'     \item PSI_boots.RData: \eqn{\Psi} per event and sample in RData format.
 #'   }
 #'   Default is current directory (".").
 #' @param verbose Logical indicating whether to show warnings and messages.

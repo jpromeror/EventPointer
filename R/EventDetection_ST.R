@@ -22,7 +22,7 @@
 #' @param PathEventsGTFResults Path where results will be saved. Default is
 #'   current directory ("."). The following files are obtained:
 #'      EventsTranscriptome.RData: Detected events data in RData format.
-#'      PSI_ST.RData: $\Psi$ per event and sample in RData format.
+#'      PSI_ST.RData: \eqn{\Psi} per event and sample in RData format.
 #'
 #' @return A list containing PSI (Percent Spliced In) values and associated
 #'   statistics for detected splicing events across samples.

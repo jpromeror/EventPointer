@@ -5,6 +5,7 @@
 .Rproj
 .Rbuildignore
 .DS_Store
+inst/.DS_Store
 src/*.dll
 src/*.o
 src/*.so
@@ -17,3 +18,5 @@ vignettes/bamInfoSamples.txt
 vignettes/paths_RNASeq.txt
 vignettes/reportPrediction.txt
 vignettes/paths_RNASeq.gtf
+compare_files.ps1
+compare_next.ps1

@@ -20,8 +20,8 @@
 #' @param ram Numeric. Amount of RAM (in GB) to use for computations. Default is 0.1.
 #' @param pathResult Path where results will be saved. A subdirectory
 #'   "EventPointerStatsResult" will be created containing a table with the results
-#'   of the differential $\Psi$ analysis for each contrast. The table presents
-#'   the $\Delta \Psi$ associated with each event and its corresponding significance
+#'   of the differential \eqn{\Psi} analysis for each contrast. The table presents
+#'   the \eqn{\Delta \Psi} associated with each event and its corresponding significance
 #'   parameters. Note that a separate table will be generated for each contrast
 #'   specified in the contrast matrix. Default is current directory ("./").
 #'
