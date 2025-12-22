@@ -3,25 +3,17 @@ test_EventDetection_transcriptome <- function() {
   
   #if there is not input file
   obs <- tryCatch(EventDetection_transcriptome(inputFile = NULL,
-                                               Transcriptome = "text",
                                                Pathtxt="path"), error=conditionMessage)
   
   checkIdentical("not inputFile", obs)
   
   
   
-  #if there is not a Transcriptome reference
-  obs <- tryCatch(EventDetection_transcriptome(inputFile = "text",
-                                               Transcriptome = NULL,
-                                               Pathtxt="path"), error=conditionMessage)
-  
-  checkIdentical("not Transcriptome", obs)
   
   
   
   #if there is not a path for the .txt file
   obs <- tryCatch(EventDetection_transcriptome(inputFile = "text",
-                                               Transcriptome = "text",
                                                Pathtxt=NULL), error=conditionMessage)
   
   checkIdentical("not Pathtxt", obs)

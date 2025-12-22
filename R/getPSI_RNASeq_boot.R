@@ -58,10 +58,10 @@ getPSI_RNASeq_boot<- function(Result, lambda = NULL, cores=1, nboot=20){
   
   # library(aroma.light) # Now imported via @importFrom in EventsDetection_BAM.R
   leq <- CountMatrix/FCountMatrix 
-  Prueba <- medianPolish(log(leq), na.rm = T)
-  l1eq <- exp(Prueba$overall + Prueba$row[c(T,F,F)])
-  l2eq <- exp(Prueba$overall + Prueba$row[c(F,T,F)])
-  lReq <- exp(Prueba$overall + Prueba$row[c(F,F,T)])
+  Prueba <- medianPolish(log(leq), na.rm = TRUE)
+  l1eq <- exp(Prueba$overall + Prueba$row[c(TRUE,FALSE,FALSE)])
+  l2eq <- exp(Prueba$overall + Prueba$row[c(FALSE,TRUE,FALSE)])
+  lReq <- exp(Prueba$overall + Prueba$row[c(FALSE,FALSE,TRUE)])
   
   l1eq[is.na(l1eq)] <- 1
   l2eq[is.na(l2eq)] <- 1

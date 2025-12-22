@@ -5,7 +5,7 @@ test_EventPointer_Bootstraps <- function() {
                                           Contrast = "",
                                           cores = "",
                                           ram = "",
-                                          nBootstraps = "",
+                                          nbootstraps = "",
                                           UsePseudoAligBootstrap = "",
                                           Threshold = ""), error=conditionMessage)
   
@@ -17,7 +17,7 @@ test_EventPointer_Bootstraps <- function() {
                                           Contrast = "",
                                           cores = "",
                                           ram = "",
-                                          nBootstraps = "",
+                                          nbootstraps = "",
                                           UsePseudoAligBootstrap = "",
                                           Threshold = ""), error=conditionMessage)
   
@@ -32,7 +32,7 @@ test_EventPointer_Bootstraps <- function() {
                                           Contrast = NULL,
                                           cores = "",
                                           ram = "",
-                                          nBootstraps = "",
+                                          nbootstraps = "",
                                           UsePseudoAligBootstrap = "",
                                           Threshold = ""), error=conditionMessage)
   

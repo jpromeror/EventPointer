@@ -32,7 +32,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' 
 #' data(PSI_boots)
 #'
 #' Design <- cbind(rep(1, 9), rep(c(1, 0, 0), 3), rep(c(0, 1, 0), 3))
@@ -50,7 +50,7 @@
 #'   ram = 0.1,
 #'   pathResult = PathSGResult
 #' )
-#' }
+#' 
 EventPointerStats_BAM <- function(PSI_boots,
                                   Design,
                                   Contrast,
@@ -74,10 +74,10 @@ EventPointerStats_BAM <- function(PSI_boots,
   
   result <- checkContrastDesignMatrices(Contrast, Design)
   if (result == TRUE){
-    UseBootstrap <- T
+    UseBootstrap <- TRUE
     resBootstrap <- EventPointer_Bootstraps(PSI=PSI_boots, Design=Design,
                                             Contrast=Contrast,nbootstraps=nbootstraps,
-                                            UsePseudoAligBootstrap =T,
+                                            UsePseudoAligBootstrap =TRUE,
                                             Threshold =Threshold,
                                             cores=cores, ram=ram)
     pathResultBootstrap <- paste0(pathResult, "bootstrapResult/")

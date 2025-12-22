@@ -1,5 +1,5 @@
-#' @noRd
-NULL
+
+
 
 # ep_st_wf.R ################
 #' @rdname InternalFunctions
@@ -19,7 +19,7 @@ voomEventPointerST <- function(PSI,Design,Contrast){
                               function(y) colMeans2(y)[3]))
   
   # Remove some values
-  dummy <- (rowSds(PSI_boots[,1,],useNames =T)<1e-6)
+  dummy <- (rowSds(PSI_boots[,1,],useNames =TRUE)<1e-6)
   dummy[is.na(dummy)] <- TRUE
   Quitar <- dummy
   
@@ -49,7 +49,7 @@ voomEventPointerST <- function(PSI,Design,Contrast){
   # We will try to apply voom to these data.
   # Remove NAs for the time being
   
-  modelo <- voom2(PSI_changed, Design, plot=F, span=.1)
+  modelo <- voom2(PSI_changed, Design, plot=FALSE, span=.1)
   fit <- suppressWarnings(lmFit(modelo, Design, method="robust"))
   fit <- contrasts.fit(fit, Contrast)
   fit <- suppressWarnings(eBayes(fit, robust=TRUE,proportion = .1))
@@ -81,7 +81,7 @@ voomEventPointerBAM <- function(PSI_boots,Events,Design,Contrast){
                              function(y) sapply(y, function(x) rowMeans2(x$Counts)[2])))
   
   # Remove some values
-  dummy <- (rowSds(PSI_boots[,1,],useNames =T )<1e-6)
+  dummy <- (rowSds(PSI_boots[,1,],useNames =TRUE )<1e-6)
   dummy[is.na(dummy)] <- TRUE
   Quitar <- dummy
   
@@ -111,7 +111,7 @@ voomEventPointerBAM <- function(PSI_boots,Events,Design,Contrast){
   # We will try to apply voom to these data.
   # Remove NAs for the time being
   
-  modelo <- voom2(PSI_changed, Design, plot=F, span=.1)
+  modelo <- voom2(PSI_changed, Design, plot=FALSE, span=.1)
   fit <- suppressWarnings(lmFit(modelo, Design, method="robust"))
   fit <- contrasts.fit(fit, Contrast)
   fit <- suppressWarnings(eBayes(fit, robust=TRUE,proportion = .1))
@@ -129,7 +129,7 @@ voomEventPointerBAM <- function(PSI_boots,Events,Design,Contrast){
 #' @rdname InternalFunctions
 voom2 <- function (counts, design = NULL, lib.size = NULL, normalize.method = "none",
                    block = NULL, correlation = NULL, weights = NULL, span = 0.5,
-                   plot = FALSE, save.plot = FALSE, keepMax=T){
+                   plot = FALSE, save.plot = FALSE, keepMax=TRUE){
   out <- list()
   if (is(counts, "DGEList")) {
     out$genes <- counts$genes
@@ -1213,9 +1213,9 @@ readGapPair <- function(file, paired_end, which, sample_name, verbose)
   }
   
   flag <- scanBamFlag(isSecondaryAlignment = FALSE,
-                      isPaired = T, isProperPair = T, 
-                      isUnmappedQuery = F,
-                      isNotPassingQualityControls=F)
+                      isPaired = TRUE, isProperPair = TRUE, 
+                      isUnmappedQuery = FALSE,
+                      isNotPassingQualityControls=FALSE)
   param <- ScanBamParam(flag = flag, tag = "XS", which = which)
   if (paired_end) {
     gap <- suppressWarnings(readGAlignmentPairs(file = file,param = param)) 
@@ -1568,14 +1568,14 @@ constructGRangesFromRanges <- function(x, seqname, strand, seqinfo)
 AnnEventsFunc <- function(EventsDetection_pred, EventsDetection_ann, cores){
   
   registerDoParallel(cores=cores)
-  listEventsPred <- foreach(event=unlist(EventsDetection_pred, recursive = F), .packages = 'GenomicRanges') %dopar% {
+  listEventsPred <- foreach(event=unlist(EventsDetection_pred, recursive = FALSE), .packages = 'GenomicRanges') %dopar% {
     P1 <- GRanges(event$P1)
     P2 <- GRanges(event$P2)
     Ref <- GRanges(event$Ref)
     GRangesList(c(P1,P2,Ref))[[1]]
   }
   listEventsPred <- GRangesList(listEventsPred)
-  listEventsAnn <- foreach(event=unlist(EventsDetection_ann, recursive = F), .packages = 'GenomicRanges') %dopar% {
+  listEventsAnn <- foreach(event=unlist(EventsDetection_ann, recursive = FALSE), .packages = 'GenomicRanges') %dopar% {
     P1 <- GRanges(event$P1)
     P2 <- GRanges(event$P2)
     Ref <- GRanges(event$Ref)

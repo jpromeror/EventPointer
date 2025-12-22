@@ -1,13 +1,11 @@
-#' EventPointer Internal Functions
+#' @title EventPointer Internal Functions
 #'
-#' Internal functions used by EventPointer in the different
-#' steps of the algorithm
+#' @description Internal functions used by EventPointer
+#'  in the different steps of the algorithm
 #'
 #' @keywords internal
 #' @name InternalFunctions
 #' @return Internal outputs
-#' @noRd
-#'
 #'
 NULL
 
@@ -1078,6 +1076,7 @@ AnnotateEvents_KLL <- function(Events, Gxx,
     }
 }
 
+#' @rdname InternalFunctions
 reClassificationIntern <- function(SG, Event){
   
   generaldata <- getgeneraldata(SG,Event,2000)
@@ -1901,6 +1900,7 @@ getPathCountsMP <- function(x, readsC, widthinit) {
     return(x)
 }
 
+#' @rdname InternalFunctions
 getPathFPKMsMP <- function(x, readsC, widthinit) {
     command <- "reads <- rbind(colSums(readsC[x$P1$featureID,,drop = FALSE]),"
     for (i in 2:(x$NumP + 1)) {
@@ -2287,6 +2287,7 @@ getPSI <- function(ExFit, lambda = 0.1) {
     return(list(PSI = PSI, Residuals = Residuals))
 }
 
+#' @rdname InternalFunctions
 getPSImultipath <- function(ExFit, lambda = 0.1) {
     
     # EventNames <- rownames(ExFit)
@@ -2411,6 +2412,7 @@ getPSI_RNASeq <- function(Result, lambda = 0.1) {
     
     return(list(PSI = PSI, Residuals = Residuals))
 }
+#' @rdname InternalFunctions
 getCountMatrix <- function(Result, modeFill = "FPKM"){
   CountMatrix <- vector("list", length = length(Result))
   Vec <- c()
@@ -2488,7 +2490,7 @@ estimateAbsoluteConc_boot <- function (Signal1, Signal2, SignalR, lambda = NULL,
   v <- resultado$x[2]
   T1est <- Signal1 * u
   T2est <- Signal2 * v
-  if(F) {
+  if(FALSE) {
     Signals <- rbind(Signal1, Signal2, SignalR)
     w <- 1/sqrt(.1+rowMeans(Signals))
     # w <- c(1,1,1)
@@ -7987,7 +7989,7 @@ Wilcoxon.z.matrix <- function(ExprT, GeneGO,
   
   # require(matrixStats)
   # Transp_ENSTxGO <- Matrix::t(GeneGO)
-  RExprT <- rowRanks(ExprT, preserveShape = T)
+  RExprT <- rowRanks(ExprT, preserveShape = TRUE)
   
   Prod <- t(RExprT %*% GeneGO)
   
