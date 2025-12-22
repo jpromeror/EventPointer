@@ -2572,7 +2572,7 @@ estimatePSI <- function(CountMatrix, l1eq, l2eq, lReq, lambda = NULL) {
     PSI[n, ] <- psi
   }
   # Names of the events
-  name <- rownames(CountMatrix[c(T,F,F), ])
+  name <- rownames(CountMatrix[c(TRUE,FALSE,FALSE), ])
   rownames(PSI) <- str_sub(name,1,nchar(name)-3)
   return(PSI)
 }
@@ -7939,7 +7939,7 @@ GseaApproach <- function(P_value_PSI,ExS, significance, resPred, PSI_table=NULL)
       ranks <- 1-P_value_PSI[nmTopEv,cSel]
       for(k in 1:5){
         fgseaRes <- try(fgsea(pathways = listRes,stats    = ranks,minSize=0),silent = TRUE)
-        if(class(fgseaRes)=="try-error"){
+        if(is(fgseaRes,"try-error")){
           gc()
           cat("\014")
           cat(k,"\n")

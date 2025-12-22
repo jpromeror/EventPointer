@@ -20,3 +20,4 @@ vignettes/reportPrediction.txt
 vignettes/paths_RNASeq.gtf
 compare_files.ps1
 compare_next.ps1
+EventPointer.BiocCheck

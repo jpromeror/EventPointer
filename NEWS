@@ -18,5 +18,11 @@ Changes in Version 1.0
  + New pipeline for RNA-Seq based on quantification using a reference transcriptome
  + Multi-path events detection
  	o Events with more than two alternative paths are detected
+
+Changes in Version 4.0
+--------------------
++ Update version of EventPoint to work with BAM files
++ Use of bootstrap statistics in novel events
++ Update of vignette
   	
  

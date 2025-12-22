@@ -809,7 +809,7 @@ findOverlapsRanges <- function(query, subject, type = "any", out = "list")
 
 #' @rdname InternalFunctions
 modFindOverlap <- function(query_unlisted,subject_unlisted,subject_togroup,lenQuery, lenSubject, out){
-  library(data.table)
+  
   
   df <- cbind(start(subject_unlisted), end(subject_unlisted))
   options(digits=12)
@@ -1566,7 +1566,7 @@ constructGRangesFromRanges <- function(x, seqname, strand, seqinfo)
 
 #' @rdname InternalFunctions
 AnnEventsFunc <- function(EventsDetection_pred, EventsDetection_ann, cores){
-  library(doParallel)
+  
   registerDoParallel(cores=cores)
   listEventsPred <- foreach(event=unlist(EventsDetection_pred, recursive = F), .packages = 'GenomicRanges') %dopar% {
     P1 <- GRanges(event$P1)
@@ -1594,9 +1594,9 @@ AnnEventsFunc <- function(EventsDetection_pred, EventsDetection_ann, cores){
     for(posEvent in c(1:length(EventsDetection_pred[[gene]]))){
       event <- EventsDetection_pred[[gene]][[posEvent]]
       if(countEvent %in% fso@from){
-        event$Info$Ann <- T
+        event$Info$Ann <- TRUE
       } else{
-        event$Info$Ann <- F
+        event$Info$Ann <- FALSE
       }
       EventsDetection_pred[[gene]][[posEvent]] <- event
       countEvent <- countEvent+1 
