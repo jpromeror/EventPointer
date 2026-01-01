@@ -32,7 +32,7 @@
 #'                                     Contrast = Cmatrix,
 #'                                     cores = 1,
 #'                                     ram = 1,
-#'                                     nBootstraps = 10,
+#'                                     nbootstraps = 10,
 #'                                     UsePseudoAligBootstrap = TRUE)
 #'      
 #'      ResulTable(EP_Result = Fit,coef = 1,number = 5)
