@@ -54,7 +54,7 @@ differential splicing events between conditions. Uses bootstrap resampling
 for robust statistical inference.
 }
 \examples{
-\dontrun{
+
 data(PSI_boots)
 
 Design <- cbind(rep(1, 9), rep(c(1, 0, 0), 3), rep(c(0, 1, 0), 3))
@@ -72,5 +72,5 @@ EventPointerStats_BAM(
   ram = 0.1,
   pathResult = PathSGResult
 )
-}
+
 }
