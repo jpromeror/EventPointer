@@ -4790,7 +4790,7 @@ ProbesSequence <- function(SG,FinalSeq,generaldata,Dir
 
 
 #' @rdname InternalFunctions
-sort.exons <- function(namesPath, decreasing = FALSE)
+sort_exons <- function(namesPath, decreasing = FALSE)
   {
   Indices <- order(as.numeric(unlist(strsplit(namesPath,".", fixed=TRUE))[c(TRUE,FALSE)]),
                    decreasing = decreasing)
@@ -5089,19 +5089,19 @@ findPotencialExons <- function(D, namesPath,
   longExons <- names(which(exonLengths > minexonlength))
   fullsignalExons <- getExonsFullSignal(namesPath, SG)
   
-  Reverse <- names(which(D[sort.exons(namesPath,decreasing = TRUE)[1],]<maxLength))
+  Reverse <- names(which(D[sort_exons(namesPath,decreasing = TRUE)[1],]<maxLength))
   Reverse <- union(fullExons(namesPath), Reverse)
   Reverse <- union(Reverse,includeaexons(Reverse))
   Reverse <- intersect(Reverse, longExons)
   Reverse <- intersect(Reverse, fullsignalExons)
-  Reverse <- sort.exons(unique(Reverse))
+  Reverse <- sort_exons(unique(Reverse))
   
-  Forward <- names(which(D[,sort.exons(namesPath)[1]]<maxLength))
+  Forward <- names(which(D[,sort_exons(namesPath)[1]]<maxLength))
   Forward <- union(Forward,includeaexons(Forward))
   Forward <- union(fullExons(namesPath), Forward)
   Forward <- intersect(Forward, longExons)
   Forward <- intersect(Forward, fullsignalExons)
-  Forward <- sort.exons(unique(Forward))
+  Forward <- sort_exons(unique(Forward))
   
   return(list(Reverse=Reverse, Forward = Forward))
 }

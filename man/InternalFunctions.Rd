@@ -55,7 +55,7 @@
 \alias{PrimerSequenceGeneral}
 \alias{PrimerSequenceTwo}
 \alias{ProbesSequence}
-\alias{sort.exons}
+\alias{sort_exons}
 \alias{all_simple_paths2}
 \alias{callPrimer3}
 \alias{callPrimer3probes}
@@ -105,9 +105,6 @@
 \alias{MatrixRes}
 \alias{myphyper}
 \alias{reclasify_intern}
-\alias{voomEventPointerST}
-\alias{voomEventPointerBAM}
-\alias{voom2}
 \alias{sampleWhichCount}
 \alias{listCHRFileCount}
 \alias{getSGFeatureCounts}
@@ -317,7 +314,7 @@ ProbesSequence(
   mygenomesequence
 )
 
-sort.exons(namesPath, decreasing = FALSE)
+sort_exons(namesPath, decreasing = FALSE)
 
 all_simple_paths2(wg, from, to, ...)
 
@@ -634,24 +631,6 @@ MatrixRes(cSel, nSel, ExS, P_value_PSI, significance, N, nmTopEv)
 myphyper(p, m, n, k, lower.tail = TRUE, log.p = FALSE)
 
 reclasify_intern(SG, mievento, pp1, pp2, ppref)
-
-voomEventPointerST(PSI, Design, Contrast)
-
-voomEventPointerBAM(PSI_boots, Events, Design, Contrast)
-
-voom2(
-  counts,
-  design = NULL,
-  lib.size = NULL,
-  normalize.method = "none",
-  block = NULL,
-  correlation = NULL,
-  weights = NULL,
-  span = 0.5,
-  plot = FALSE,
-  save.plot = FALSE,
-  keepMax = TRUE
-)
 
 sampleWhichCount(sample_info, list_features)
 
