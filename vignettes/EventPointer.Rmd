@@ -474,7 +474,6 @@ Pathtxt <- tempdir()
 
 ```{r GTFfGTF_2, eval=FALSE, warning=FALSE, collapse=TRUE}
 # Run the function
-inputFile <- "/home/external_HDD/HDD_1/EventPointer/inst/extdata/gencode.v24.ann_2genes_prueba.gtf"
 EventXtrans <- EventDetection_transcriptome(inputFile = inputFile,
                                              Transcriptome = Transcriptome,
                                              Pathtxt=Pathtxt,
